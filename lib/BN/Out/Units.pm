@@ -101,7 +101,7 @@ sub unit_weapons {
       my $n;
       foreach my $attack (@attacks) {
          my $rank = $attack->rank();
-         my $r = 0;
+         my $r = 1;
          print_line($F, 'attack' . ++$n, '');
          print $F "{{$attackbox\n";
          print_line($F, 'name', $attack->name());
