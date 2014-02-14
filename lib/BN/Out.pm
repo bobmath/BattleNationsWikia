@@ -15,12 +15,15 @@ sub write {
 my %seen_files;
 
 sub filename {
-   my ($class, $file, $dir) = @_;
-   $file =~ s/[^\w\s\-.]//g;
-   $file =~ s/\s+/_/g;
-   $file =~ s/^[-.]/_/;
-   $file = '_' if $file eq '';
-   $file = "$dir/$file" if $dir;
+   my ($class, @path) = @_;
+   foreach my $file (@path) {
+      $file //= '_';
+      $file =~ s/[^\w\s\-.]//g;
+      $file =~ s/\s+/_/g;
+      $file =~ s/^[-.]/_/;
+      $file = '_' if $file eq '';
+   }
+   my $file = join('/', @path);
    my $num = ++$seen_files{$file};
    $file .= '-' . $num if $num > 1;
    return $file;

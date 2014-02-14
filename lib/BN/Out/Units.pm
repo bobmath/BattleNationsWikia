@@ -5,12 +5,18 @@ use Data::Dump qw( dump );
 
 sub write {
    mkdir 'units';
+   mkdir 'locked';
+   mkdir 'enemies';
    mkdir 'other';
 
    my %seen;
    foreach my $unit (BN::Unit->all()) {
-      my $dir = $unit->building() ? 'units' : 'other';
-      my $file = BN::Out->filename($unit->name(), $dir);
+      my $side = $unit->side() // '';
+      my $dir = $unit->building() ? 'units'
+         : $side eq 'Player' ? 'locked'
+         : $side eq 'Hostile' ? 'enemies'
+         : 'other';
+      my $file = BN::Out->filename($dir, $unit->name());
       print $file, "\n";
       open my $F, '>', $file or die "Can't write $file: $!";;
 

@@ -29,6 +29,7 @@ sub get {
 BN->simple_accessor('tag');
 BN->simple_accessor('name');
 BN->simple_accessor('building_level', 'buildingLevel');
+BN->simple_accessor('side', 'side');
 
 BN->accessor(shortname => sub {
    my ($unit) = @_;
