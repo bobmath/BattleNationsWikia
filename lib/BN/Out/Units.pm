@@ -56,16 +56,7 @@ sub unit_profile {
    print_line($F, 'blocking', $unit->blocking());
 
    my @notes;
-   my $accuracy = 0;
-   my $power = 0;
    if (my ($rank) = $unit->ranks()) {
-      $accuracy = $rank->accuracy() || 0;
-      $power = $rank->power() || 0;
-      print_line($F, 'hp', $rank->hp());
-      print_line($F, 'armor', $rank->armor() || undef);
-      print_line($F, 'defense', $rank->defense());
-      print_line($F, 'bravery', $rank->bravery());
-      print_line($F, 'dodge', $rank->dodge() || undef);
       if ($unit->max_armor()) {
          damage_mods($F, 'armor', $rank->armor_mods());
          if (my $type = $rank->armor_type()) {
@@ -73,26 +64,6 @@ sub unit_profile {
          }
       }
       damage_mods($F, 'base', $rank->damage_mods());
-   }
-
-   if (my ($weap) = $unit->weapons()) {
-      if (my ($attack) = $weap->attacks()) {
-         if (my $off = $attack->offense()) {
-            print_line($F, 'offense', $off + $accuracy);
-         }
-         if (my $type = $attack->dmgtype()) {
-            print_line($F, 'damage type', "{{$type}}");
-         }
-         if (my $min = $attack->mindmg()) {
-            print_line($F, 'mindmg', int($min * (1 + $power/50)));
-         }
-         if (my $max = $attack->maxdmg()) {
-            print_line($F, 'maxdmg', int($max * (1 + $power/50)));
-         }
-         print_line($F, 'numattacks', $attack->numattacks());
-         print_line($F, 'range', $attack->range());
-         print_line($F, 'line of fire', $attack->lof());
-      }
    }
 
    print_line($F, 'notes', join('<br>', @notes)) if @notes;
