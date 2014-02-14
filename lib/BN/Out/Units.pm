@@ -25,6 +25,8 @@ sub write {
       unit_ranks($F, $unit);
       unit_cost($F, $unit);
       print $F "\n", dump($unit), "\n";
+      close $F;
+      BN::Out->checksum($file);
    }
 }
 
