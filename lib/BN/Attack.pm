@@ -75,6 +75,7 @@ BN->accessor(numattacks => sub {
 BN->accessor(armorpiercing => sub {
    my ($att) = @_;
    my $ap = $att->{armorPiercingPercent} or return;
+   return if $ap < 0;
    return $ap * 100;
 });
 
