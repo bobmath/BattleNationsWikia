@@ -77,7 +77,8 @@ sub damage_mods {
    my ($F, $tag, $mods) = @_;
    foreach my $key (sort keys %$mods) {
       my $val = $mods->{$key};
-      print_line($F, join('_', $tag, lc($key), 'defense'), $val*100)
+      printf $F "| %-23s = %s\n",
+         join('_', $tag, lc($key), 'defense'), $val*100
          unless $val == 1;
    }
 }
