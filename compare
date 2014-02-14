@@ -43,10 +43,10 @@ my %remap = (
 my %templates = (
    buildcost         => 'buildcost',
    healcost          => 'healcost',
-   rank1unitinfobox  => '_profile',
-   staticunitinfobox => '_profile',
-   unitinfobox       => '_profile',
-   unitprofile       => '_profile',
+   rank1unitinfobox  => '00profile',
+   staticunitinfobox => '00profile',
+   unitinfobox       => '00profile',
+   unitprofile       => '00profile',
    unitranks9box     => 'unitranks',
    unitranksbox      => 'unitranks',
 );
