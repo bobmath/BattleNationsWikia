@@ -1,0 +1,66 @@
+#!/usr/bin/env perl
+# Download wikitext pages from battlenations.wikia.com
+use strict;
+use warnings;
+use LWP::UserAgent;
+use XML::Parser;
+
+my $ua = LWP::UserAgent->new();
+
+mkdir 'wiki';
+
+my %namemap;
+if (open my $MAP, '<', 'namemap') {
+   while (<$MAP>) {
+      /^\s*(.*?)\s*=\s*(.*?)\s*$/ or next;
+      $namemap{$1} = $2;
+   }
+}
+
+foreach my $file (glob "units/*") {
+   my $page = $namemap{$file};
+   unless ($page) {
+      open my $F, '<', $file or die "Can't read $file: $!";
+      chomp($page = <$F>);
+   }
+   get_page($page);
+}
+
+sub get_page {
+   my ($name) = @_;
+   $name =~ s/\s+/_/g;
+   my $file = $name;
+   $file =~ s/['"\/]//g;
+   $file =~ s/^\./_/;
+   $file = "wiki/$file";
+   return if -e $file;
+
+   print $name, "\n";
+   $name =~ s/(['"])/sprintf "%%%02X", ord($1)/eg;
+   my $resp = $ua->get(
+      "http://battlenations.wikia.com/wiki/Special:Export/$name");
+   die "$name get failed" unless $resp->is_success();
+   open my $OUT, '>:encoding(utf8)', $file
+      or die "Can't write $file: $!";
+
+   my $capture;
+   my $start = sub {
+      my ($expat, $tag) = @_;
+      $capture = 1 if $tag eq 'text';
+   };
+   my $end = sub {
+      $capture = 0 if $capture;
+   };
+   my $char = sub {
+      my ($expat, $text) = @_;
+      print $OUT $text if $capture;
+   };
+   my $p = XML::Parser->new(
+      Handlers => { Start=>$start, End=>$end, Char=>$char });
+   $p->parse($resp->content());
+
+   close $OUT;
+   die "$name data not found" unless defined $capture;
+   sleep 10;
+}
+
