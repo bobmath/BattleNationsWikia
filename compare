@@ -14,37 +14,20 @@ closedir $DIR;
 my $picky = 1;
 
 my %ignore;
-$ignore{$_} = 1 for (
-   'name',
-   'next',
-   'nextname',
-   'prev',
-   'prevname',
-   'targetbox-rows',
-);
-
-my %remap = (
-   'line of fire' => 'lof',
-   al       => 'animal trainer level',
-   bl       => 'barracks level',
-   btc      => 'bigfoot training level',
-   dmgtype  => 'damage type',
-   fl       => 'frontier recruit level',
-   gametag  => 'game file name',
-   mv       => 'mercenary vault level',
-   of       => 'optics facility level',
-   other_b  => 'other requirements',
-   rl       => 'raider training level',
-   ul       => 'unit level',
-   ut       => 'unit type',
-   vl       => 'vehicle factory level',
+$ignore{$_} = 1 for qw(
+   image
+   name
+   next
+   nextname
+   prev
+   prevname
+   targetbox-rows
+   weaponicon
 );
 
 my %templates = (
    buildcost         => 'buildcost',
    healcost          => 'healcost',
-   rank1unitinfobox  => '00profile',
-   staticunitinfobox => '00profile',
    unitinfobox       => '00profile',
    unitprofile       => '00profile',
    unitranks9box     => 'unitranks',
@@ -102,7 +85,6 @@ sub read_stat {
       if (/^\s*\|\s*(\w.*?)\s*=\s*(.*)/) {
          my $key = lc($1);
          my $val = $2;
-         $key = $remap{$key} if $remap{$key};
          $val =~ s{\s*(?:<br>\s*)*$}{} unless $picky;
          if ($tabber && $key eq 'name') {
             $sec = new_section($val, \%stat); # new attack (new style)
