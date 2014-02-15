@@ -32,10 +32,10 @@ sub calc_levels {
             my $type = $prereq->{type};
             foreach my $id (@{$prereq->{ids}}) {
                my $other = $type->get($id) or next;
-               my $olevel = $other->{_level};
-               $level = $olevel if defined($olevel) && $olevel < $level;
+               my $olevel = $other->{_level} // 0;
+               $level = $olevel if $olevel < $level;
             }
-            if ($level < 99 &&
+            if ($level < 99 && $level > 0 &&
                (!defined($obj->{_level}) || $level > $obj->{_level}))
             {
                $obj->{_level} = $level;
