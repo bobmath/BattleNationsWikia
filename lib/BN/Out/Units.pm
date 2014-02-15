@@ -162,15 +162,17 @@ sub unit_ranks {
       if $unit->max_armor();
    damage_mod_ranks($F, 'damagemod', map { $_->damage_mods() } @ranks);
 
-   if (my $max = $unit->total_attacks()) {
+   if ((my $max = $unit->total_attacks()) > 1) {
       my $n;
       foreach my $rank (@ranks) {
          my $slots = $rank->ability_slots() or next;
          $slots = $max if $slots > $max;
          print_line($F, 'ability' . ++$n, $slots);
       }
-      print_ranks_opt($F, 'crit', map { $_->crit() } @ranks);
    }
+
+   print_ranks_opt($F, 'crit', map { $_->crit() } @ranks)
+      if $unit->total_attacks();
 
    print_ranks($F, 'pc', undef, map { $_->cost() } @ranks1);
    print_ranks($F, 'uv', map { $_->uv() } @ranks);
