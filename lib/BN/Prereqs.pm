@@ -3,6 +3,15 @@ use strict;
 use warnings;
 
 sub calc_levels {
+   foreach my $unit (BN::Unit->all()) {
+      if (my $build = $unit->building()) {
+         push @{$unit->{z_prereqs}}, { type=>'BN::Building', ids=>[$build] };
+      }
+      elsif (my @mis = $unit->missions()) {
+         push @{$unit->{z_prereqs}}, { type=>'BN::Mission', ids=>\@mis };
+      }
+   }
+
    my @has_prereqs;
    foreach my $obj (BN::Unit->all(), BN::Building->all(), BN::Mission->all()) {
       $obj->{_level} = undef;

@@ -180,6 +180,25 @@ sub building {
    return $unit->{_building};
 }
 
+sub missions {
+   my ($unit) = @_;
+   if (!exists $unit->{_missions}) {
+      foreach my $u (BN::Unit->all()) {
+         $u->{_missions} = undef;
+      }
+      foreach my $mis (BN::Mission->all()) {
+         my $rewards = $mis->{rewards} or next;
+         my $units = $rewards->{units} or next;
+         foreach my $key (sort keys %$units) {
+            my $u = BN::Unit->get($key) or next;
+            push @{$u->{_missions}}, $mis->tag();
+         }
+      }
+   }
+   return unless $unit->{_missions};
+   return @{$unit->{_missions}};
+}
+
 BN->accessor(heal_building => sub {
    my ($unit) = @_;
    my $tags = $unit->{tags} or return;
