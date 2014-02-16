@@ -203,4 +203,13 @@ BN->list_accessor(levels => sub {
    return map { BN::BLevel->new($_, ++$n) } @$levels;
 });
 
+BN->accessor(gets_bonus => sub {
+   my ($build) = @_;
+   return if $build->{ResourceProducer};
+   my $buff = $build->{RadialModBuffable} or return;
+   my $tags = $buff->{tags} or return;
+   my @tags = grep { $_ ne 'all' } @$tags or return;
+   return join ', ', sort @tags;
+});
+
 1 # end BN::Building

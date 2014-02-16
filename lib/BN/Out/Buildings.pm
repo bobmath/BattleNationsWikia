@@ -46,6 +46,8 @@ sub building_summary {
    }
    print_line($F, 'unlocked', join(', ', @unlock)) if @unlock;
 
+   print_line($F, 'bonustype', $build->gets_bonus());
+
    print_line($F, 'dradius', $build->defense_radius());
    print_line($F, 'garrison', $build->garrison_size());
    print_line($F, 'repairtime', $build->repair_time());
