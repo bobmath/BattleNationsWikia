@@ -234,4 +234,11 @@ BN->multi_accessor('mission_req', 'unique' => sub {
    return ($mission, $unique);
 });
 
+BN->accessor(taxes => sub {
+   my ($build) = @_;
+   my $taxes = $build->{Taxes} or return;
+   return BN->flatten_amount(delete($taxes->{rewards}),
+      (delete($taxes->{paymentInterval})||0) * 60);
+});
+
 1 # end BN::Building

@@ -11,6 +11,8 @@ sub new {
 }
 
 BN->simple_accessor('level');
+BN->simple_accessor('output', 'output');
+BN->simple_accessor('xp_output', 'XPoutput');
 
 BN->accessor(cost => sub {
    my ($level) = @_;

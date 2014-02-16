@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use BN::Out;
 use Data::Dump qw( dump );
+use POSIX qw( ceil );
 
 sub write {
    mkdir 'buildings';
@@ -16,6 +17,7 @@ sub write {
       building_summary($F, $build);
       building_defense($F, $build);
       building_levels($F, $build);
+      orchard($F, $build);
 
       print $F "\n", dump($build), "\n";
       close $F;
@@ -125,8 +127,43 @@ sub building_levels {
    my ($F, $build) = @_;
    my @levels = $build->levels() or return;
    print $F "{{BuildingLevelBox\n";
+   level_tax($F, $build, \@levels);
    level_costs($F, $build, \@levels);
    print $F "}}\n\n";
+}
+
+sub level_tax {
+   my ($F, $build, $levels) = @_;
+   my $tax = $build->taxes() or return;
+   if (my $time = BN->format_time($tax->{time})) {
+      print_line($F, 'interval', "{{Time|$time}}");
+   }
+   if (my $gold = $tax->{gold}) {
+      print_line($F, 'collector', 'true');
+      print_line($F, 'resource', '{{Gold}}');
+      print_uv($F, $gold, $levels);
+   }
+   if (my $xp = $tax->{XP}) {
+      print_line($F, 'xphousing', 'true');
+      my $n;
+      foreach my $level (@$levels) {
+         ++$n;
+         my $output = $level->xp_output() or next;
+         my $val = ceil($xp * $output / 100);
+         print_line($F, 'xp' . $n, BN->commify($val));
+      }
+   }
+}
+
+sub print_uv {
+   my ($F, $val, $levels) = @_;
+   my $n;
+   foreach my $level (@$levels) {
+      ++$n;
+      my $output = $level->output() or next;
+      my $uv = ceil($val * $output / 100);
+      print_line($F, 'uv' . $n, BN->commify($uv));
+   }
 }
 
 sub level_costs {
@@ -151,6 +188,17 @@ sub level_costs {
          print_line($F, $name . ++$n, BN->$fmt($cost->{$key}));
       }
    }
+}
+
+sub orchard {
+   my ($F, $build) = @_;
+   return if $build->levels();
+   my $tax = $build->taxes() or return;
+   print $F "{{OrchardGoodsBox\n";
+   print_line($F, 'good1time', BN->format_time($tax->{time}));
+   print_line($F, 'good1xp', $tax->{XP});
+   print_line($F, 'good1gold', $tax->{gold});
+   print $F "}}\n\n";
 }
 
 sub print_line {
