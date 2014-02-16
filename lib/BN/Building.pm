@@ -115,29 +115,35 @@ BN->accessor(population_inactive => sub {
    return '-' . $work->{minWorkers};
 });
 
-BN->accessor(defense_radius => sub {
+sub defense {
+   my ($build) = @_;
+   my $defense = $build->{DefenseStructure} or return;
+   return $defense->{unitId};
+}
+
+sub defense_radius {
    my ($build) = @_;
    my $defense = $build->{DefenseStructure} || $build->{Garrison} or return;
    return $defense->{radius};
-});
+}
 
-BN->accessor(repair_time => sub {
+sub repair_time {
    my ($build) = @_;
    my $defense = $build->{DefenseStructure} or return;
    return BN->format_time($defense->{repairTime});
-});
+}
 
-BN->accessor(garrison_size => sub {
+sub garrison_size {
    my ($build) = @_;
    my $garrison = $build->{Garrison} or return;
    return $garrison->{unitCount};
-});
+}
 
-BN->accessor(size => sub {
+sub size {
    my ($build) = @_;
    my $place = $build->{Placeable} or return;
    return "$place->{width} x $place->{height}";
-});
+}
 
 BN->accessor(cost => sub {
    my ($build) = @_;
