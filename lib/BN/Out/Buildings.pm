@@ -97,32 +97,26 @@ sub building_defense {
    print_line($F, 'game file name', $unit->tag());
    print $F "}}\n\n";
 
-   my ($weap) = $unit->weapons() or return;
-   my ($attack) = $weap->attacks() or return;
-   print $F "{{UnitAttackBox\n";
-   print_line($F, 'attackname', $attack->name());
-   print_line($F, 'weapon', $weap->name());
-   print_line($F, 'offense', $attack->offense());
-
-   if (my $type = $attack->dmgtype()) {
-      my $min = $attack->mindmg();
-      my $max = $attack->maxdmg();
-      my $num = $attack->numattacks();
-      $max .= " (x$num)" if $num;
-      print_line($F, 'damage', "{{$type|$min-$max}}");
+   foreach my $weap ($unit->weapons()) {
+      foreach my $attack ($weap->attacks()) {
+         print $F "{{UnitAttackBox\n";
+         print_line($F, 'attackname', $attack->name());
+         print_line($F, 'weapon', $weap->name());
+         print_line($F, 'offense', $attack->offense());
+         print_line($F, 'damage', $attack->damage());
+         print_line($F, 'armorpiercing', $attack->armorpiercing());
+         print_line($F, 'crit', $attack->crit());
+         print_line($F, 'range', $attack->range());
+         print_line($F, 'lof', $attack->lof());
+         print_line($F, 'cooldown', $attack->cooldown());
+         print_line($F, 'ammo', $weap->ammo());
+         print_line($F, 'reload', $weap->reload());
+         print_line($F, 'effects', $attack->effects());
+         print_line($F, 'targets', $attack->targets());
+         print_line($F, 'game file name', $attack->tag());
+         print $F "}}\n\n";
+      }
    }
-
-   print_line($F, 'armorpiercing', $attack->armorpiercing());
-   print_line($F, 'crit', $attack->crit());
-   print_line($F, 'range', $attack->range());
-   print_line($F, 'lof', $attack->lof());
-   print_line($F, 'cooldown', $attack->cooldown());
-   print_line($F, 'ammo', $weap->ammo());
-   print_line($F, 'reload', $weap->reload());
-   print_line($F, 'effects', $attack->effects());
-   print_line($F, 'targets', $attack->targets());
-   print_line($F, 'game file name', $attack->tag());
-   print $F "}}\n\n";
 }
 
 sub building_levels {

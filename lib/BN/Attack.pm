@@ -150,6 +150,16 @@ BN->multi_accessor('mindmg', 'maxdmg', sub {
    return ($min, $max);
 });
 
+BN->accessor(damage => sub {
+   my ($att) = @_;
+   my $type = $att->dmgtype();
+   my $min = $att->mindmg();
+   my $max = $att->maxdmg();
+   my $num = $att->numattacks();
+   $max .= " (x$num)" if $num;
+   return $type ? "{{$type|$min-$max}}" : "$min-$max";
+});
+
 BN->accessor(offense => sub {
    my ($att) = @_;
    my $offense = $att->{attack} or return;
