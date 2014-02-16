@@ -212,4 +212,26 @@ BN->accessor(gets_bonus => sub {
    return join ', ', sort @tags;
 });
 
+BN->multi_accessor('mission_req', 'unique' => sub {
+   my ($build) = @_;
+   my $structure = $build->{StructureMenu} or return;
+   my $prereqs = $structure->{prereq} or return;
+   my ($mission, $unique);
+   foreach my $key (sort keys %$prereqs) {
+      my $prereq = $prereqs->{$key} or next;
+      my $t = $prereq->{_t} or next;
+      if ($t eq 'SingleEntityPrereqConfig') {
+         $unique = 1;
+      }
+      elsif ($t eq 'CompleteMissionPrereqConfig') {
+         $mission = $prereq->{missionId};
+      }
+      elsif ($t eq 'CompleteAnyMissionPrereqConfig') {
+         my $ids = $prereq->{missionIds} or next;
+         $mission = $ids->[0];
+      }
+   }
+   return ($mission, $unique);
+});
+
 1 # end BN::Building

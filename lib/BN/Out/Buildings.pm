@@ -44,6 +44,8 @@ sub building_summary {
    if (my $level = $build->level()) {
       push @unlock, "[[Levels#$level|Level $level]]";
    }
+   push @unlock, 'Mission' if $build->mission_req();
+   push @unlock, 'Unique' if $build->unique();
    print_line($F, 'unlocked', join(', ', @unlock)) if @unlock;
 
    print_line($F, 'bonustype', $build->gets_bonus());
