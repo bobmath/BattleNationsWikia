@@ -135,15 +135,21 @@ my %resource_templ = (
    z2points => 'Z2Points',
 );
 
+sub resource_template {
+   my ($class, $resource, $val) = @_;
+   return unless $resource;
+   my $name = $resource_templ{$resource} || ucfirst($resource);
+   return "{{$name}}" unless $val;
+   $val = $class->commify($val) unless $resource eq 'time';
+   return "{{$name|$val}}";
+}
+
 sub format_amount {
    my ($class, $cost, $time, $join) = @_;
    my $flat = $class->flatten_amount($cost, $time) or return;
-   return join $join || ' ', map {
-      my $name = $resource_templ{$_} || ucfirst($_);
-      my $val = $flat->{$_};
-      $val = $class->commify($val) unless $_ eq 'time';
-      "{{$name|$val}}"
-   } $class->sort_amount(keys %$flat);
+   return join $join || ' ',
+      map { $class->resource_template($_, $flat->{$_}) }
+      $class->sort_amount(keys %$flat);
 }
 
 sub commify {

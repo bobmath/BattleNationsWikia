@@ -128,6 +128,7 @@ sub building_levels {
    my @levels = $build->levels() or return;
    print $F "{{BuildingLevelBox\n";
    level_tax($F, $build, \@levels);
+   level_resource($F, $build, \@levels);
    level_costs($F, $build, \@levels);
    print $F "}}\n\n";
 }
@@ -153,6 +154,15 @@ sub level_tax {
          print_line($F, 'xp' . $n, BN->commify($val));
       }
    }
+}
+
+sub level_resource {
+   my ($F, $build, $levels) = @_;
+   my $rate = $build->resource_rate() or return;
+   print_line($F, 'collector', 'true');
+   print_line($F, 'interval', '{{Time|1h}}');
+   print_line($F, 'resource', BN->resource_template($build->resource_type()));
+   print_uv($F, $rate, $levels);
 }
 
 sub print_uv {

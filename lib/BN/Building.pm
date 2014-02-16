@@ -241,4 +241,16 @@ BN->accessor(taxes => sub {
       (delete($taxes->{paymentInterval})||0) * 60);
 });
 
+sub resource_rate {
+   my ($build) = @_;
+   my $resource = $build->{ResourceProducer} or return;
+   return $resource->{outputRate};
+}
+
+sub resource_type {
+   my ($build) = @_;
+   my $resource = $build->{ResourceProducer} or return;
+   return $resource->{outputType};
+}
+
 1 # end BN::Building
