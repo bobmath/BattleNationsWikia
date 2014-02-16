@@ -17,13 +17,15 @@ if (open my $MAP, '<', 'namemap') {
    }
 }
 
-foreach my $file (glob "units/*") {
-   my $page = $namemap{$file};
-   unless ($page) {
-      open my $F, '<', $file or die "Can't read $file: $!";
-      chomp($page = <$F>);
+foreach my $dir (qw{ units buildings }) {
+   foreach my $file (glob "$dir/*") {
+      my $page = $namemap{$file};
+      unless ($page) {
+         open my $F, '<', $file or die "Can't read $file: $!";
+         chomp($page = <$F>);
+      }
+      get_page($page);
    }
-   get_page($page);
 }
 
 sub get_page {

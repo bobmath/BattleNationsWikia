@@ -29,7 +29,7 @@ BN->simple_accessor('armor_type', 'armorDefStyle');
 BN->accessor(cost => sub {
    my ($rank) = @_;
    return BN->format_amount(delete($rank->{levelUpCost}),
-      $rank->{levelUpTime}, '<br>');
+      delete($rank->{levelUpTime}), '<br>');
 });
 
 BN->accessor(rewards => sub {

@@ -12,7 +12,6 @@ sub write {
    BN::Out::Units->write();
    BN::Out::Buildings->write();
    BN::Out::Missions->write();
-   BN::Out->show_diffs();
 }
 
 my %seen_files;

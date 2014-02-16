@@ -1,6 +1,7 @@
 package BN::Building;
 use strict;
 use warnings;
+use POSIX qw( ceil );
 
 my $buildings;
 my $json_file = 'Compositions.json';
@@ -85,5 +86,115 @@ sub build_menu {
 
    return $build->{_build_menu};
 }
+
+BN->accessor(build_type => sub {
+   my ($build) = @_;
+   return 'Healing' if $build->{Healing};
+   return 'Defense' if $build->{DefenseStructure} || $build->{Garrison};
+   return 'Bonus Decor' if $build->{RadialMod};
+   my $type = $build->build_menu() or return;
+   $type =~ s/s$//;
+   return $type;
+});
+
+BN->accessor(population => sub {
+   my ($build) = @_;
+   if (my $pop = $build->{PopulationCapacity}) {
+      return '+' . $pop->{contribution};
+   }
+   elsif (my $work = $build->{RequireWorkers}) {
+      return '-' . $work->{workers};
+   }
+   return;
+});
+
+BN->accessor(population_inactive => sub {
+   my ($build) = @_;
+   my $work = $build->{RequireWorkers} or return;
+   return unless $work->{canToggle};
+   return '-' . $work->{minWorkers};
+});
+
+BN->accessor(defense_radius => sub {
+   my ($build) = @_;
+   my $defense = $build->{DefenseStructure} || $build->{Garrison} or return;
+   return $defense->{radius};
+});
+
+BN->accessor(repair_time => sub {
+   my ($build) = @_;
+   my $defense = $build->{DefenseStructure} or return;
+   return BN->format_time($defense->{repairTime});
+});
+
+BN->accessor(garrison_size => sub {
+   my ($build) = @_;
+   my $garrison = $build->{Garrison} or return;
+   return $garrison->{unitCount};
+});
+
+BN->accessor(size => sub {
+   my ($build) = @_;
+   my $place = $build->{Placeable} or return;
+   return "$place->{width} x $place->{height}";
+});
+
+BN->accessor(cost => sub {
+   my ($build) = @_;
+   my $structure = $build->{StructureMenu};
+   my $construct = $build->{Construction};
+   return BN->flatten_amount(delete($structure->{cost}),
+      delete($construct->{buildTime}));
+});
+
+BN->accessor(assist_reward => sub {
+   my ($build) = @_;
+   my $assist = $build->{Assistance} or return;
+   return BN->flatten_amount(delete($assist->{rewards}));
+});
+
+BN->accessor(max_assists => sub {
+   my ($build) = @_;
+   my $assist = $build->{Assistance} or return;
+   return $assist->{interactionLimit};
+});
+
+BN->accessor(assist_bonus => sub {
+   my ($build) = @_;
+   my $assist = $build->{Assistance} or return;
+   my $action = $assist->{acceptanceAction} or return;
+   my $time = $action->{minutesAdded} or return;
+   return "{{Time|+${time}m}}";
+});
+
+BN->accessor(raid_reward => sub {
+   my ($build) = @_;
+   my $battle = $build->{BattleReward} or return;
+   return BN->flatten_amount(delete($battle->{rewards}));
+});
+
+BN->accessor(occupy_reward => sub {
+   my ($build) = @_;
+   my $raid = $build->raid_reward() or return;
+   my %occupy;
+   while (my ($key, $val) = each %$raid) {
+      $occupy{$key} = ceil($val * 3.8);
+   }
+   return \%occupy;
+});
+
+BN->accessor(sell_price => sub {
+   my ($build) = @_;
+   my $sell = $build->{Sellable} or return;
+   return BN->flatten_amount(delete($sell->{amount}));
+});
+
+BN->list_accessor(levels => sub {
+   my ($build) = @_;
+   my $upgrade = $build->{BuildingUpgrade} or return;
+   my $levels = delete($upgrade->{levels}) or return;
+   my $n;
+   return map { BN::BLevel->new($_, ++$n) } @$levels;
+});
 
 1 # end BN::Building

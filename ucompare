@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# Compare generated wikitext to what's on the wiki.
+# Compare generated wikitext for units to what's on the wiki.
 # Download pages with slurp script first.
 # This uses a very simplistic wikitext parser because I don't feel like
 # writing a real one. It mostly works for most of the current pages on

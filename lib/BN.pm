@@ -62,6 +62,7 @@ use BN::Weapon;
 use BN::Attack;
 use BN::Rank;
 use BN::Building;
+use BN::BLevel;
 use BN::Mission;
 use BN::Prereqs;
 
@@ -151,6 +152,20 @@ sub commify {
       1 while $val =~ s/(\d)(\d\d\d)\b/$1,$2/;
    }
    return $val;
+}
+
+sub format_time {
+   my ($class, $time) = @_;
+   return undef unless $time;
+   my @fmt;
+   if (my $sec = $time % 60) { unshift @fmt, $sec . 's' }
+   $time = int($time/60);
+   if (my $min = $time % 60) { unshift @fmt, $min . 'm' }
+   $time = int($time/60);
+   if (my $hr = $time % 24) { unshift @fmt, $hr . 'h' }
+   $time = int($time/24);
+   unshift @fmt, $time . 'd' if $time;
+   return join ' ', @fmt;
 }
 
 1 # end BN

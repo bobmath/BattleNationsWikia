@@ -5,4 +5,5 @@ use lib 'lib';
 use BN::Out;
 
 BN::Out->write();
+BN::Out->show_diffs();
 
