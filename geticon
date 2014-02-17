@@ -1,0 +1,39 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use Image::Size qw( imgsize );
+
+my $dir = '/Applications/BattleNations.app/Contents/Resources/bundle';
+
+die "usage: $0 icon_name\n" unless @ARGV == 1;
+my $file = shift;
+my @infiles = glob("$dir/$file*.png") or die "not found\n";
+my $infile = shift @infiles;
+
+if (@infiles) {
+   my $small_size = -s $infile;
+   foreach my $file (@infiles) {
+      my $size = -s $file;
+      if ($size < $small_size) {
+         $infile = $file;
+         $small_size = $size;
+      }
+   }
+}
+
+my $pngcrush = "pngcrush -new -brute -rem alla";
+
+my ($wid,$hgt) = imgsize($infile) or die;
+if ($wid <= 40 && $hgt <= 40) {
+   system("$pngcrush $infile $file.png") == 0 or die;
+}
+else {
+   system("pngtopam -alphapam $infile | pnmscale -xysize 40 40 | pamrgbatopng > $file-temp.png") == 0 or die;
+   system("$pngcrush $file-temp.png $file.png") == 0 or die;
+   unlink "$file-temp.png";
+}
+
+my $old_size = -s $infile;
+my $new_size = -s "$file.png";
+print "$infile ($old_size bytes) => $file.png ($new_size bytes)\n";
+

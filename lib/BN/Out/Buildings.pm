@@ -388,7 +388,7 @@ sub quest_goods {
       my $mname = $job->name();
       print_line($F, $g, "[[Missions#$mname|$name]]");
       if (my $icon = $job->icon()) {
-         print_line($F, $g.'image', "[[File:$icon.png|40px]]");
+         print_line($F, $g.'image', "[[File:$icon.png]]");
       }
       if (my $cost = $job->cost()) {
          print_line($F, $g.'time', BN->format_time($cost->{time}));
