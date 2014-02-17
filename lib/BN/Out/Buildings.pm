@@ -348,7 +348,6 @@ sub shop_goods {
          print_line($F, $g.'basereward', $rewards->{gold});
       }
    }
-   print_line($F, 'questgoods', 'true') if $build->quest_jobs();
    print $F "}}\n\n";
 }
 
@@ -378,24 +377,28 @@ sub mill_goods {
 
 sub quest_goods {
    my ($F, $build) = @_;
-   my $any;
-   foreach my $job ($build->quest_jobs()) {
-      $any = 1;
-      print $F "{{QuestGoodsBox\n";
+   my @jobs = $build->quest_jobs() or return;
+   print $F "{{QuestGoodsListBox\n";
+   my $n;
+   foreach my $job (@jobs) {
+      my $g = 'good' . ++$n;
+      my $name = $job->name();
       my ($id) = $job->missions() or die;
       my $mis = BN::Mission->get($id) or die;
-      print_line($F, 'questgood',
-         '[[Missions#' . $mis->name() . '|' . $job->name . ']]');
+      my $mname = $job->name();
+      print_line($F, $g, "[[Missions#$mname|$name]]");
+      if (my $icon = $job->icon()) {
+         print_line($F, $g.'image', "[[File:\u$icon.png|40px]]");
+      }
       if (my $cost = $job->cost()) {
-         print_line($F, 'questgoodtime', BN->format_time($cost->{time}));
-         print_line($F, 'questgoodcost',
+         print_line($F, $g.'time', BN->format_time($cost->{time}));
+         print_line($F, $g.'cost',
             BN->format_amount({%$cost, time=>0}, 0, ' &nbsp; '));
       }
-      print_line($F, 'questgoodreward',
+      print_line($F, $g.'reward',
          BN->format_amount($job->rewards(), 0, ' &nbsp; '));
-      print $F "}}\n";
    }
-   print $F "\n" if $any;
+   print $F "}}\n\n";
 }
 
 sub print_line {
