@@ -336,7 +336,9 @@ sub mill_goods {
 
 sub quest_goods {
    my ($F, $build) = @_;
+   my $any;
    foreach my $job ($build->quest_jobs()) {
+      $any = 1;
       print $F "{{QuestGoodsBox\n";
       my ($id) = $job->missions() or die;
       my $mis = BN::Mission->get($id) or die;
@@ -344,16 +346,19 @@ sub quest_goods {
          '[[Missions#' . $mis->name() . '|' . $job->name . ']]');
       if (my $cost = $job->cost()) {
          print_line($F, 'questgoodtime', BN->format_time($cost->{time}));
-         print_line($F, 'questgoodcost', BN->format_amount({%$cost,time=>0}));
+         print_line($F, 'questgoodcost',
+            BN->format_amount({%$cost, time=>0}, 0, ' &nbsp; '));
       }
-      print_line($F, 'questgoodreward', BN->format_amount($job->rewards()));
+      print_line($F, 'questgoodreward',
+         BN->format_amount($job->rewards(), 0, ' &nbsp; '));
       print $F "}}\n";
    }
+   print "\n" if $any;
 }
 
 sub print_line {
    my ($F, $tag, $val) = @_;
-   printf $F "| %-14s = %s\n", $tag, $val if defined $val;
+   printf $F "| %-15s = %s\n", $tag, $val if defined $val;
 }
 
 1 # end BN::Out::Buildings
