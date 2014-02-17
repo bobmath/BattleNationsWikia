@@ -320,4 +320,16 @@ sub resource_type {
    return $resource->{outputType};
 }
 
+sub input_type {
+   my ($build) = @_;
+   my $upgrade = $build->{BuildingUpgrade} or return;
+   return $upgrade->{inputLabel};
+}
+
+sub output_type {
+   my ($build) = @_;
+   my $upgrade = $build->{BuildingUpgrade} or return;
+   return $upgrade->{outputLabel};
+}
+
 1 # end BN::Building

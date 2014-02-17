@@ -11,8 +11,11 @@ sub new {
 }
 
 BN->simple_accessor('level');
+BN->simple_accessor('input', 'input');
 BN->simple_accessor('output', 'output');
 BN->simple_accessor('xp_output', 'XPoutput');
+BN->simple_accessor('queue_size', 'maximumHealingQueueSize');
+BN->simple_accessor('time', 'time');
 
 BN->accessor(cost => sub {
    my ($level) = @_;

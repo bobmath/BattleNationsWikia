@@ -141,8 +141,70 @@ sub building_levels {
    print $F "{{BuildingLevelBox\n";
    level_tax($F, $build, \@levels);
    level_resource($F, $build, \@levels);
+   if (my $type = $build->input_type()) {
+      if ($type eq 'hospitalInput' || $type eq 'repairCost') {
+         hospital_levels($F, \@levels);
+      }
+      elsif ($type eq 'barracksInput') {
+         barracks_levels($F, \@levels);
+      }
+   }
+   if (my $type = $build->output_type()) {
+      if ($type eq 'millOutput') {
+         mill_levels($F, $build, \@levels);
+      }
+   }
    level_costs($F, $build, \@levels);
    print $F "}}\n\n";
+}
+
+sub hospital_levels {
+   my ($F, $levels) = @_;
+   print_line($F, 'hospital', 'true');
+
+   my $n;
+   foreach my $level (@$levels) {
+      ++$n;
+      my $input = $level->input() or next;
+      print_line($F, 'cr' . $n, int(100*(1-$input/150)+0.5));
+   }
+
+   $n = 0;
+   foreach my $level (@$levels) {
+      ++$n;
+      print_line($F, 'qs' . $n, $level->queue_size() + 1);
+   }
+
+   $n = 0;
+   foreach my $level (@$levels) {
+      ++$n;
+      my $time = $level->time() or next;
+      print_line($F, 'tr' . $n, 100-$time);
+   }
+}
+
+sub barracks_levels {
+   my ($F, $levels) = @_;
+   print_line($F, @$levels == 10 ? 'training10' : 'training', 'true');
+
+   my $n;
+   foreach my $level (@$levels) {
+      ++$n;
+      my $input = $level->input() or next;
+      print_line($F, 'cr' . $n, 100-$input);
+   }
+
+   my $timebase = $levels->[0]->time() or return;
+   $n = 0;
+   foreach my $level (@$levels) {
+      ++$n;
+      my $time = $level->time() or next;
+      print_line($F, 'tr' . $n, int(100*(1-$time/$timebase)+0.5));
+   }
+}
+
+sub mill_levels {
+   my ($F, $build, $levels) = @_;
 }
 
 sub level_tax {
