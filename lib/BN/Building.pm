@@ -358,4 +358,39 @@ sub get_jobs {
    }
 }
 
+BN->list_accessor(mill_input => sub {
+   my ($build) = @_;
+   my %in;
+   foreach my $job ($build->jobs()) {
+      my $cost = $job->cost() or next;
+      $in{$_} = 1 foreach keys %$cost;
+   }
+   delete $in{time};
+   return reverse sort keys %in;
+});
+
+BN->accessor(mill_output => sub {
+   my ($build) = @_;
+   my %out;
+   foreach my $job ($build->jobs()) {
+      my $rewards = $job->rewards() or next;
+      $out{$_} = 1 foreach keys %$rewards;
+   }
+   return unless %out;
+   die 'too many outputs' if keys(%out) > 1;
+   my ($out) = keys %out;
+   return $out;
+});
+
+BN->accessor(mill_rate => sub {
+   my ($build) = @_;
+   my @jobs = $build->jobs() or return;
+   my $cost = $jobs[-1]->cost() or return;
+   my $time = $cost->{time} or return;
+   my $rewards = $jobs[-1]->rewards() or return;
+   die 'unexpected mill rewards' unless keys(%$rewards) == 1;
+   my ($out) = values %$rewards;
+   return $out * 60*60*12 / $time;
+});
+
 1 # end BN::Building

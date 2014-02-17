@@ -217,6 +217,12 @@ sub barracks_levels {
 
 sub mill_levels {
    my ($F, $build, $levels) = @_;
+   my $rate = $build->mill_rate() or return;
+   print_line($F, 'collector', 'true');
+   print_line($F, 'resource', BN->resource_template($build->mill_output()));
+   print_line($F, 'interval', '{{Time|1d}}');
+   $rate *= 100 / $levels->[0]->output();
+   print_uv($F, $rate, $levels);
 }
 
 sub level_tax {
@@ -306,7 +312,7 @@ sub building_goods {
       shop_goods($F, $build, \@jobs);
    }
    elsif ($type eq 'millOutput') {
-      mill_goods($F, \@jobs);
+      mill_goods($F, $build, \@jobs);
    }
 }
 
@@ -331,7 +337,27 @@ sub shop_goods {
 }
 
 sub mill_goods {
-   my ($F, $jobs) = @_;
+   my ($F, $build, $jobs) = @_;
+   my @input = $build->mill_input() or return;
+   my $output = $build->mill_output() or return;
+   print $F "{{MillGoodsBox\n";
+   my $n;
+   print_line($F, 'input' . ++$n, BN->resource_template($_)) foreach @input;
+   print_line($F, 'output', BN->resource_template($output));
+   $n = 0;
+   foreach my $job (@$jobs) {
+      my $g = 'good' . ++$n;
+      print_line($F, $g, $job->name());
+      if (my $cost = $job->cost()) {
+         print_line($F, $g.'time', BN->format_time($cost->{time}));
+         my $i;
+         print_line($F, $g.'baseinput'.++$i, $cost->{$_}) foreach @input;
+      }
+      if (my $rewards = $job->rewards()) {
+         print_line($F, $g.'baseoutput', $rewards->{$output});
+      }
+   }
+   print $F "}}\n\n";
 }
 
 sub quest_goods {
@@ -353,7 +379,7 @@ sub quest_goods {
          BN->format_amount($job->rewards(), 0, ' &nbsp; '));
       print $F "}}\n";
    }
-   print "\n" if $any;
+   print $F "\n" if $any;
 }
 
 sub print_line {
