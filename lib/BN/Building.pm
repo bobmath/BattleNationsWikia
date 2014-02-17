@@ -316,8 +316,13 @@ sub resource_rate {
 
 sub resource_type {
    my ($build) = @_;
-   my $resource = $build->{ResourceProducer} or return;
-   return $resource->{outputType};
+   if (my $resource = $build->{ResourceProducer}) {
+      return $resource->{outputType};
+   }
+   elsif (my $type = $build->output_type()) {
+      return $build->mill_output() if $type eq 'millOutput';
+   }
+   return;
 }
 
 sub input_type {

@@ -62,6 +62,11 @@ sub building_summary {
    push @unlock, 'Unique' if $build->unique();
    print_line($F, 'unlocked', join(', ', @unlock)) if @unlock;
 
+   if (my $rsrc = $build->resource_type()) {
+      $rsrc = ucfirst($rsrc);
+      print_line($F, 'resource', "{{$rsrc}} [[Resources#$rsrc|$rsrc]]");
+   }
+
    if (my $tax = $build->taxes()) {
       my $keys = join ' ', sort keys %$tax;
       print_line($F, 'rewardcat', $reward_cat{$keys});
