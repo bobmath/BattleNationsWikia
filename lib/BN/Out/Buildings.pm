@@ -46,7 +46,12 @@ sub building_summary {
    if (my $level = $build->level()) {
       push @unlock, "[[Levels#$level|Level $level]]";
    }
-   push @unlock, 'Mission' if $build->mission_req();
+   if (my $id = $build->mission_req()) {
+      if (my $mis = BN::Mission->get($id)) {
+         my $name = $mis->name();
+         push @unlock, "[[Missions#$name|$name]]";
+      }
+   }
    push @unlock, 'Unique' if $build->unique();
    print_line($F, 'unlocked', join(', ', @unlock)) if @unlock;
 
