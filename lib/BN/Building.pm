@@ -332,4 +332,30 @@ sub output_type {
    return $upgrade->{outputLabel};
 }
 
+sub jobs {
+   my ($build) = @_;
+   $build->get_jobs() unless exists $build->{z_jobs};
+   return unless $build->{z_jobs};
+   return @{$build->{z_jobs}};
+}
+
+sub quest_jobs {
+   my ($build) = @_;
+   $build->get_jobs() unless exists $build->{z_quest_jobs};
+   return unless $build->{z_quest_jobs};
+   return @{$build->{z_quest_jobs}};
+}
+
+sub get_jobs {
+   my ($build) = @_;
+   $build->{z_jobs} = $build->{z_quest_jobs} = undef;
+   my $joblist = $build->{JobList} or return;
+   my $jobs = delete($joblist->{jobs}) or return;
+   foreach my $id (@$jobs) {
+      my $job = BN::Job->get($id) or next;
+      my $field = $job->missions() ? 'z_quest_jobs' : 'z_jobs';
+      push @{$build->{$field}}, $job;
+   }
+}
+
 1 # end BN::Building

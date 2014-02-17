@@ -16,8 +16,10 @@ sub write {
 
       building_summary($F, $build);
       building_defense($F, $build);
+      orchard_goods($F, $build);
+      building_goods($F, $build);
+      quest_goods($F, $build);
       building_levels($F, $build);
-      orchard($F, $build);
 
       print $F "\n", dump($build), "\n";
       close $F;
@@ -284,7 +286,7 @@ sub level_costs {
    }
 }
 
-sub orchard {
+sub orchard_goods {
    my ($F, $build) = @_;
    return if $build->levels();
    my $tax = $build->taxes() or return;
@@ -294,6 +296,59 @@ sub orchard {
    print_line($F, 'good1xp', $tax->{XP});
    print_line($F, 'good1gold', $tax->{gold});
    print $F "}}\n\n";
+}
+
+sub building_goods {
+   my ($F, $build) = @_;
+   my @jobs = $build->jobs() or return;
+   my $type = $build->output_type() or return;
+   if ($type eq 'shopOutput') {
+      shop_goods($F, $build, \@jobs);
+   }
+   elsif ($type eq 'millOutput') {
+      mill_goods($F, \@jobs);
+   }
+}
+
+sub shop_goods {
+   my ($F, $build, $jobs) = @_;
+   print $F "{{ShopGoodsBox\n";
+   my $n;
+   for my $job (@$jobs) {
+      my $g = 'good' . ++$n;
+      print_line($F, $g, $job->name());
+      if (my $cost = $job->cost()) {
+         print_line($F, $g.'time', BN->format_time($cost->{time}));
+         print_line($F, $g.'basecost', $cost->{gold});
+      }
+      if (my $rewards = $job->rewards()) {
+         print_line($F, $g.'xp', $rewards->{XP});
+         print_line($F, $g.'basereward', $rewards->{gold});
+      }
+   }
+   print_line($F, 'questgoods', 'true') if $build->quest_jobs();
+   print $F "}}\n\n";
+}
+
+sub mill_goods {
+   my ($F, $jobs) = @_;
+}
+
+sub quest_goods {
+   my ($F, $build) = @_;
+   foreach my $job ($build->quest_jobs()) {
+      print $F "{{QuestGoodsBox\n";
+      my ($id) = $job->missions() or die;
+      my $mis = BN::Mission->get($id) or die;
+      print_line($F, 'questgood',
+         '[[Missions#' . $mis->name() . '|' . $job->name . ']]');
+      if (my $cost = $job->cost()) {
+         print_line($F, 'questgoodtime', BN->format_time($cost->{time}));
+         print_line($F, 'questgoodcost', BN->format_amount({%$cost,time=>0}));
+      }
+      print_line($F, 'questgoodreward', BN->format_amount($job->rewards()));
+      print $F "}}\n";
+   }
 }
 
 sub print_line {

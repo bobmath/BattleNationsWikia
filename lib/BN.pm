@@ -63,6 +63,7 @@ use BN::Attack;
 use BN::Rank;
 use BN::Building;
 use BN::BLevel;
+use BN::Job;
 use BN::Mission;
 use BN::Prereqs;
 
