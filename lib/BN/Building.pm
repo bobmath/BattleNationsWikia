@@ -251,7 +251,7 @@ BN->accessor(gives_bonus_to => sub {
    my ($build) = @_;
    my $bonus = $build->{RadialMod} or return;
    my $tags = $bonus->{tags} or return;
-   return join ', ', sort @$tags;
+   return join '<br>', sort @$tags;
 });
 
 sub bonus_radius {
