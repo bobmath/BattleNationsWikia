@@ -40,6 +40,11 @@ my %reward_cat = (
    'gold time'    => '{{Gold}}',
 );
 
+my %demand_map = (
+   Spices   => 'Spice',
+   Defense  => 'Security',
+);
+
 sub building_summary {
    my ($F, $build) = @_;
    print $F $build->name(), "\n";
@@ -61,6 +66,11 @@ sub building_summary {
    }
    push @unlock, 'Unique' if $build->unique();
    print_line($F, 'unlocked', join(', ', @unlock)) if @unlock;
+
+   if (my $cat = $build->demand_cat()) {
+      $cat = $demand_map{$cat} || $cat;
+      print_line($F, 'demandcat', "{{$cat}}");
+   }
 
    if (my $rsrc = $build->resource_type()) {
       $rsrc = ucfirst($rsrc);

@@ -308,6 +308,13 @@ BN->accessor(taxes => sub {
       (delete($taxes->{paymentInterval})||0) * 60);
 });
 
+sub demand_cat {
+   my ($build) = @_;
+   my $joblist = $build->{JobList} or return;
+   return unless $joblist->{applyDemands};
+   return $joblist->{demandCategory};
+}
+
 sub resource_rate {
    my ($build) = @_;
    my $resource = $build->{ResourceProducer} or return;
