@@ -33,6 +33,11 @@ my %cost_map = (
    z2points => 'z2',
 );
 
+my %reward_cat = (
+   'XP gold time' => '{{GoldXP}}',
+   'gold time'    => '{{Gold}}',
+);
+
 sub building_summary {
    my ($F, $build) = @_;
    print $F $build->name(), "\n";
@@ -57,8 +62,7 @@ sub building_summary {
 
    if (my $tax = $build->taxes()) {
       my $keys = join ' ', sort keys %$tax;
-      if    ($keys eq 'gold')    { print_line($F, 'rewardcat', '{{Gold}}') }
-      elsif ($keys eq 'gold XP') { print_line($F, 'rewardcat', '{{GoldXP}}') }
+      print_line($F, 'rewardcat', $reward_cat{$keys});
    }
 
    print_line($F, 'bonustype', $build->gets_bonus());
