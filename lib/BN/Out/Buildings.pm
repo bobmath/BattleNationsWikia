@@ -217,6 +217,7 @@ sub orchard {
    return if $build->levels();
    my $tax = $build->taxes() or return;
    print $F "{{OrchardGoodsBox\n";
+   print_line($F, 'float', 'left');
    print_line($F, 'good1time', BN->format_time($tax->{time}));
    print_line($F, 'good1xp', $tax->{XP});
    print_line($F, 'good1gold', $tax->{gold});
