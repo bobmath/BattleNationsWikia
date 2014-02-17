@@ -311,6 +311,7 @@ sub orchard_goods {
    my ($F, $build) = @_;
    return if $build->levels();
    my $tax = $build->taxes() or return;
+   return if keys(%$tax) > 3;
    print $F "{{OrchardGoodsBox\n";
    print_line($F, 'float', 'left');
    print_line($F, 'good1time', BN->format_time($tax->{time}));
