@@ -54,7 +54,8 @@ sub show_diffs {
    close $NEW;
    foreach my $hunk (@$diffs) {
       foreach my $line (@$hunk) {
-         print $line->[0], $line->[2];
+         (my $text = $line->[2]) =~ s/\t.*//;
+         print $line->[0], $text;
       }
    }
 }
