@@ -260,10 +260,23 @@ sub bonus_radius {
    return $bonus->{radius};
 }
 
+my $bonus_cats;
+
 sub bonus_stack {
    my ($build) = @_;
    my $bonus = $build->{RadialMod} or return;
-   return $bonus->{maxModStack};
+   if (my $max = $bonus->{maxModStack}) {
+      my $name = $build->name();
+      $name .= 's' if $max > 1;
+      return "$max $name";
+   }
+   if (my $cat = $bonus->{modCategory}) {
+      $bonus_cats ||= BN::JSON->read('RadialMod.json');
+      my $lim = $bonus_cats->{categories}{$cat} or return;
+      $cat .= 's' if $lim > 1;
+      return "$lim $cat";
+   }
+   return;
 }
 
 BN->multi_accessor('mission_req', 'unique' => sub {
