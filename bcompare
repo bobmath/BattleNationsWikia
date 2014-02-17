@@ -72,7 +72,6 @@ sub read_stat {
          my $key = lc($1);
          my $val = $2;
          next if $key =~ /image$/ || $ignore{$key};
-         $val = '' if lc($val) eq 'none';
          $sec->{$key} = $val;
       }
       elsif (/^\{\{(\w+)/) {
