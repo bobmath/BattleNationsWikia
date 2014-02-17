@@ -57,6 +57,13 @@ sub building_summary {
 
    print_line($F, 'bonustype', $build->gets_bonus());
 
+   if (my $bonus = $build->gives_bonus()) {
+      print_line($F, 'bonus', $bonus);
+      print_line($F, 'bonusbldg', $build->gives_bonus_to());
+      print_line($F, 'bonusradius', $build->bonus_radius());
+      print_line($F, 'bldglimit', $build->bonus_stack());
+   }
+
    print_line($F, 'dradius', $build->defense_radius());
    print_line($F, 'garrison', $build->garrison_size());
    print_line($F, 'repairtime', $build->repair_time());

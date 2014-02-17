@@ -78,6 +78,7 @@ my %resource_map = (
    star     => 'stars',
    stooth   => 'necklaces',
    tooth    => 'teeth',
+   xp       => 'XP',
 );
 
 sub flatten_amount {

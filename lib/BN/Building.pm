@@ -212,6 +212,60 @@ BN->accessor(gets_bonus => sub {
    return join ', ', sort @tags;
 });
 
+BN->accessor(gives_bonus => sub {
+   my ($build) = @_;
+   my $bonus = $build->{RadialMod} or return;
+   my $stats = BN->flatten_amount($bonus->{stats}) or return;
+   if ($stats->{gold} && $stats->{XP} && $stats->{gold} == $stats->{XP}) {
+      $stats->{goldXP} = delete $stats->{gold};
+      delete $stats->{XP};
+   }
+   if (my $rsrc = delete $stats->{resources}) {
+      my $type = $build->gives_bonus_to() // '';
+      if    ($type =~ /Stone/)   { $stats->{stone} = $rsrc }
+      elsif ($type =~ /Logging/) { $stats->{wood}  = $rsrc }
+      elsif ($type =~ /Iron/)    { $stats->{iron}  = $rsrc }
+      elsif ($type =~ /Oil/)     { $stats->{oil}   = $rsrc }
+      elsif ($type =~ /Coal/)    { $stats->{coal}  = $rsrc }
+   }
+   my $fmt = '';
+   my $prev_color = '';
+   foreach my $key (BN->sort_amount(keys %$stats)) {
+      my $val = $stats->{$key} or next;
+      my $color = $val > 0 ? 'green' : 'red';
+      if ($prev_color eq $color) {
+         $fmt .= ' ';
+      }
+      else {
+         $fmt .= '</span> ' if $fmt;
+         $fmt .= qq{<span style="color:$color;">};
+         $prev_color = $color;
+      }
+      $fmt .= BN->resource_template($key, sprintf("%+d%%", $val));
+   }
+   return unless $fmt;
+   return $fmt . '</span>';
+});
+
+BN->accessor(gives_bonus_to => sub {
+   my ($build) = @_;
+   my $bonus = $build->{RadialMod} or return;
+   my $tags = $bonus->{tags} or return;
+   return join ', ', sort @$tags;
+});
+
+sub bonus_radius {
+   my ($build) = @_;
+   my $bonus = $build->{RadialMod} or return;
+   return $bonus->{radius};
+}
+
+sub bonus_stack {
+   my ($build) = @_;
+   my $bonus = $build->{RadialMod} or return;
+   return $bonus->{maxModStack};
+}
+
 BN->multi_accessor('mission_req', 'unique' => sub {
    my ($build) = @_;
    my $structure = $build->{StructureMenu} or return;
