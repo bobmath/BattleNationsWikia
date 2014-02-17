@@ -43,6 +43,9 @@ sub building_summary {
    print_line($F, 'size', $build->size());
 
    my @unlock;
+   if (my $level = $build->level()) {
+      push @unlock, "[[Levels#$level|Level $level]]";
+   }
    if (my $id = $build->mission_req()) {
       if (my $mis = BN::Mission->get($id)) {
          my $name = $mis->name();
@@ -50,10 +53,13 @@ sub building_summary {
       }
    }
    push @unlock, 'Unique' if $build->unique();
-   if (my $level = $build->level()) {
-      unshift @unlock, @unlock ? "[[Levels#$level|Level $level]]" : $level;
-   }
    print_line($F, 'unlocked', join(', ', @unlock)) if @unlock;
+
+   if (my $tax = $build->taxes()) {
+      my $keys = join ' ', sort keys %$tax;
+      if    ($keys eq 'gold')    { print_line($F, 'rewardcat', '{{Gold}}') }
+      elsif ($keys eq 'gold XP') { print_line($F, 'rewardcat', '{{GoldXP}}') }
+   }
 
    print_line($F, 'bonustype', $build->gets_bonus());
 
