@@ -45,6 +45,9 @@ sub unit_profile {
    my ($F, $unit) = @_;
    print $F $unit->name(), "\n";
    print $F "{{UnitProfile\n";
+   if (my $icon = $unit->icon()) {
+      print_line($F, 'image', "[[File:\u$icon.png|link=]]");
+   }
    print_line($F, 'shortname', $unit->shortname())
       unless $unit->shortname() eq $unit->name();
    print_line($F, 'unit type', $unit->type());

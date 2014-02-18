@@ -30,6 +30,7 @@ BN->simple_accessor('tag');
 BN->simple_accessor('name');
 BN->simple_accessor('building_level', 'buildingLevel');
 BN->simple_accessor('side', 'side');
+BN->simple_accessor('icon', 'icon');
 
 BN->accessor(shortname => sub {
    my ($unit) = @_;
