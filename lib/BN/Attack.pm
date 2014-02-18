@@ -38,6 +38,7 @@ sub get {
 
 BN->simple_accessor('tag');
 BN->simple_accessor('name');
+BN->simple_accessor('icon', 'icon');
 BN->simple_accessor('cooldown', 'abilityCooldown');
 BN->simple_accessor('globalcooldown', 'globalCooldown');
 BN->simple_accessor('preptime', 'chargeTime');

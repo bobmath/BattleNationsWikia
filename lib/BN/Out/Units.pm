@@ -106,6 +106,9 @@ sub unit_weapons {
          print_line($F, 'attack' . ++$n, '');
          print $F "{{$attackbox\n";
          print_line($F, 'name', $attack->name());
+         if (my $icon = $attack->icon()) {
+            print_line($F, 'weaponicon', "[[File:\u$icon.png|link=]]");
+         }
          $r += print_line($F, 'rank', $rank);
          $r += print_line($F, 'damagetype', $attack->dmgtype());
          print_line($F, 'mindmg', $attack->mindmg());
