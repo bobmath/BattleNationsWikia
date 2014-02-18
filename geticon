@@ -1,24 +1,28 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use Getopt::Std qw( getopts );;
 use Image::Size qw( imgsize );
 use File::Glob qw( bsd_glob GLOB_NOCASE );
 
 my $dir = '/Applications/BattleNations.app/Contents/Resources/bundle';
 
-die "usage: $0 icon_name\n" unless @ARGV == 1;
+my %opts;
+getopts('s', \%opts);
+die "usage: $0 [-s] icon_name\n" unless @ARGV == 1;
+my $max_size = $opts{s} ? 40 : 400;
 my $file = shift;
 $file =~ s/\.png$//;
 my @infiles = bsd_glob("$dir/$file*.png", GLOB_NOCASE) or die "not found\n";
 my $infile = shift @infiles;
 
 if (@infiles) {
-   my $small_size = -s $infile;
+   my $best_size = -s $infile;
    foreach my $file (@infiles) {
       my $size = -s $file;
-      if ($size < $small_size) {
+      if ($opts{s} ? $size < $best_size : $size > $best_size) {
          $infile = $file;
-         $small_size = $size;
+         $best_size = $size;
       }
    }
 }
@@ -26,11 +30,11 @@ if (@infiles) {
 my $pngcrush = "pngcrush -new -brute -rem alla";
 
 my ($wid,$hgt) = imgsize($infile) or die;
-if ($wid <= 40 && $hgt <= 40) {
+if ($wid <= $max_size && $hgt <= $max_size) {
    system("$pngcrush $infile $file.png") == 0 or die;
 }
 else {
-   system("pngtopam -alphapam $infile | pnmscale -xysize 40 40 | pamrgbatopng > $file-temp.png") == 0 or die;
+   system("pngtopam -alphapam $infile | pnmscale -xysize $max_size $max_size | pamrgbatopng > $file-temp.png") == 0 or die;
    system("$pngcrush $file-temp.png $file.png") == 0 or die;
    unlink "$file-temp.png";
 }
