@@ -53,9 +53,19 @@ sub show_diffs {
    close $OLD;
    close $NEW;
    foreach my $hunk (@$diffs) {
+      my %flags;
       foreach my $line (@$hunk) {
-         (my $text = $line->[2]) =~ s/\t.*//;
-         print $line->[0], $text;
+         $line->[2] =~ s/\t.*//;
+         $flags{$line->[2]} |= ($line->[0] eq '-') ? 1 : 2;
+      }
+      foreach my $line (@$hunk) {
+         if ($line->[0] eq '-') {
+            $line->[0] = '!' if $flags{$line->[2]} == 3;
+         }
+         else {
+            next if $flags{$line->[2]} == 3;
+         }
+         print $line->[0], $line->[2];
       }
    }
 }
