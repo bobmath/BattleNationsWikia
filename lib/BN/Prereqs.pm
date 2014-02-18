@@ -55,7 +55,7 @@ sub add_prereq {
    if ($t eq 'LevelPrereqConfig') {
       my $level = $prereq->{level} or return;
       return if $level < 1;
-      $level = 66 if $level > 66;
+      $level = 71 if $level > 71;
       $obj->{_level} = $level;
    }
    elsif ($t eq 'CompleteMissionPrereqConfig') {
