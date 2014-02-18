@@ -2,12 +2,14 @@
 use strict;
 use warnings;
 use Image::Size qw( imgsize );
+use File::Glob qw( bsd_glob GLOB_NOCASE );
 
 my $dir = '/Applications/BattleNations.app/Contents/Resources/bundle';
 
 die "usage: $0 icon_name\n" unless @ARGV == 1;
 my $file = shift;
-my @infiles = glob("$dir/$file*.png") or die "not found\n";
+$file =~ s/\.png$//;
+my @infiles = bsd_glob("$dir/$file*.png", GLOB_NOCASE) or die "not found\n";
 my $infile = shift @infiles;
 
 if (@infiles) {
