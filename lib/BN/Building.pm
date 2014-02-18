@@ -37,6 +37,12 @@ sub get {
 BN->simple_accessor('tag');
 BN->simple_accessor('name');
 
+sub icon {
+   my ($build) = @_;
+   my $structure = $build->{StructureMenu} or return;
+   return $structure->{icon};
+}
+
 sub units {
    my ($build) = @_;
    my $projects = $build->{ProjectList} or return;

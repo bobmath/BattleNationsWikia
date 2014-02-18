@@ -49,6 +49,7 @@ sub building_summary {
    my ($F, $build) = @_;
    print $F $build->name(), "\n";
    print $F "{{BuildingInfoBox\n";
+   print_line($F, 'image', BN::Out->icon($build->icon()));
    print_line($F, 'buildtype', $build->build_type());
    print_line($F, 'population', $build->population());
    print_line($F, 'pwi', $build->population_inactive());
