@@ -118,10 +118,9 @@ sub unit_weapons {
          $r += print_line($F, 'ammoused', $attack->ammoused());
          $r += print_line($F, 'range', $attack->range());
          $r += print_line($F, 'lof', $attack->lof());
-         $r += print_line($F, 'cooldown', $attack->cooldown());
-         if ($nattacks > 1 && (my $gcd = $attack->globalcooldown())) {
-            $r += print_line($F, 'globalcooldown', $gcd);
-         }
+         $r += print_line($F, 'cooldown', $attack->cooldown() || undef);
+         $r += print_line($F, 'globalcooldown',
+            $attack->globalcooldown() || undef) if $nattacks > 1;
          $r += print_line($F, 'preptime', $attack->preptime() || undef);
          $r += print_line($F, 'crit', $attack->crit());
          $r += print_line($F, 'armorpiercing', $attack->armorpiercing());
