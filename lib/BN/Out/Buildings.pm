@@ -339,9 +339,7 @@ sub shop_goods {
    for my $job (@$jobs) {
       my $g = 'good' . ++$n;
       print_line($F, $g, $job->name());
-      if (my $icon = $job->icon()) {
-         print_line($F, $g.'image', "[[File:\u$icon.png|link=]]");
-      }
+      print_line($F, $g.'image', BN::Out->icon($job->icon()));
       if (my $cost = $job->cost()) {
          print_line($F, $g.'time', BN->format_time($cost->{time}));
          print_line($F, $g.'basecost', $cost->{gold});
@@ -396,9 +394,7 @@ sub quest_goods {
       my $mis = BN::Mission->get($id) or die;
       my $mname = $mis->name();
       print_line($F, $g, "[[Missions#$mname|$name]]");
-      if (my $icon = $job->icon()) {
-         print_line($F, $g.'image', "[[File:\u$icon.png|link=]]");
-      }
+      print_line($F, $g.'image', BN::Out->icon($job->icon()));
       if (my $cost = $job->cost()) {
          print_line($F, $g.'time', BN->format_time($cost->{time}));
          print_line($F, $g.'cost',
