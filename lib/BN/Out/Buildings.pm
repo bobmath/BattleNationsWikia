@@ -379,8 +379,14 @@ sub quest_goods {
    my ($F, $build) = @_;
    my @jobs = $build->quest_jobs() or return;
    print $F "{{QuestGoodsListBox\n";
-   my $n;
+   my $n = 0;
    foreach my $job (@jobs) {
+      if ($n >= 10) {
+         # too many, start a new list box
+         print $F "}}\n{{QuestGoodsListBox\n";
+         print_line($F, 'continue', 'true');
+         $n = 0;
+      }
       my $g = 'good' . ++$n;
       my $name = $job->name();
       my ($id) = $job->missions() or die;
@@ -388,7 +394,7 @@ sub quest_goods {
       my $mname = $job->name();
       print_line($F, $g, "[[Missions#$mname|$name]]");
       if (my $icon = $job->icon()) {
-         print_line($F, $g.'image', "[[File:$icon.png]]");
+         print_line($F, $g.'image', "[[File:\u$icon.png|link=]]");
       }
       if (my $cost = $job->cost()) {
          print_line($F, $g.'time', BN->format_time($cost->{time}));
