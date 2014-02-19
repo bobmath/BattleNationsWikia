@@ -1,0 +1,116 @@
+#!/usr/bin/env perl
+# Experimental tool to work out mission sequences.
+# Lines starting with < are prerequisites; > are followups.
+use strict;
+use warnings;
+use lib 'lib';
+use BN;
+
+binmode STDOUT, ':utf8';
+
+open my $F, '<', 'wiki/Missions' or die;
+my %headings;
+while (<$F>) {
+   if (my ($head) = /^=+(.*?)=+\s*$/) {
+      $head =~ s{</?u>}{}g;
+      $head =~ s/^\s+//;
+      $head =~ s/\s+$//;
+      $headings{$head}++;
+   }
+}
+
+my %names;
+my %blocks;
+
+foreach my $mis (BN::Mission->all()) {
+   my $level = $mis->level() // 0;
+   my @tags;
+   push @tags, 'New' unless $headings{$mis->name()};
+   push @tags, 'Hidden' if $mis->hidden();
+   push @tags, $mis->tag();
+   $names{$mis->tag()} = sprintf '%2d %s (%s)', $level, $mis->name(), "@tags";
+
+   my %before;
+   foreach my $prereq ($mis->prereqs()) {
+      next if $prereq->{inverse};
+      my $t = $prereq->{_t} or next;
+      if ($t eq 'CompleteMissionPrereqConfig') {
+         my $id = $prereq->{missionId} or next;
+         next if $id eq $mis->tag();
+         next unless BN::Mission->get($id);
+         $before{$id} = 1;
+      }
+      elsif ($t eq 'CompleteAnyMissionPrereqConfig') {
+         my $ids = $prereq->{missionIds} or next;
+         foreach my $id (@$ids) {
+            my $m = BN::Mission->get($id) or next;
+            next if ($m->level()//0) > $level;
+            $before{$id} = 1;
+         }
+      }
+   }
+
+   $blocks{$mis->tag()} = { before=>\%before, ids=>[$mis->tag()], after=>{} };
+}
+
+while (my ($id, $block) = each %blocks) {
+   foreach my $bid (keys %{$block->{before}}) {
+      my $b = $blocks{$bid} or die;
+      $b->{after}{$id} = 1;
+   }
+}
+
+foreach my $id (keys %blocks) {
+   my $blk = $blocks{$id} or next;
+   GROW: while (keys(%{$blk->{after}}) == 1) {
+      my ($nextid) = keys(%{$blk->{after}});
+      my $nextblk = $blocks{$nextid} or die;
+      die unless $nextblk->{before}{$id};
+      my $prereqs = prereqs($id);
+      foreach my $revid (keys %{$nextblk->{before}}) {
+         last GROW unless $prereqs->{$revid};
+      }
+      foreach my $revid (keys %{$nextblk->{before}}) {
+         my $revblk = $blocks{$revid} or die;
+         delete $revblk->{after}{$nextid};
+      }
+      push @{$blk->{ids}}, @{$nextblk->{ids}};
+      $blk->{after} = $nextblk->{after};
+      foreach my $refid (keys %{$blk->{after}}) {
+         my $refblk = $blocks{$refid} or die;
+         delete $refblk->{before}{$nextid} or die;
+         $refblk->{before}{$id} = 1;
+      }
+      delete $blocks{$nextid};
+   }
+}
+
+print_block($_) foreach sort { $names{$a} cmp $names{$b} } keys %blocks;
+
+sub print_block {
+   my ($id) = @_;
+   my $block = $blocks{$id} or die;
+   return if $block->{mark};
+   $block->{mark} = 1;
+   print_block($_) foreach sort keys %{$block->{before}};
+   print "<$_\n" foreach
+      sort map { $names{$blocks{$_}{ids}[-1]} } keys %{$block->{before}};
+   print "|$names{$_}\n" foreach @{$block->{ids}};
+   print ">$_\n" foreach sort map { $names{$_} } keys %{$block->{after}};
+   print "\n";
+}
+
+sub prereqs {
+   my ($id) = @_;
+   my $block = $blocks{$id} or die;
+   return $block->{prereqs} if $block->{prereqs};
+   my %prereqs;
+   $prereqs{$id} = 1;
+   $block->{prereqs} = \%prereqs;
+   foreach my $preid (keys %{$block->{before}}) {
+      my $prereqs = prereqs($preid);
+      $prereqs{$_} = 1 foreach keys %$prereqs;
+   }
+   return \%prereqs;
+}
+
