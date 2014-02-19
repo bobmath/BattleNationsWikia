@@ -125,9 +125,14 @@ sub print_mission {
       }
       elsif ($t eq 'CollectJobPrereqConfig') {
          my $job = BN::Job->get($obj->{jobId}) or next;
-         my $num = $obj->{count} > 1 ? " x $obj->{count}" : '';
          my $name = $job->name();
-         print "    :* Make $name$num\n";
+         if (my ($bldid) = $job->buildings()) {
+            my $bld = BN::Building->get($bldid);
+            my $bldname = $bld->name();
+            $name = "[[$bldname#Goods|$name]]";
+         }
+         $name .= " x $obj->{count}" if $obj->{count} > 1;
+         print "    :* Make $name\n";
       }
    }
 

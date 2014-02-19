@@ -1,7 +1,6 @@
 package BN::Job;
 use strict;
 use warnings;
-use Storable qw( dclone );
 
 my $jobs;
 
@@ -10,9 +9,11 @@ sub get {
    return unless $key;
    $jobs ||= BN::JSON->read('JobInfo.json');
    my $job = $jobs->{jobs}{$key} or return;
-   $job = bless dclone($job), $class;
-   $job->{_tag} = $key;
-   $job->{_name} = BN::Text->get($job->{name});
+   if (ref($job) eq 'HASH') {
+      bless $job => $class;
+      $job->{_tag} = $key;
+      $job->{_name} = BN::Text->get($job->{name});
+   }
    return $job;
 }
 
@@ -33,6 +34,20 @@ BN->list_accessor(missions => sub {
    }
    return;
 });
+
+sub buildings {
+   my ($job) = @_;
+   unless (exists $job->{_buildings}) {
+      $_->{_buildings} = undef foreach values %$jobs;
+      foreach my $build (BN::Building->all()) {
+         foreach my $j ($build->jobs(), $build->quest_jobs()) {
+            push @{$j->{_buildings}}, $build->tag();
+         }
+      }
+   }
+   return unless $job->{_buildings};
+   return @{$job->{_buildings}};
+}
 
 BN->accessor(cost => sub {
    my ($job) = @_;
