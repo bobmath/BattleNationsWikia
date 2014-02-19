@@ -285,26 +285,30 @@ sub bonus_stack {
    return;
 }
 
-BN->multi_accessor('mission_req', 'unique' => sub {
+BN->accessor(unique => sub {
    my ($build) = @_;
-   my $structure = $build->{StructureMenu} or return;
-   my $prereqs = $structure->{prereq} or return;
-   my ($mission, $unique);
-   foreach my $key (sort keys %$prereqs) {
-      my $prereq = $prereqs->{$key} or next;
+   foreach my $prereq ($build->prereqs()) {
       my $t = $prereq->{_t} or next;
-      if ($t eq 'SingleEntityPrereqConfig') {
-         $unique = 1;
-      }
-      elsif ($t eq 'CompleteMissionPrereqConfig') {
-         $mission = $prereq->{missionId};
+      return 1 if $t eq 'SingleEntityPrereqConfig';
+   }
+   return;
+});
+
+BN->list_accessor(mission_reqs => sub {
+   my ($build) = @_;
+   my @missions;
+   foreach my $prereq ($build->prereqs()) {
+      my $t = $prereq->{_t} or next;
+      if ($t eq 'CompleteMissionPrereqConfig') {
+         my $id = $prereq->{missionId} or next;
+         push @missions, $id;
       }
       elsif ($t eq 'CompleteAnyMissionPrereqConfig') {
          my $ids = $prereq->{missionIds} or next;
-         $mission = $ids->[0];
+         push @missions, @$ids;
       }
    }
-   return ($mission, $unique);
+   return @missions;
 });
 
 BN->accessor(taxes => sub {
