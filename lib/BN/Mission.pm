@@ -51,7 +51,20 @@ sub prereqs {
 
 BN->accessor(rewards => sub {
    my ($mis) = @_;
-   return BN->format_amount(delete $mis->{rewards});
+   my $rewards = delete $mis->{rewards} or return;
+   my @rewards;
+   if (my $units = delete $rewards->{units}) {
+      foreach my $id (keys %$units) {
+         my $unit = BN::Unit->get($id) or next;
+         my $name = $unit->name() or next;
+         $name = "[[$name]]";
+         $name .= " x $units->{$id}" if $units->{$id} > 1;
+         push @rewards, $name;
+      }
+      @rewards = sort @rewards;
+   }
+   push @rewards, BN->format_amount($rewards, 0, ' &nbsp; ');
+   return join ' &nbsp; ', @rewards;
 });
 
 sub objectives {
