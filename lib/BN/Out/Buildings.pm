@@ -62,7 +62,7 @@ sub building_summary {
    if (my $id = $build->mission_req()) {
       if (my $mis = BN::Mission->get($id)) {
          my $name = $mis->name();
-         push @unlock, "[[Missions#$name|$name]]";
+         push @unlock, $mis->hidden() ? 'Mission' : "[[Missions#$name|$name]]";
       }
    }
    push @unlock, 'Unique' if $build->unique();

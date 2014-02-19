@@ -26,6 +26,7 @@ sub get {
 
 BN->simple_accessor('name');
 BN->simple_accessor('tag');
+BN->simple_accessor('hidden', 'hideIcon');
 
 sub level {
    my ($mis) = @_;
