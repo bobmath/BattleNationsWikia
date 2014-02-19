@@ -181,23 +181,23 @@ sub building {
    return $unit->{_building};
 }
 
-sub missions {
+sub from_missions {
    my ($unit) = @_;
-   if (!exists $unit->{_missions}) {
+   if (!exists $unit->{_from_missions}) {
       foreach my $u (BN::Unit->all()) {
-         $u->{_missions} = undef;
+         $u->{_from_missions} = undef;
       }
       foreach my $mis (BN::Mission->all()) {
          my $rewards = $mis->{rewards} or next;
          my $units = $rewards->{units} or next;
          foreach my $key (sort keys %$units) {
             my $u = BN::Unit->get($key) or next;
-            push @{$u->{_missions}}, $mis->tag();
+            push @{$u->{_from_missions}}, $mis->tag();
          }
       }
    }
-   return unless $unit->{_missions};
-   return @{$unit->{_missions}};
+   return unless $unit->{_from_missions};
+   return @{$unit->{_from_missions}};
 }
 
 BN->accessor(heal_building => sub {

@@ -12,7 +12,7 @@ sub write {
    my %seen;
    foreach my $unit (BN::Unit->all()) {
       my $side = $unit->side() // '';
-      my $dir = $unit->building() || $unit->missions() ? 'units'
+      my $dir = $unit->building() || $unit->from_missions() ? 'units'
          : $side eq 'Player' ? 'locked'
          : $side eq 'Hostile' ? 'enemies'
          : 'other';

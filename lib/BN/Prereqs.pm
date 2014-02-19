@@ -7,7 +7,7 @@ sub calc_levels {
       if (my $build = $unit->building()) {
          push @{$unit->{z_prereqs}}, { type=>'BN::Building', ids=>[$build] };
       }
-      elsif (my @mis = $unit->missions()) {
+      elsif (my @mis = $unit->from_missions()) {
          push @{$unit->{z_prereqs}}, { type=>'BN::Mission', ids=>\@mis };
       }
    }
