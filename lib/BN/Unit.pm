@@ -281,7 +281,9 @@ BN->accessor(other_reqs => sub {
             }
          }
          elsif ($t eq 'CompleteMissionPrereqConfig') {
-            push @reqs, 'Mission';
+            my $mis = BN::Mission->get($prereq->{missionId}) or next;
+            my $name = $mis->name() or next;
+            push @reqs, "[[Missions#$name|$name]]";
          }
       }
    }
