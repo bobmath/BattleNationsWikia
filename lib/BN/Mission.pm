@@ -49,4 +49,9 @@ sub prereqs {
    return @prereqs;
 }
 
+BN->accessor(rewards => sub {
+   my ($mis) = @_;
+   return BN->format_amount(delete $mis->{rewards});
+});
+
 1 # end BN::Mission

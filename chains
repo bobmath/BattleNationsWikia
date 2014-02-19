@@ -95,9 +95,19 @@ sub print_block {
    print_block($_) foreach sort keys %{$block->{before}};
    print "<$_\n" foreach
       sort map { $names{$blocks{$_}{ids}[-1]} } keys %{$block->{before}};
-   print "|$names{$_}\n" foreach @{$block->{ids}};
+   print_mission($_) foreach @{$block->{ids}};
    print ">$_\n" foreach sort map { $names{$_} } keys %{$block->{after}};
    print "\n";
+}
+
+sub print_mission {
+   my ($id) = @_;
+   my $mis = BN::Mission->get($id) or die;
+   print "|$names{$id}\n";
+
+   if (my $rewards = $mis->rewards()) {
+      print "    : Rewards: $rewards\n";
+   }
 }
 
 sub prereqs {
