@@ -60,7 +60,7 @@ while (my ($id, $block) = each %blocks) {
    }
 }
 
-foreach my $id (keys %blocks) {
+foreach my $id (sort { $names{$a} cmp $names{$b} } keys %blocks) {
    my $blk = $blocks{$id} or next;
    GROW: while (keys(%{$blk->{after}}) == 1) {
       my ($nextid) = keys(%{$blk->{after}});
