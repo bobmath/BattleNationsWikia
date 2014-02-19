@@ -144,19 +144,22 @@ sub building_defense {
    foreach my $weap ($unit->weapons()) {
       foreach my $attack ($weap->attacks()) {
          print $F "{{UnitAttackBox\n";
+         my $r = 1;
          print_line($F, 'attackname', $attack->name());
-         print_line($F, 'weapon', $weap->name());
-         print_line($F, 'offense', $attack->offense());
-         print_line($F, 'damage', $attack->damage());
-         print_line($F, 'armorpiercing', $attack->armorpiercing());
-         print_line($F, 'crit', $attack->crit());
-         print_line($F, 'range', $attack->range());
-         print_line($F, 'lof', $attack->lof());
-         print_line($F, 'cooldown', $attack->cooldown());
-         print_line($F, 'ammo', $weap->ammo());
-         print_line($F, 'reload', $weap->reload());
-         print_line($F, 'effects', $attack->effects());
+         print_line($F, 'weaponicon', BN::Out->icon($attack->icon()));
+         $r += print_line($F, 'weapon', $weap->name());
+         $r += print_line($F, 'offense', $attack->offense());
+         $r += print_line($F, 'damage', $attack->damage());
+         $r += print_line($F, 'armorpiercing', $attack->armorpiercing());
+         $r += print_line($F, 'crit', $attack->crit());
+         $r += print_line($F, 'range', $attack->range());
+         $r += print_line($F, 'lof', $attack->lof());
+         $r += print_line($F, 'cooldown', $attack->cooldown() || undef);
+         $r += print_line($F, 'ammo', $weap->ammo());
+         $r += print_line($F, 'reload', $weap->reload());
+         $r += print_line($F, 'effects', $attack->effects());
          print_line($F, 'targets', $attack->targets());
+         print_line($F, 'targetbox-rows', $r) if $r > 7;
          print_line($F, 'game file name', $attack->tag());
          print $F "}}\n\n";
       }
@@ -409,7 +412,9 @@ sub quest_goods {
 
 sub print_line {
    my ($F, $tag, $val) = @_;
-   printf $F "| %-15s = %s\n", $tag, $val if defined $val;
+   return 0 unless defined $val;
+   printf $F "| %-15s = %s\n", $tag, $val;
+   return 1;
 }
 
 1 # end BN::Out::Buildings
