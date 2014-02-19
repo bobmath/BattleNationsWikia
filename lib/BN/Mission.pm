@@ -79,4 +79,19 @@ sub objectives {
    return @obj;
 }
 
+sub unlocks_buildings {
+   my ($mis) = @_;
+   if (!exists $mis->{_unlocks_buildings}) {
+      $_->{_unlocks_buildings} = undef foreach BN::Mission->all();
+      foreach my $bld (BN::Building->all()) {
+         foreach my $id ($bld->mission_reqs()) {
+            my $m = BN::Mission->get($id) or next;
+            push @{$m->{_unlocks_buildings}}, $bld->tag();
+         }
+      }
+   }
+   return unless $mis->{_unlocks_buildings};
+   return @{$mis->{_unlocks_buildings}};
+}
+
 1 # end BN::Mission
