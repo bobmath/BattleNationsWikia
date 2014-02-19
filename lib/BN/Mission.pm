@@ -91,7 +91,7 @@ sub unlocks_buildings {
       }
    }
    return unless $mis->{_unlocks_buildings};
-   return @{$mis->{_unlocks_buildings}};
+   return map { BN::Building->get($_) } @{$mis->{_unlocks_buildings}};
 }
 
 sub unlocks_units {
@@ -106,7 +106,7 @@ sub unlocks_units {
       }
    }
    return unless $mis->{_unlocks_units};
-   return @{$mis->{_unlocks_units}};
+   return map { BN::Unit->get($_) } @{$mis->{_unlocks_units}};
 }
 
 1 # end BN::Mission

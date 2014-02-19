@@ -160,14 +160,8 @@ sub print_mission {
    }
 
    my @unlocks;
-   foreach my $bldid ($mis->unlocks_buildings()) {
-      my $bld = BN::Building->get($bldid) or next;
-      my $name = $bld->name();
-      push @unlocks, "[[$name]]";
-   }
-   foreach my $unitid ($mis->unlocks_units()) {
-      my $unit = BN::Unit->get($unitid) or next;
-      my $name = $unit->name();
+   foreach my $obj ($mis->unlocks_buildings(), $mis->unlocks_units()) {
+      my $name = $obj->name();
       push @unlocks, "[[$name]]";
    }
    print "    :Unlocks: ", join(', ', @unlocks), "\n" if @unlocks;
