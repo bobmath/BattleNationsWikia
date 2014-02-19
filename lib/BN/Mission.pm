@@ -54,4 +54,16 @@ BN->accessor(rewards => sub {
    return BN->format_amount(delete $mis->{rewards});
 });
 
+sub objectives {
+   my ($mis) = @_;
+   my $objectives = $mis->{objectives} or return;
+   my @obj;
+   foreach my $key (sort keys %$objectives) {
+      my $obj = $objectives->{$key} or next;
+      my $prereq = $obj->{prereq} or next;
+      push @obj, $prereq;
+   }
+   return @obj;
+}
+
 1 # end BN::Mission

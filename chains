@@ -100,13 +100,39 @@ sub print_block {
    print "\n";
 }
 
+my %already_have;
+
 sub print_mission {
    my ($id) = @_;
    my $mis = BN::Mission->get($id) or die;
    print "|$names{$id}\n";
 
+   foreach my $obj ($mis->objectives()) {
+      my $t = $obj->{_t} or next;
+      if ($t eq 'HasCompositionPrereqConfig') {
+         my $id = $obj->{compositionName} or next;
+         next if $already_have{$id}++;
+         my $build = BN::Building->get($id) or next;
+         my $name = $build->name() or next;
+         my $a = $name =~ /s$/ ? ''
+               : $name =~ /^[AEIOU]/ ? 'an ' : 'a ';
+         print "    :* Build ${a}[[$name]]\n";
+      }
+      elsif ($t eq 'DefeatEncounterPrereqConfig'
+         || $t eq 'DefeatEncounterSetPrereqConfig')
+      {
+         print "    :* Defeat encounter\n";
+      }
+      elsif ($t eq 'CollectJobPrereqConfig') {
+         my $job = BN::Job->get($obj->{jobId}) or next;
+         my $num = $obj->{count} > 1 ? " x $obj->{count}" : '';
+         my $name = $job->name();
+         print "    :* Make $name$num\n";
+      }
+   }
+
    if (my $rewards = $mis->rewards()) {
-      print "    : Rewards: $rewards\n";
+      print "    :Rewards: $rewards\n";
    }
 }
 
