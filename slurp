@@ -6,8 +6,14 @@ use LWP::UserAgent;
 use XML::Parser;
 
 my $ua = LWP::UserAgent->new();
+my $first = 1;
 
 mkdir 'wiki';
+
+if (@ARGV) {
+   get_page($_) foreach @ARGV;
+   exit;
+}
 
 my %namemap;
 if (open my $MAP, '<', 'namemap') {
@@ -37,6 +43,9 @@ sub get_page {
    $file = "wiki/$file";
    return if -e $file;
 
+   sleep 10 unless $first;
+   $first = 0;
+
    print $name, "\n";
    $name =~ s/(['"])/sprintf "%%%02X", ord($1)/eg;
    my $resp = $ua->get(
@@ -63,6 +72,5 @@ sub get_page {
 
    close $OUT;
    die "$name data not found" unless defined $capture;
-   sleep 10;
 }
 
