@@ -114,14 +114,19 @@ sub print_mission {
          next if $already_have{$id}++;
          my $build = BN::Building->get($id) or next;
          my $name = $build->name() or next;
-         my $a = $name =~ /s$/ ? ''
-               : $name =~ /^[AEIOU]/ ? 'an ' : 'a ';
-         print "    :* Build ${a}[[$name]]\n";
+         print "    :* Build [[$name]]\n";
       }
       elsif ($t eq 'DefeatEncounterPrereqConfig'
          || $t eq 'DefeatEncounterSetPrereqConfig')
       {
          print "    :* Defeat encounter\n";
+      }
+      elsif ($t eq 'UnitsKilledPrereqConfig') {
+         my $unit = BN::Unit->get($obj->{unitId}) or next;
+         my $name = $unit->name() or next;
+         $name = "[[$name]]";
+         $name .= " x $obj->{count}" if $obj->{count} > 1;
+         print "    :* Kill $name\n";
       }
       elsif ($t eq 'CollectJobPrereqConfig') {
          my $job = BN::Job->get($obj->{jobId}) or next;
@@ -134,11 +139,30 @@ sub print_mission {
          $name .= " x $obj->{count}" if $obj->{count} > 1;
          print "    :* Make $name\n";
       }
+      elsif ($t eq 'TurnInPrereqConfig') {
+         my $toll = BN->format_amount($obj->{toll}) or next;
+         print "    :* Turn in $toll\n";
+      }
+      elsif ($t eq 'CollectProjectPrereqConfig') {
+         my $unit = BN::Unit->get($obj->{projectId}) or next;
+         my $name = $unit->name() or next;
+         $name = "[[$name]]";
+         $name .= " x $obj->{count}" if $obj->{count} > 1;
+         print "    :* Train $name\n";
+      }
    }
 
    if (my $rewards = $mis->rewards()) {
       print "    :Rewards: $rewards\n";
    }
+
+   my @unlocks;
+   foreach my $bldid ($mis->unlocks_buildings()) {
+      my $bld = BN::Building->get($bldid) or next;
+      my $name = $bld->name();
+      push @unlocks, "[[$name]]";
+   }
+   print "    :Unlocks: ", join(', ', @unlocks), "\n" if @unlocks;
 }
 
 sub prereqs {
