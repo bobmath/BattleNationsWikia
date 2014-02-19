@@ -200,6 +200,18 @@ sub from_missions {
    return @{$unit->{_from_missions}};
 }
 
+BN->list_accessor(mission_reqs => sub {
+   my ($unit) = @_;
+   my @missions;
+   foreach my $prereq ($unit->prereqs()) {
+      my $t = $prereq->{_t} or next;
+      next unless $t eq 'CompleteMissionPrereqConfig';
+      my $id = $prereq->{missionId} or next;
+      push @missions, $id;
+   }
+   return @missions;
+});
+
 BN->accessor(heal_building => sub {
    my ($unit) = @_;
    my $tags = $unit->{tags} or return;

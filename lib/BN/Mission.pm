@@ -94,4 +94,19 @@ sub unlocks_buildings {
    return @{$mis->{_unlocks_buildings}};
 }
 
+sub unlocks_units {
+   my ($mis) = @_;
+   if (!exists $mis->{_unlocks_units}) {
+      $_->{_unlocks_units} = undef foreach BN::Mission->all();
+      foreach my $unit (BN::Unit->all()) {
+         foreach my $id ($unit->mission_reqs()) {
+            my $m = BN::Mission->get($id) or next;
+            push @{$m->{_unlocks_units}}, $unit->tag();
+         }
+      }
+   }
+   return unless $mis->{_unlocks_units};
+   return @{$mis->{_unlocks_units}};
+}
+
 1 # end BN::Mission

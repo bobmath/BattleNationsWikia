@@ -165,6 +165,11 @@ sub print_mission {
       my $name = $bld->name();
       push @unlocks, "[[$name]]";
    }
+   foreach my $unitid ($mis->unlocks_units()) {
+      my $unit = BN::Unit->get($unitid) or next;
+      my $name = $unit->name();
+      push @unlocks, "[[$name]]";
+   }
    print "    :Unlocks: ", join(', ', @unlocks), "\n" if @unlocks;
 }
 
