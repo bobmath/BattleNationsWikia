@@ -139,31 +139,10 @@ sub building_defense {
 
    print_line($F, 'nocat', 'true');
    print_line($F, 'game file name', $unit->tag());
-   print $F "}}\n\n";
+   print $F "}}\n";
 
-   foreach my $weap ($unit->weapons()) {
-      foreach my $attack ($weap->attacks()) {
-         print $F "{{UnitAttackBox\n";
-         my $r = 1;
-         print_line($F, 'attackname', $attack->name());
-         print_line($F, 'weaponicon', BN::Out->icon($attack->icon()));
-         $r += print_line($F, 'weapon', $weap->name());
-         $r += print_line($F, 'offense', $attack->offense());
-         $r += print_line($F, 'damage', $attack->damage());
-         $r += print_line($F, 'armorpiercing', $attack->armorpiercing());
-         $r += print_line($F, 'crit', $attack->crit());
-         $r += print_line($F, 'range', $attack->range());
-         $r += print_line($F, 'lof', $attack->lof());
-         $r += print_line($F, 'cooldown', $attack->cooldown() || undef);
-         $r += print_line($F, 'ammo', $weap->ammo());
-         $r += print_line($F, 'reload', $weap->reload());
-         $r += print_line($F, 'effects', $attack->effects());
-         print_line($F, 'targets', $attack->targets());
-         print_line($F, 'targetbox-rows', $r) if $r > 7;
-         print_line($F, 'game file name', $attack->tag());
-         print $F "}}\n\n";
-      }
-   }
+   BN::Out::Units::unit_weapons($F, $unit);
+   print "\n";
 }
 
 sub building_levels {
