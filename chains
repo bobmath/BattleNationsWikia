@@ -150,6 +150,9 @@ sub print_mission {
          $name .= " x $obj->{count}" if $obj->{count} > 1;
          print "    :* Train $name\n";
       }
+      elsif ($t eq 'EnterOpponentLandPrereqConfig') {
+         print "    :* Enter $obj->{opponentId}\n";
+      }
    }
 
    if (my $rewards = $mis->rewards()) {
