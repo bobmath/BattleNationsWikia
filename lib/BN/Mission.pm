@@ -19,7 +19,9 @@ sub get {
    if (ref($mis) eq 'HASH') {
       bless $mis, $class;
       $mis->{_tag} = $key;
-      $mis->{_name} = BN::Text->get($mis->{title});
+      my $name = BN::Text->get($mis->{title});
+      $name =~ s/\x{2026}/.../g;
+      $mis->{_name} = $name;
    }
    return $mis;
 }
