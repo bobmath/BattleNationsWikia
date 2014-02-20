@@ -114,84 +114,11 @@ sub print_mission {
 
    foreach my $obj ($mis->objectives()) {
       my $t = $obj->{_t} or next;
-      if ($t eq 'LevelPrereqConfig') {
-         my $level = $obj->{level} or next;
-         print "    :* [[Levels#$level|Level $level]]\n";
+      my $txt = BN::Prereqs->describe($obj) or next;
+      if ($txt =~ /^Build/) {
+         next if $already_have{$txt}++;
       }
-      elsif ($t eq 'HasCompositionPrereqConfig') {
-         my $id = $obj->{compositionName} or next;
-         next if $already_have{$id}++;
-         my $build = BN::Building->get($id) or next;
-         my $name = $build->wikilink();
-         $name .= " x $obj->{count}" if $obj->{count} > 1;
-         print "    :* Build $name\n";
-      }
-      elsif ($t eq 'HaveOneOfTheseStructuresPrereqConfig') {
-         my $counts = $obj->{buildingCounts} or next;
-         my @bldgs;
-         while (my ($id, $num) = each %$counts) {
-            my $bld = BN::Building->get($id) or next;
-            my $name = $bld->wikilink();
-            $name .= " x $num" if $num  > 1;
-            push @bldgs, $name;
-         }
-         print "    :* Build ", join(' or ', sort @bldgs), "\n" if @bldgs;
-      }
-      elsif ($t eq 'HaveAnyOfTheseStructuresPrereqConfig') {
-         my $ids = $obj->{buildings} or next;
-         my @bldgs;
-         foreach my $id (@$ids) {
-            my $bldg = BN::Building->get($id) or next;
-            my $name = $bldg->wikilink();
-            $name .= " x $obj->{count}" if $obj->{count} > 1;
-            push @bldgs, $name;
-         }
-         print "    :* Build ", join(' or ', @bldgs), "\n" if @bldgs;
-      }
-      elsif ($t eq 'DefeatEncounterPrereqConfig'
-         || $t eq 'DefeatEncounterSetPrereqConfig'
-         || $t eq 'FinishBattlePrereqConfig')
-      {
-         print "    :* Defeat encounter\n";
-      }
-      elsif ($t eq 'UnitsKilledPrereqConfig') {
-         my $unit = BN::Unit->get($obj->{unitId}) or next;
-         my $name = $unit->wikilink();
-         $name .= " x $obj->{count}" if $obj->{count} > 1;
-         print "    :* Kill $name\n";
-      }
-      elsif ($t eq 'AttackNPCBuildingPrereqConfig') {
-         my $name = $obj->{npcId};
-         $name .= " x $obj->{count}" if $obj->{count} > 1;
-         print "    :* Attack $name\n";
-      }
-      elsif ($t eq 'CollectJobPrereqConfig') {
-         my $job = BN::Job->get($obj->{jobId}) or next;
-         my $name = $job->name();
-         if (my ($bldid) = $job->buildings()) {
-            my $bld = BN::Building->get($bldid);
-            my $bldname = $bld->name();
-            $name = "[[$bldname#Goods|$name]]";
-         }
-         $name .= " x $obj->{count}" if $obj->{count} > 1;
-         print "    :* Make $name\n";
-      }
-      elsif ($t eq 'TurnInPrereqConfig') {
-         my $toll = BN->format_amount($obj->{toll}) or next;
-         print "    :* Turn in $toll\n";
-      }
-      elsif ($t eq 'CollectProjectPrereqConfig') {
-         my $unit = BN::Unit->get($obj->{projectId}) or next;
-         my $name = $unit->wikilink();
-         $name .= " x $obj->{count}" if $obj->{count} > 1;
-         print "    :* Train $name\n";
-      }
-      elsif ($t eq 'EnterOpponentLandPrereqConfig') {
-         print "    :* Enter $obj->{opponentId}\n";
-      }
-      else {
-         print "    :* $t\n";
-      }
+      print "    :* $txt\n";
    }
 
    if (my $rewards = $mis->rewards()) {

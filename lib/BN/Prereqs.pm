@@ -101,4 +101,87 @@ sub add_prereq {
    push @{$obj->{z_prereqs}}, { type=>"BN::$type", ids=>[@$ids] } if $ids;
 }
 
+sub describe {
+   my ($class, $prereq) = @_;
+   my $t = $prereq->{_t} or return;
+   if ($t eq 'LevelPrereqConfig') {
+      my $level = $prereq->{level} or return;
+      return "[[Levels#$level|Level $level]]";
+   }
+   elsif ($t eq 'HasCompositionPrereqConfig') {
+      my $build = BN::Building->get($prereq->{compositionName}) or return;
+      my $name = $build->wikilink();
+      $name .= " x $prereq->{count}" if $prereq->{count} > 1;
+      return "Build $name";
+   }
+   elsif ($t eq 'HaveOneOfTheseStructuresPrereqConfig') {
+      my $counts = $prereq->{buildingCounts} or return;
+      my @bldgs;
+      while (my ($id, $num) = each %$counts) {
+         my $bld = BN::Building->get($id) or return;
+         my $name = $bld->wikilink();
+         $name .= " x $num" if $num  > 1;
+         push @bldgs, $name;
+      }
+      return unless @bldgs;
+      return 'Build ' . join(' or ', sort @bldgs);
+   }
+   elsif ($t eq 'HaveAnyOfTheseStructuresPrereqConfig') {
+      my $ids = $prereq->{buildings} or return;
+      my @bldgs;
+      foreach my $id (@$ids) {
+         my $bldg = BN::Building->get($id) or return;
+         my $name = $bldg->wikilink();
+         $name .= " x $prereq->{count}" if $prereq->{count} > 1;
+         push @bldgs, $name;
+      }
+      return unless @bldgs;
+      return 'Build ' . join(' or ', @bldgs);
+   }
+   elsif ($t eq 'DefeatEncounterPrereqConfig'
+      || $t eq 'DefeatEncounterSetPrereqConfig'
+      || $t eq 'FinishBattlePrereqConfig')
+   {
+      return 'Defeat encounter';
+   }
+   elsif ($t eq 'UnitsKilledPrereqConfig') {
+      my $unit = BN::Unit->get($prereq->{unitId}) or return;
+      my $name = $unit->wikilink();
+      $name .= " x $prereq->{count}" if $prereq->{count} > 1;
+      return "Kill $name";
+   }
+   elsif ($t eq 'AttackNPCBuildingPrereqConfig') {
+      my $name = $prereq->{npcId};
+      $name .= " x $prereq->{count}" if $prereq->{count} > 1;
+      return "Attack $name";
+   }
+   elsif ($t eq 'CollectJobPrereqConfig') {
+      my $job = BN::Job->get($prereq->{jobId}) or return;
+      my $name = $job->name();
+      if (my ($bldid) = $job->buildings()) {
+         my $bld = BN::Building->get($bldid);
+         my $bldname = $bld->name();
+         $name = "[[$bldname#Goods|$name]]";
+      }
+      $name .= " x $prereq->{count}" if $prereq->{count} > 1;
+      return "Make $name";
+   }
+   elsif ($t eq 'TurnInPrereqConfig') {
+      my $toll = BN->format_amount($prereq->{toll}) or return;
+      return "Turn in $toll";
+   }
+   elsif ($t eq 'CollectProjectPrereqConfig') {
+      my $unit = BN::Unit->get($prereq->{projectId}) or return;
+      my $name = $unit->wikilink();
+      $name .= " x $prereq->{count}" if $prereq->{count} > 1;
+      return "Train $name";
+   }
+   elsif ($t eq 'EnterOpponentLandPrereqConfig') {
+      return "Enter $prereq->{opponentId}";
+   }
+   else {
+      return "Other: $t";
+   }
+}
+
 1 # end BN::Prereqs
