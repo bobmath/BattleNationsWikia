@@ -34,6 +34,15 @@ sub get {
    return $build;
 }
 
+sub get_by_name {
+   my ($class, $name) = @_;
+   return unless defined $name;
+   foreach my $build ($class->all()) {
+      return $build if $build->name() eq $name;
+   }
+   return;
+}
+
 BN->simple_accessor('tag');
 BN->simple_accessor('name');
 
