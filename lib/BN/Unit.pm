@@ -26,6 +26,15 @@ sub get {
    return $unit;
 }
 
+sub get_by_name {
+   my ($class, $name) = @_;
+   return unless defined $name;
+   foreach my $unit ($class->all()) {
+      return $unit if $unit->name() eq $name || $unit->shortname() eq $name;
+   }
+   return;
+}
+
 BN->simple_accessor('tag');
 BN->simple_accessor('name');
 BN->simple_accessor('building_level', 'buildingLevel');
