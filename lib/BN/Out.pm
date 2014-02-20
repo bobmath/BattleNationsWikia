@@ -32,11 +32,11 @@ sub filename {
 }
 
 sub icon {
-   my ($class, $icon) = @_;
+   my ($class, $icon, $size) = @_;
    return $icon unless defined $icon;
    $icon =~ s/\.png$//;
    $icon =~ s/\@2x$//;
-   return "[[File:\u$icon.png|link=]]";
+   return "[[File:\u$icon.png|${size}px|link=]]";
 }
 
 my $MD5;

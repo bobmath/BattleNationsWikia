@@ -45,7 +45,7 @@ sub unit_profile {
    my ($F, $unit) = @_;
    print $F $unit->name(), "\n";
    print $F "{{UnitProfile\n";
-   print_line($F, 'image', BN::Out->icon($unit->icon()));
+   print_line($F, 'image', BN::Out->icon($unit->icon(), 40));
    print_line($F, 'shortname', $unit->shortname())
       unless $unit->shortname() eq $unit->name();
    print_line($F, 'unit type', $unit->type());
@@ -107,7 +107,7 @@ sub unit_weapons {
          print_line($F, 'attack' . ++$n, '');
          print $F "{{$attackbox\n";
          print_line($F, 'name', $attack->name());
-         print_line($F, 'weaponicon', BN::Out->icon($attack->icon()));
+         print_line($F, 'weaponicon', BN::Out->icon($attack->icon(), 40));
          $r += print_line($F, 'rank', $rank);
          $r += print_line($F, 'damagetype', $attack->dmgtype());
          print_line($F, 'mindmg', $attack->mindmg());

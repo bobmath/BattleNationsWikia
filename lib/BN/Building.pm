@@ -39,7 +39,7 @@ BN->simple_accessor('name');
 
 sub icon {
    my ($build) = @_;
-   my $structure = $build->{StructureMenu} or return;
+   my $structure = $build->{StructureMenu} or return undef;
    return $structure->{icon};
 }
 

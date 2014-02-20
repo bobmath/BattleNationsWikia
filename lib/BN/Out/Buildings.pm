@@ -49,7 +49,7 @@ sub building_summary {
    my ($F, $build) = @_;
    print $F $build->name(), "\n";
    print $F "{{BuildingInfoBox\n";
-   print_line($F, 'image', BN::Out->icon($build->icon()));
+   print_line($F, 'image', BN::Out->icon($build->icon(), 200));
    print_line($F, 'buildtype', $build->build_type());
    print_line($F, 'population', $build->population());
    print_line($F, 'pwi', $build->population_inactive());
@@ -321,7 +321,7 @@ sub shop_goods {
    for my $job (@$jobs) {
       my $g = 'good' . ++$n;
       print_line($F, $g, $job->name());
-      print_line($F, $g.'image', BN::Out->icon($job->icon()));
+      print_line($F, $g.'image', BN::Out->icon($job->icon(), 40));
       if (my $cost = $job->cost()) {
          print_line($F, $g.'time', BN->format_time($cost->{time}));
          print_line($F, $g.'basecost', $cost->{gold});
@@ -376,7 +376,7 @@ sub quest_goods {
       my $mis = BN::Mission->get($id) or die;
       my $mname = $mis->name();
       print_line($F, $g, "[[Missions#$mname|$name]]");
-      print_line($F, $g.'image', BN::Out->icon($job->icon()));
+      print_line($F, $g.'image', BN::Out->icon($job->icon(), 40));
       if (my $cost = $job->cost()) {
          print_line($F, $g.'time', BN->format_time($cost->{time}));
          print_line($F, $g.'cost',
