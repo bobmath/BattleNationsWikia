@@ -60,30 +60,35 @@ while (my ($id, $block) = each %blocks) {
    }
 }
 
-foreach my $id (sort { $names{$a} cmp $names{$b} } keys %blocks) {
-   my $blk = $blocks{$id} or next;
-   GROW: while (keys(%{$blk->{after}}) == 1) {
-      my ($nextid) = keys(%{$blk->{after}});
-      my $nextblk = $blocks{$nextid} or die;
-      die unless $nextblk->{before}{$id};
-      my $prereqs = prereqs($id);
-      foreach my $revid (keys %{$nextblk->{before}}) {
-         last GROW unless $prereqs->{$revid};
+my $changed;
+do {
+   $changed = 0;
+   foreach my $id (sort { $names{$a} cmp $names{$b} } keys %blocks) {
+      my $blk = $blocks{$id} or next;
+      GROW: while (keys(%{$blk->{after}}) == 1) {
+         my ($nextid) = keys(%{$blk->{after}});
+         my $nextblk = $blocks{$nextid} or die;
+         die unless $nextblk->{before}{$id};
+         my $prereqs = prereqs($id);
+         foreach my $revid (keys %{$nextblk->{before}}) {
+            last GROW unless $prereqs->{$revid};
+         }
+         foreach my $revid (keys %{$nextblk->{before}}) {
+            my $revblk = $blocks{$revid} or die;
+            delete $revblk->{after}{$nextid};
+         }
+         push @{$blk->{ids}}, @{$nextblk->{ids}};
+         $blk->{after} = $nextblk->{after};
+         foreach my $refid (keys %{$blk->{after}}) {
+            my $refblk = $blocks{$refid} or die;
+            delete $refblk->{before}{$nextid} or die;
+            $refblk->{before}{$id} = 1;
+         }
+         delete $blocks{$nextid};
+         $changed = 1;
       }
-      foreach my $revid (keys %{$nextblk->{before}}) {
-         my $revblk = $blocks{$revid} or die;
-         delete $revblk->{after}{$nextid};
-      }
-      push @{$blk->{ids}}, @{$nextblk->{ids}};
-      $blk->{after} = $nextblk->{after};
-      foreach my $refid (keys %{$blk->{after}}) {
-         my $refblk = $blocks{$refid} or die;
-         delete $refblk->{before}{$nextid} or die;
-         $refblk->{before}{$id} = 1;
-      }
-      delete $blocks{$nextid};
    }
-}
+} while $changed;
 
 print_block($_) foreach sort { $names{$a} cmp $names{$b} } keys %blocks;
 
@@ -116,6 +121,18 @@ sub print_mission {
          my $name = $build->name() or next;
          print "    :* Build [[$name]]\n";
       }
+      elsif ($t eq 'HaveOneOfTheseStructuresPrereqConfig') {
+         my $counts = $obj->{buildingCounts} or next;
+         my @bldgs;
+         while (my ($id, $num) = each %$counts) {
+            my $bld = BN::Building->get($id) or next;
+            my $name = $bld->name();
+            $name = "[[$name]]";
+            $name .= " x $num" if $num  > 1;
+            push @bldgs, $name;
+         }
+         print "    :* Build ", join(' or ', sort @bldgs), "\n" if @bldgs;
+      }
       elsif ($t eq 'DefeatEncounterPrereqConfig'
          || $t eq 'DefeatEncounterSetPrereqConfig')
       {
@@ -127,6 +144,11 @@ sub print_mission {
          $name = "[[$name]]";
          $name .= " x $obj->{count}" if $obj->{count} > 1;
          print "    :* Kill $name\n";
+      }
+      elsif ($t eq 'AttackNPCBuildingPrereqConfig') {
+         my $name = $obj->{npcId};
+         $name .= " x $obj->{count}" if $obj->{count} > 1;
+         print "    :* Attack $name\n";
       }
       elsif ($t eq 'CollectJobPrereqConfig') {
          my $job = BN::Job->get($obj->{jobId}) or next;
