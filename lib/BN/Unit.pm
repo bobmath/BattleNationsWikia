@@ -46,6 +46,11 @@ BN->accessor(shortname => sub {
    return BN::Text->get($unit->{shortName});
 });
 
+sub wikilink {
+   my ($unit) = @_;
+   return "[[$unit->{_name}]]";
+}
+
 my %blocking = (
    0 => 'None',
    1 => 'Partial',
@@ -290,20 +295,19 @@ BN->accessor(other_reqs => sub {
             my $tag = $prereq->{compositionName} or next;
             next if $tag eq $build;
             my $b = BN::Building->get($tag) or next;
-            push @reqs, '[[' . $b->name() . ']]';
+            push @reqs, $b->wikilink();
          }
          elsif ($t eq 'HaveAnyOfTheseStructuresPrereqConfig') {
             my $tags = $prereq->{buildings} or next;
             my @any;
             foreach my $tag (@$tags) {
                my $b = BN::Building->get($tag) or next;
-               push @any, '[[' . $b->name() . ']]';
+               push @any, $b->wikilink();
             }
          }
          elsif ($t eq 'CompleteMissionPrereqConfig') {
             my $mis = BN::Mission->get($prereq->{missionId}) or next;
-            my $name = $mis->name() or next;
-            push @reqs, $mis->hidden() ? 'Mission' : "[[Missions#$name|$name]]";
+            push @reqs, $mis->wikilink();
          }
       }
    }

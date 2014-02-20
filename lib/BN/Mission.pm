@@ -28,6 +28,12 @@ BN->simple_accessor('name');
 BN->simple_accessor('tag');
 BN->simple_accessor('hidden', 'hideIcon');
 
+sub wikilink {
+   my ($mis) = @_;
+   return 'Mission' if $mis->{hideIcon};
+   return "[[Missions#$mis->{_name}|$mis->{_name}]]";
+}
+
 sub level {
    my ($mis) = @_;
    return $mis->{_level} if exists $mis->{_level};

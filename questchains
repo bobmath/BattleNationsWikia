@@ -118,16 +118,16 @@ sub print_mission {
          my $id = $obj->{compositionName} or next;
          next if $already_have{$id}++;
          my $build = BN::Building->get($id) or next;
-         my $name = $build->name() or next;
-         print "    :* Build [[$name]]\n";
+         my $name = $build->wikilink();
+         $name .= " x $obj->{count}" if $obj->{count} > 1;
+         print "    :* Build $name\n";
       }
       elsif ($t eq 'HaveOneOfTheseStructuresPrereqConfig') {
          my $counts = $obj->{buildingCounts} or next;
          my @bldgs;
          while (my ($id, $num) = each %$counts) {
             my $bld = BN::Building->get($id) or next;
-            my $name = $bld->name();
-            $name = "[[$name]]";
+            my $name = $bld->wikilink();
             $name .= " x $num" if $num  > 1;
             push @bldgs, $name;
          }
@@ -141,8 +141,7 @@ sub print_mission {
       }
       elsif ($t eq 'UnitsKilledPrereqConfig') {
          my $unit = BN::Unit->get($obj->{unitId}) or next;
-         my $name = $unit->name() or next;
-         $name = "[[$name]]";
+         my $name = $unit->wikilink();
          $name .= " x $obj->{count}" if $obj->{count} > 1;
          print "    :* Kill $name\n";
       }
@@ -168,8 +167,7 @@ sub print_mission {
       }
       elsif ($t eq 'CollectProjectPrereqConfig') {
          my $unit = BN::Unit->get($obj->{projectId}) or next;
-         my $name = $unit->name() or next;
-         $name = "[[$name]]";
+         my $name = $unit->wikilink();
          $name .= " x $obj->{count}" if $obj->{count} > 1;
          print "    :* Train $name\n";
       }
@@ -187,8 +185,7 @@ sub print_mission {
 
    my @unlocks;
    foreach my $obj ($mis->unlocks_buildings(), $mis->unlocks_units()) {
-      my $name = $obj->name();
-      push @unlocks, "[[$name]]";
+      push @unlocks, $obj->wikilink();
    }
    print "    :Unlocks: ", join(', ', @unlocks), "\n" if @unlocks;
 }

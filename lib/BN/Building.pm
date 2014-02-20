@@ -46,6 +46,11 @@ sub get_by_name {
 BN->simple_accessor('tag');
 BN->simple_accessor('name');
 
+sub wikilink {
+   my ($build) = @_;
+   return "[[$build->{_name}]]";
+}
+
 sub icon {
    my ($build) = @_;
    my $structure = $build->{StructureMenu} or return undef;
