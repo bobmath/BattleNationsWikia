@@ -173,8 +173,7 @@ sub building {
    }
    foreach my $build (BN::Building->all()) {
       next if $build->tag() eq 'comp_milUnit_testbarracks';
-      foreach my $id ($build->units()) {
-         my $u = BN::Unit->get($id) or next;
+      foreach my $u ($build->units()) {
          $u->{_building} = $build->tag();
       }
    }

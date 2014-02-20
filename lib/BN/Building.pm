@@ -47,7 +47,7 @@ sub units {
    my ($build) = @_;
    my $projects = $build->{ProjectList} or return;
    my $jobs = $projects->{jobs} or return;
-   return @$jobs;
+   return map { BN::Unit->get($_) } @$jobs;
 }
 
 sub level {
