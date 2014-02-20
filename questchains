@@ -134,7 +134,8 @@ sub print_mission {
          print "    :* Build ", join(' or ', sort @bldgs), "\n" if @bldgs;
       }
       elsif ($t eq 'DefeatEncounterPrereqConfig'
-         || $t eq 'DefeatEncounterSetPrereqConfig')
+         || $t eq 'DefeatEncounterSetPrereqConfig'
+         || $t eq 'FinishBattlePrereqConfig')
       {
          print "    :* Defeat encounter\n";
       }
@@ -174,6 +175,9 @@ sub print_mission {
       }
       elsif ($t eq 'EnterOpponentLandPrereqConfig') {
          print "    :* Enter $obj->{opponentId}\n";
+      }
+      else {
+         print "    :* $t\n";
       }
    }
 
