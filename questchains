@@ -114,7 +114,11 @@ sub print_mission {
 
    foreach my $obj ($mis->objectives()) {
       my $t = $obj->{_t} or next;
-      if ($t eq 'HasCompositionPrereqConfig') {
+      if ($t eq 'LevelPrereqConfig') {
+         my $level = $obj->{level} or next;
+         print "    :* [[Levels#$level|Level $level]]\n";
+      }
+      elsif ($t eq 'HasCompositionPrereqConfig') {
          my $id = $obj->{compositionName} or next;
          next if $already_have{$id}++;
          my $build = BN::Building->get($id) or next;
@@ -132,6 +136,17 @@ sub print_mission {
             push @bldgs, $name;
          }
          print "    :* Build ", join(' or ', sort @bldgs), "\n" if @bldgs;
+      }
+      elsif ($t eq 'HaveAnyOfTheseStructuresPrereqConfig') {
+         my $ids = $obj->{buildings} or next;
+         my @bldgs;
+         foreach my $id (@$ids) {
+            my $bldg = BN::Building->get($id) or next;
+            my $name = $bldg->wikilink();
+            $name .= " x $obj->{count}" if $obj->{count} > 1;
+            push @bldgs, $name;
+         }
+         print "    :* Build ", join(' or ', @bldgs), "\n" if @bldgs;
       }
       elsif ($t eq 'DefeatEncounterPrereqConfig'
          || $t eq 'DefeatEncounterSetPrereqConfig'
