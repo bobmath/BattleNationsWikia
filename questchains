@@ -6,6 +6,16 @@ use warnings;
 use lib 'lib';
 use BN;
 
+my %oldintro;
+$oldintro{$_} = 1 foreach qw(
+   p01_BUILD_070_BuildBootCamp
+   p01_BUILD_100_TeachCamera
+   p01_BUILD_130_BuildStoneQuarry
+   p01_BUILD_140_BuildResourceDepot
+   p01_UPBLD_010_BuildingUpgradeLvl1
+   p01_ZOEY1_010_BuildHovel
+);
+
 binmode STDOUT, ':utf8';
 
 open my $F, '<', 'wiki/Missions' or die;
@@ -25,6 +35,7 @@ my %blocks;
 foreach my $mis (BN::Mission->all()) {
    my $level = $mis->level() // 0;
    my @tags;
+   push @tags, 'Old' if $oldintro{$mis->tag()};
    push @tags, 'Hidden' if $mis->hidden();
    push @tags, 'New' unless $headings{$mis->name()};
    push @tags, $mis->tag();
