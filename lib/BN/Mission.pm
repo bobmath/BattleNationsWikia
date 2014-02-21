@@ -43,14 +43,6 @@ sub level {
    return $mis->{_level};
 }
 
-sub completion_level {
-   my ($mis) = @_;
-   my $completion = $mis->get_completion();
-   return $completion->{_level} if exists $completion->{_level};
-   BN::Prereqs->calc_levels();
-   return $completion->{_level};
-}
-
 sub prereqs {
    my ($mis) = @_;
    my $rules = $mis->{startRules} or return;
@@ -123,7 +115,7 @@ sub unlocks_units {
    return map { BN::Unit->get($_) } @{$mis->{_unlocks_units}};
 }
 
-sub get_completion {
+sub completion {
    my ($mis) = @_;
    return $mis->{z_completion} ||= BN::Mission::Completion->new($mis->{_tag});
 }
@@ -131,13 +123,13 @@ sub get_completion {
 package BN::Mission::Completion;
 
 sub all {
-   return map { $_->get_completion() } BN::Mission->all();
+   return map { $_->completion() } BN::Mission->all();
 }
 
 sub get {
    my ($class, $key) = @_;
    my $mis = BN::Mission->get($key) or return;
-   return $mis->get_completion();
+   return $mis->completion();
 }
 
 sub new {
@@ -146,6 +138,13 @@ sub new {
       _parent => $id,
       z_prereqs => [{ type => 'BN::Mission', ids => [$id] }],
    }, $class;
+}
+
+sub level {
+   my ($self) = @_;
+   return $self->{_level} if exists $self->{_level};
+   BN::Prereqs->calc_levels();
+   return $self->{_level};
 }
 
 sub prereqs {
