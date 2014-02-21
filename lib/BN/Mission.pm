@@ -43,6 +43,14 @@ sub level {
    return $mis->{_level};
 }
 
+sub completion_level {
+   my ($mis) = @_;
+   my $completion = $mis->get_completion();
+   return $completion->{_level} if exists $completion->{_level};
+   BN::Prereqs->calc_levels();
+   return $completion->{_level};
+}
+
 sub prereqs {
    my ($mis) = @_;
    my $rules = $mis->{startRules} or return;
