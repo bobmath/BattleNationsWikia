@@ -13,13 +13,18 @@ sub calc_levels {
    }
 
    my @has_prereqs;
-   foreach my $obj (BN::Unit->all(), BN::Building->all(), BN::Mission->all()) {
-      $obj->{_level} = undef;
-      add_prereq($obj, $_) foreach $obj->prereqs();
-      push @has_prereqs, $obj if $obj->{z_prereqs};
+   foreach my $class (qw[ BN::Unit BN::Building
+      BN::Mission BN::Mission::Completion ])
+   {
+      foreach my $obj ($class->all()) {
+         $obj->{_level} = undef;
+         add_prereq($obj, $_) foreach $obj->prereqs();
+         push @has_prereqs, $obj if $obj->{z_prereqs};
+      }
    }
 
-   if (my $mis = BN::Mission->get('p01_INTRO_040_BuildShelter')) {
+   foreach my $id (qw[ p01_LVLUP_010_UnitPromotion1 ]) {
+      my $mis = BN::Mission->get($id) or next;
       $mis->{_level} = 1;
    }
 
@@ -59,12 +64,14 @@ sub add_prereq {
       $obj->{_level} = $level;
    }
    elsif ($t eq 'CompleteMissionPrereqConfig') {
-      $type = 'Mission';
+      $type = 'Mission::Completion';
       $id = $prereq->{missionId};
    }
-   elsif ($t eq 'CompleteAnyMissionPrereqConfig'
-      || $t eq 'ActiveMissionPrereqConfig')
-   {
+   elsif ($t eq 'CompleteAnyMissionPrereqConfig') {
+      $type = 'Mission::Completion';
+      $ids = $prereq->{missionIds};
+   }
+   elsif ($t eq 'ActiveMissionPrereqConfig') {
       $type = 'Mission';
       $ids = $prereq->{missionIds};
    }

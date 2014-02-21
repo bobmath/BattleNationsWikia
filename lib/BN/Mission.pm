@@ -45,14 +45,12 @@ sub level {
 
 sub prereqs {
    my ($mis) = @_;
+   my $rules = $mis->{startRules} or return;
    my @prereqs;
-   foreach my $sec (qw( startRules objectives )) {
-      my $rules = $mis->{$sec} or next;
-      foreach my $key (sort keys %$rules) {
-         my $rule = $rules->{$key} or next;
-         my $prereq = $rule->{prereq} or next;
-         push @prereqs, $prereq;
-      }
+   foreach my $key (sort keys %$rules) {
+      my $rule = $rules->{$key} or next;
+      my $prereq = $rule->{prereq} or next;
+      push @prereqs, $prereq;
    }
    return @prereqs;
 }
@@ -115,6 +113,44 @@ sub unlocks_units {
    }
    return unless $mis->{_unlocks_units};
    return map { BN::Unit->get($_) } @{$mis->{_unlocks_units}};
+}
+
+sub get_completion {
+   my ($mis) = @_;
+   return $mis->{z_completion} ||= BN::Mission::Completion->new($mis->{_tag});
+}
+
+package BN::Mission::Completion;
+
+sub all {
+   return map { $_->get_completion() } BN::Mission->all();
+}
+
+sub get {
+   my ($class, $key) = @_;
+   my $mis = BN::Mission->get($key) or return;
+   return $mis->get_completion();
+}
+
+sub new {
+   my ($class, $id) = @_;
+   return bless {
+      _parent => $id,
+      z_prereqs => [{ type => 'BN::Mission', ids => [$id] }],
+   }, $class;
+}
+
+sub prereqs {
+   my ($self) = @_;
+   my $parent = BN::Mission->get($self->{_parent}) or return;
+   my $objectives = $parent->{objectives} or return;
+   my @prereqs;
+   foreach my $key (sort keys %$objectives) {
+      my $objective = $objectives->{$key} or next;
+      my $prereq = $objective->{prereq} or next;
+      push @prereqs, $prereq;
+   }
+   return @prereqs;
 }
 
 1 # end BN::Mission
