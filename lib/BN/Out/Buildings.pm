@@ -141,7 +141,7 @@ sub building_defense {
    print $F "}}\n";
 
    BN::Out::Units::unit_weapons($F, $unit);
-   print "\n";
+   print $F "\n";
 }
 
 sub building_levels {
