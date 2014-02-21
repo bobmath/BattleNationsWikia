@@ -8,12 +8,23 @@ use BN;
 
 my %oldintro;
 $oldintro{$_} = 1 foreach qw(
+   p01_BK2RR_010_RaidersBattle2
+   p01_BK2RR_020_BuildPillbox
+   p01_BK2RR_030_TrainGrenadier
+   p01_BK2RR_040_ReturnRecoilRidge
+   p01_BK2RR_050_BattleRecoilRidge
+   p01_BK2RR_060_HelpAdventurer
    p01_BUILD_070_BuildBootCamp
    p01_BUILD_100_TeachCamera
+   p01_BUILD_110_RaiderEncounters
    p01_BUILD_130_BuildStoneQuarry
    p01_BUILD_140_BuildResourceDepot
+   p01_BUILD_150_CollectTaxes
    p01_FARMS_010_BuildFarm1
    p01_UPBLD_010_BuildingUpgradeLvl1
+   p01_UPBLD_010_BuildingUpgradeLvl1_LateGame
+   p01_UPBLD_020_BuildingUpgradeLvl2
+   p01_UPBLD_020_BuildingUpgradeLvl2_LateGame
    p01_ZOEY1_010_BuildHovel
 );
 
@@ -155,16 +166,17 @@ sub prereq_ids {
    my ($mis) = @_;
    my $level = $mis->level() // 0;
    my @ids;
-   foreach my $prereq ($mis->prereqs()) {
+   foreach my $prereq ($mis->prereqs(), $mis->completion()->prereqs()) {
       next if $prereq->{inverse};
       my $t = $prereq->{_t} or next;
-      my $ids;
       if ($t eq 'CompleteMissionPrereqConfig') {
          my $id = $prereq->{missionId} or next;
          push @ids, $id;
       }
-      elsif ($t eq 'CompleteAnyMissionPrereqConfig') {
-         $ids = $prereq->{missionIds} or next;
+      elsif ($t eq 'CompleteAnyMissionPrereqConfig'
+         || $t eq 'ActiveMissionPrereqConfig')
+      {
+         my $ids = $prereq->{missionIds} or next;
          foreach my $id (@$ids) {
             my $m = BN::Mission->get($id) or next;
             next if ($m->level()//0) > $level;
