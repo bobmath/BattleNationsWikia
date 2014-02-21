@@ -108,6 +108,27 @@ sub add_prereq {
    push @{$obj->{z_prereqs}}, { type=>"BN::$type", ids=>[@$ids] } if $ids;
 }
 
+my %places = (
+   AncientRuins1           => "[[Ancient Ruins]]",
+   BOARS_RecoilRidge       => "[[Recoil Ridge]]",
+   CrazyBladesBase         => "[[Blade's Base]]",
+   FINAL_90_raiderFortress => "[[Warlord Gantas' Fortress]]",
+   FINAL_raiderFortress    => "[[Warlord Gantas' Fortress]]",
+   Marin                   => "[[Marin]]",
+   MyLand                  => '[[Outpost]]',
+   RFORT_90_raiderFortress => "[[Warlord Gantas' Fortress]]",
+   SAVRR_RecoilRidge       => "[[Recoil Ridge]]",
+   SarinBase               => "[[Sarin's Base]]",
+   TronkBase               => "[[Tronk's Base]]",
+   WORLD_MAP               => "[[World Map]]",
+   WorldMap                => '[[World Map]]',
+   boarLand                => "[[Boar Badlands]]",
+   lightReconLand          => "[[Boar Badlands]]",
+   npc_1                   => "[[Recoil Ridge]]",
+   npc_2                   => "[[Recoil Ridge]]",
+   raptorNest              => "[[Raptor Nest]]",
+);
+
 sub describe {
    my ($class, $prereq) = @_;
    my $t = $prereq->{_t} or return;
@@ -160,7 +181,8 @@ sub describe {
       return "Kill $name";
    }
    elsif ($t eq 'AttackNPCBuildingPrereqConfig') {
-      my $name = $prereq->{npcId} . count($prereq);
+      my $bld = BN::Building->get($prereq->{compositionName}) or next;
+      my $name = $bld->wikilink() . count($prereq);
       return "Attack $name";
    }
    elsif ($t eq 'CollectJobPrereqConfig') {
@@ -182,11 +204,12 @@ sub describe {
       my $name = $unit->wikilink() . count($prereq);
       return "Train $name";
    }
-   elsif ($t eq 'EnterOpponentLandPrereqConfig') {
-      return "Enter $prereq->{opponentId}";
-   }
-   elsif ($t eq 'EnterStatePrereqConfig') {
-      return "Enter $prereq->{state}";
+   elsif ($t eq 'EnterOpponentLandPrereqConfig'
+      || $t eq 'EnterStatePrereqConfig')
+   {
+      my $name = $prereq->{opponentId} || $prereq->{state};
+      $name = $places{$name} || $name;
+      return "Go to $name";
    }
    elsif ($t eq 'BuildingAssistedPrereqConfig') {
       my $bld = BN::Building->get($prereq->{compositionId}) or return;
