@@ -110,8 +110,12 @@ sub describe {
    }
    elsif ($t eq 'HasCompositionPrereqConfig') {
       my $build = BN::Building->get($prereq->{compositionName}) or return;
-      my $name = $build->wikilink();
-      $name .= " x $prereq->{count}" if $prereq->{count} > 1;
+      my $name = $build->wikilink() . count($prereq);
+      return "Build $name";
+   }
+   elsif ($t eq 'CreateStructurePrereqConfig') {
+      my $bld = BN::Building->get($prereq->{structureType}) or return;
+      my $name = $bld->wikilink() . count($prereq);
       return "Build $name";
    }
    elsif ($t eq 'HaveOneOfTheseStructuresPrereqConfig') {
@@ -119,9 +123,7 @@ sub describe {
       my @bldgs;
       while (my ($id, $num) = each %$counts) {
          my $bld = BN::Building->get($id) or return;
-         my $name = $bld->wikilink();
-         $name .= " x $num" if $num  > 1;
-         push @bldgs, $name;
+         push @bldgs, $bld->wikilink() . count($num);
       }
       return unless @bldgs;
       return 'Build ' . join(' or ', sort @bldgs);
@@ -131,28 +133,25 @@ sub describe {
       my @bldgs;
       foreach my $id (@$ids) {
          my $bldg = BN::Building->get($id) or return;
-         my $name = $bldg->wikilink();
-         $name .= " x $prereq->{count}" if $prereq->{count} > 1;
-         push @bldgs, $name;
+         push @bldgs, $bldg->wikilink() . count($prereq);
       }
       return unless @bldgs;
       return 'Build ' . join(' or ', @bldgs);
    }
    elsif ($t eq 'DefeatEncounterPrereqConfig'
       || $t eq 'DefeatEncounterSetPrereqConfig'
+      || $t eq 'DefeatOccupationPrereqConfig'
       || $t eq 'FinishBattlePrereqConfig')
    {
       return 'Defeat encounter';
    }
    elsif ($t eq 'UnitsKilledPrereqConfig') {
       my $unit = BN::Unit->get($prereq->{unitId}) or return;
-      my $name = $unit->wikilink();
-      $name .= " x $prereq->{count}" if $prereq->{count} > 1;
+      my $name = $unit->wikilink() . count($prereq);
       return "Kill $name";
    }
    elsif ($t eq 'AttackNPCBuildingPrereqConfig') {
-      my $name = $prereq->{npcId};
-      $name .= " x $prereq->{count}" if $prereq->{count} > 1;
+      my $name = $prereq->{npcId} . count($prereq);
       return "Attack $name";
    }
    elsif ($t eq 'CollectJobPrereqConfig') {
@@ -163,8 +162,7 @@ sub describe {
          my $bldname = $bld->name();
          $name = "[[$bldname#Goods|$name]]";
       }
-      $name .= " x $prereq->{count}" if $prereq->{count} > 1;
-      return "Make $name";
+      return "Make $name" . count($prereq);
    }
    elsif ($t eq 'TurnInPrereqConfig') {
       my $toll = BN->format_amount($prereq->{toll}) or return;
@@ -172,16 +170,43 @@ sub describe {
    }
    elsif ($t eq 'CollectProjectPrereqConfig') {
       my $unit = BN::Unit->get($prereq->{projectId}) or return;
-      my $name = $unit->wikilink();
-      $name .= " x $prereq->{count}" if $prereq->{count} > 1;
+      my $name = $unit->wikilink() . count($prereq);
       return "Train $name";
    }
    elsif ($t eq 'EnterOpponentLandPrereqConfig') {
       return "Enter $prereq->{opponentId}";
    }
+   elsif ($t eq 'EnterStatePrereqConfig') {
+      return "Enter $prereq->{state}";
+   }
+   elsif ($t eq 'BuildingAssistedPrereqConfig') {
+      my $bld = BN::Building->get($prereq->{compositionId}) or return;
+      my $name = $bld->wikilink() . count($prereq);
+      return "Assist $name";
+   }
+   elsif ($t eq 'MinPopulationCapacityPrereqConfig') {
+      return "Population $prereq->{capacity}";
+   }
+   elsif ($t eq 'CompleteMissionPrereqConfig') {
+      my $mis = BN::Mission->get($prereq->{missionId}) or return;
+      my $name = $mis->name();
+      return "Complete [[#$name|$name]]";
+   }
+   elsif ($t eq 'BuildingLevelPrereqConfig') {
+      my $ids = $prereq->{compositionIds} or return;
+      my $what = join ' or ', map { $_->wikilink() }
+         map { BN::Building->get($_) } @$ids;
+      return "Upgrade $what to level $prereq->{level}";
+   }
    else {
       return "Other: $t";
    }
+}
+
+sub count {
+   my ($num) = @_;
+   $num = $num->{count} if ref $num;
+   return $num && $num > 1 ? " x $num" : '';
 }
 
 1 # end BN::Prereqs
