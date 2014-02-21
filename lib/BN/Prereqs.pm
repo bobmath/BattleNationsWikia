@@ -113,7 +113,9 @@ sub describe {
       my $name = $build->wikilink() . count($prereq);
       return "Build $name";
    }
-   elsif ($t eq 'CreateStructurePrereqConfig') {
+   elsif ($t eq 'CreateStructurePrereqConfig'
+      || $t eq 'CollectStructurePrereqConfig')
+   {
       my $bld = BN::Building->get($prereq->{structureType}) or return;
       my $name = $bld->wikilink() . count($prereq);
       return "Build $name";
@@ -197,6 +199,15 @@ sub describe {
       my $what = join ' or ', map { $_->wikilink() }
          map { BN::Building->get($_) } @$ids;
       return "Upgrade $what to level $prereq->{level}";
+   }
+   elsif ($t eq 'AddUnitGarrisonPrereqConfig') {
+      return "Add $prereq->{count} units to garrisons";
+   }
+   elsif ($t eq 'DefensiveCoveragePrereqConfig') {
+      return "Defend $prereq->{percent}% of buildings";
+   }
+   elsif ($t eq 'HaveLandExpansionsPrereqConfig') {
+      return "Expand to $prereq->{count} spaces";
    }
    else {
       return "Other: $t";
