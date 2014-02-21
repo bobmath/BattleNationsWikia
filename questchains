@@ -25,8 +25,8 @@ my %blocks;
 foreach my $mis (BN::Mission->all()) {
    my $level = $mis->level() // 0;
    my @tags;
-   push @tags, 'New' unless $headings{$mis->name()};
    push @tags, 'Hidden' if $mis->hidden();
+   push @tags, 'New' unless $headings{$mis->name()};
    push @tags, $mis->tag();
    $names{$mis->tag()} = sprintf '%2d %s (%s)', $level, $mis->name(), "@tags";
 
