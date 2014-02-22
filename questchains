@@ -212,7 +212,7 @@ sub mission_link {
       my $lo = $num * 10 + 1;
       my $hi = $lo + 9;
       $hi = 65 if $hi > 65;
-      $page = "Missions $lo-$hi";
+      $page = "Level $lo-$hi missions";
    }
    my $name = name_hidden($mis);
    return "[[$page#$name|$name]]";
@@ -392,6 +392,9 @@ sub describe {
             map { BN::Mission->get($_) } @$ids);
          return "Complete $what" if $what;
       }
+   }
+   elsif ($text eq 'ZoomCameraPrereqConfig') {
+      return $text || 'Zoom the camera';
    }
    return $text || "Other: $t";
 }
