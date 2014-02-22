@@ -393,7 +393,7 @@ sub describe {
          return "Complete $what" if $what;
       }
    }
-   elsif ($text eq 'ZoomCameraPrereqConfig') {
+   elsif ($t eq 'ZoomCameraPrereqConfig') {
       return $text || 'Zoom the camera';
    }
    return $text || "Other: $t";
