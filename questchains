@@ -42,6 +42,27 @@ $old_missions{$_} = 1 foreach qw(
    p01_ZOEY1_010_BuildHovel
 );
 
+my %places = (
+   AncientRuins1           => "[[Ancient Ruins]]",
+   BOARS_RecoilRidge       => "[[Recoil Ridge]]",
+   CrazyBladesBase         => "[[Blade's Base]]",
+   FINAL_90_raiderFortress => "[[Warlord Gantas' Fortress]]",
+   FINAL_raiderFortress    => "[[Warlord Gantas' Fortress]]",
+   Marin                   => "[[Marin]]",
+   MyLand                  => '[[Outpost]]',
+   RFORT_90_raiderFortress => "[[Warlord Gantas' Fortress]]",
+   SAVRR_RecoilRidge       => "[[Recoil Ridge]]",
+   SarinBase               => "[[Sarin's Base]]",
+   TronkBase               => "[[Tronk's Base]]",
+   WORLD_MAP               => "[[World Map]]",
+   WorldMap                => '[[World Map]]',
+   boarLand                => "[[Boar Badlands]]",
+   lightReconLand          => "[[Boar Badlands]]",
+   npc_1                   => "[[Recoil Ridge]]",
+   npc_2                   => "[[Recoil Ridge]]",
+   raptorNest              => "[[Raptor Nest]]",
+);
+
 binmode STDOUT, ':utf8';
 
 my @groups;
@@ -255,125 +276,100 @@ sub prereqs {
    return @filtered;
 }
 
-my %places = (
-   AncientRuins1           => "[[Ancient Ruins]]",
-   BOARS_RecoilRidge       => "[[Recoil Ridge]]",
-   CrazyBladesBase         => "[[Blade's Base]]",
-   FINAL_90_raiderFortress => "[[Warlord Gantas' Fortress]]",
-   FINAL_raiderFortress    => "[[Warlord Gantas' Fortress]]",
-   Marin                   => "[[Marin]]",
-   MyLand                  => '[[Outpost]]',
-   RFORT_90_raiderFortress => "[[Warlord Gantas' Fortress]]",
-   SAVRR_RecoilRidge       => "[[Recoil Ridge]]",
-   SarinBase               => "[[Sarin's Base]]",
-   TronkBase               => "[[Tronk's Base]]",
-   WORLD_MAP               => "[[World Map]]",
-   WorldMap                => '[[World Map]]',
-   boarLand                => "[[Boar Badlands]]",
-   lightReconLand          => "[[Boar Badlands]]",
-   npc_1                   => "[[Recoil Ridge]]",
-   npc_2                   => "[[Recoil Ridge]]",
-   raptorNest              => "[[Raptor Nest]]",
-);
-
 sub describe {
-   my ($class, $prereq) = @_;
-   if (my $text = BN::Text->fetch($prereq->{objectiveText})) {
-      return "Text: $text";
-   }
-   my $t = $prereq->{_t} or return;
+   my ($prereq) = @_;
+   my $text = BN::Text->fetch($prereq->{objectiveText});
+   my $t = $prereq->{_t} or return $text;
    if ($t eq 'LevelPrereqConfig') {
-      my $level = $prereq->{level} or return;
-      return "[[Levels#$level|Level $level]]";
+      my $level = $prereq->{level};
+      return "[[Levels#$level|Level $level]]" if $level;
    }
    elsif ($t eq 'HasCompositionPrereqConfig') {
-      my $build = BN::Building->get($prereq->{compositionName}) or return;
-      my $name = $build->wikilink() . count($prereq);
-      return "Build $name";
+      my $build = BN::Building->get($prereq->{compositionName});
+      return 'Build ' . $build->wikilink() . count($prereq) if $build;
    }
    elsif ($t eq 'CreateStructurePrereqConfig'
       || $t eq 'CollectStructurePrereqConfig')
    {
-      my $bld = BN::Building->get($prereq->{structureType}) or return;
-      my $name = $bld->wikilink() . count($prereq);
-      return "Build $name";
+      my $build = BN::Building->get($prereq->{structureType});
+      return 'Build ' . $build->wikilink() . count($prereq) if $build;
    }
    elsif ($t eq 'HaveOneOfTheseStructuresPrereqConfig') {
-      my $counts = $prereq->{buildingCounts} or return;
-      my @bldgs;
-      while (my ($id, $num) = each %$counts) {
-         my $bld = BN::Building->get($id) or return;
-         push @bldgs, $bld->wikilink() . count($num);
+      if (my $counts = $prereq->{buildingCounts}) {
+         my @bldgs;
+         while (my ($id, $num) = each %$counts) {
+            my $bld = BN::Building->get($id) or next;
+            push @bldgs, $bld->wikilink() . count($num);
+         }
+         return 'Build ' . join(' or ', sort @bldgs) if @bldgs;
       }
-      return unless @bldgs;
-      return 'Build ' . join(' or ', sort @bldgs);
    }
    elsif ($t eq 'HaveAnyOfTheseStructuresPrereqConfig') {
-      my $ids = $prereq->{buildings} or return;
-      my @bldgs;
-      foreach my $id (@$ids) {
-         my $bldg = BN::Building->get($id) or return;
-         push @bldgs, $bldg->wikilink() . count($prereq);
+      if (my $ids = $prereq->{buildings}) {
+         my @bldgs;
+         foreach my $id (@$ids) {
+            my $bldg = BN::Building->get($id) or next;
+            push @bldgs, $bldg->wikilink() . count($prereq);
+         }
+         return 'Build ' . join(' or ', @bldgs) if @bldgs;
       }
-      return unless @bldgs;
-      return 'Build ' . join(' or ', @bldgs);
    }
    elsif ($t eq 'DefeatEncounterPrereqConfig'
       || $t eq 'DefeatEncounterSetPrereqConfig'
       || $t eq 'DefeatOccupationPrereqConfig'
       || $t eq 'FinishBattlePrereqConfig')
    {
-      return 'Defeat encounter';
+      return $text || 'Defeat encounter';
    }
    elsif ($t eq 'UnitsKilledPrereqConfig') {
-      my $unit = BN::Unit->get($prereq->{unitId}) or return;
-      my $name = $unit->wikilink() . count($prereq);
-      return "Kill $name";
+      my $unit = BN::Unit->get($prereq->{unitId});
+      return 'Kill ' . $unit->wikilink() . count($prereq) if $unit;
    }
    elsif ($t eq 'AttackNPCBuildingPrereqConfig') {
-      my $bld = BN::Building->get($prereq->{compositionName}) or next;
-      my $name = $bld->wikilink() . count($prereq);
-      return "Attack $name";
+      my $bld = BN::Building->get($prereq->{compositionName});
+      return 'Attack ' . $bld->wikilink() . count($prereq) if $bld;
    }
    elsif ($t eq 'CollectJobPrereqConfig') {
-      my $job = BN::Job->get($prereq->{jobId}) or return;
-      my $name = $job->name();
-      if (my ($bldid) = $job->buildings()) {
-         my $bld = BN::Building->get($bldid);
-         my $bldname = $bld->name();
-         $name = "[[$bldname#Goods|$name]]";
+      if (my $job = BN::Job->get($prereq->{jobId})) {
+         my $name = $job->name();
+         if (my ($bldid) = $job->buildings()) {
+            my $bld = BN::Building->get($bldid);
+            my $bldname = $bld->name();
+            $name = "[[$bldname#Goods|$name]]";
+         }
+         return "Make $name" . count($prereq);
       }
-      return "Make $name" . count($prereq);
    }
    elsif ($t eq 'TurnInPrereqConfig') {
-      my $toll = BN->format_amount($prereq->{toll}) or return;
-      return "Turn in $toll";
+      my $toll = BN->format_amount($prereq->{toll});
+      return "Turn in $toll" if $toll;
    }
    elsif ($t eq 'CollectProjectPrereqConfig') {
-      my $unit = BN::Unit->get($prereq->{projectId}) or return;
-      my $name = $unit->wikilink() . count($prereq);
-      return "Train $name";
+      my $unit = BN::Unit->get($prereq->{projectId});
+      return 'Train ' . $unit->wikilink() . count($prereq) if $unit;
    }
    elsif ($t eq 'EnterOpponentLandPrereqConfig'
       || $t eq 'EnterStatePrereqConfig')
    {
-      my $name = $prereq->{opponentId} || $prereq->{state};
-      $name = $places{$name} || $name;
-      return "Go to $name";
+      if (my $tag = ($prereq->{opponentId} || $prereq->{state})) {
+         my $name = $places{$tag};
+         return $text if !$name && $text;
+         return 'Go to ' . ($name || $tag);
+      }
    }
    elsif ($t eq 'BuildingAssistedPrereqConfig') {
-      my $bld = BN::Building->get($prereq->{compositionId}) or return;
-      my $name = $bld->wikilink() . count($prereq);
-      return "Assist $name";
+      my $bld = BN::Building->get($prereq->{compositionId});
+      return 'Assist ' . $bld->wikilink() . count($prereq) if $bld;
    }
    elsif ($t eq 'MinPopulationCapacityPrereqConfig') {
       return "Population $prereq->{capacity}";
    }
    elsif ($t eq 'BuildingLevelPrereqConfig') {
-      my $ids = $prereq->{compositionIds} or return;
-      my $what = join ' or ', map { $_->wikilink() }
-         map { BN::Building->get($_) } @$ids;
-      return "Upgrade $what to level $prereq->{level}";
+      if (my $ids = $prereq->{compositionIds}) {
+         my $what = join ' or ', map { $_->wikilink() }
+            map { BN::Building->get($_) } @$ids;
+         return "Upgrade $what to level $prereq->{level}" if $what;
+      }
    }
    elsif ($t eq 'AddUnitGarrisonPrereqConfig') {
       return "Add $prereq->{count} units to garrisons";
@@ -382,20 +378,22 @@ sub describe {
       return "Defend $prereq->{percent}% of buildings";
    }
    elsif ($t eq 'HaveLandExpansionsPrereqConfig') {
-      return "Expand to $prereq->{count} spaces";
+      return "Expand $prereq->{count} spaces";
    }
    elsif ($t eq 'CompleteMissionPrereqConfig') {
-      my $m = BN::Mission->get($prereq->{missionId}) or return;
-      return 'Complete ' . $m->wikilink();
+      my $m = BN::Mission->get($prereq->{missionId});
+      return 'Complete ' . mission_link($m) if $m;
    }
    elsif ($t eq 'CompleteAnyMissionPrereqConfig'
       || $t eq 'ActiveMissionPrereqConfig')
    {
-      my $ids = $prereq->{missionIds} or return;
-      return 'Complete ' . join(' or ', map { $_->wikilink() }
-         map { BN::Mission->get($_) } @$ids);
+      if (my $ids = $prereq->{missionIds}) {
+         my $what = join(' or ', map { mission_link($_) }
+            map { BN::Mission->get($_) } @$ids);
+         return "Complete $what" if $what;
+      }
    }
-   return "Other: $t";
+   return $text || "Other: $t";
 }
 
 sub count {
