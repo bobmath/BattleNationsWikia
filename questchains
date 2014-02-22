@@ -6,21 +6,35 @@ use warnings;
 use lib 'lib';
 use BN;
 
-my %oldintro;
-$oldintro{$_} = 1 foreach qw(
+my %old_missions;
+$old_missions{$_} = 1 foreach qw(
    p01_BK2RR_010_RaidersBattle2
    p01_BK2RR_020_BuildPillbox
    p01_BK2RR_030_TrainGrenadier
    p01_BK2RR_040_ReturnRecoilRidge
    p01_BK2RR_050_BattleRecoilRidge
+   p01_BK2RR_051_HeroesReturn1
+   p01_BK2RR_052_HeroesReturn2
+   p01_BK2RR_053_HeroesReturn3
    p01_BK2RR_060_HelpAdventurer
+   p01_BK2RR_061_SandboxOpen
+   p01_BUILD_040_CollectSupplyDrops
    p01_BUILD_070_BuildBootCamp
+   p01_BUILD_090_BuildShelter
    p01_BUILD_100_TeachCamera
    p01_BUILD_110_RaiderEncounters
    p01_BUILD_130_BuildStoneQuarry
    p01_BUILD_140_BuildResourceDepot
    p01_BUILD_150_CollectTaxes
+   p01_BUILD_280_BuildBunker2
+   p01_BUILD_510_BuildHospital
    p01_FARMS_010_BuildFarm1
+   p01_HOSP_010_QueueSomething
+   p01_INTRO_040_BuildShelter
+   p01_NEWINTRO_140_BuildHospital
+   p01_NEWINTRO_143_StartAdvHospital
+   p01_RTANK_010_RaiderScouts
+   p01_RTANK_070_MakeTools
    p01_UPBLD_010_BuildingUpgradeLvl1
    p01_UPBLD_010_BuildingUpgradeLvl1_LateGame
    p01_UPBLD_020_BuildingUpgradeLvl2
@@ -30,80 +44,90 @@ $oldintro{$_} = 1 foreach qw(
 
 binmode STDOUT, ':utf8';
 
-open my $F, '<', 'wiki/Missions' or die;
-my %headings;
-while (<$F>) {
-   if (my ($head) = /^=+(.*?)=+\s*$/) {
-      $head =~ s{</?u>}{}g;
-      $head =~ s/^\s+//;
-      $head =~ s/\s+$//;
-      $headings{$head}++;
-   }
-}
-
-my (%names, @groups, %blocks);
-
+my @groups;
 foreach my $mis (BN::Mission->all()) {
-   my $level = $mis->level() // 0;
-   my @tags;
-   push @tags, 'Old' if $oldintro{$mis->tag()};
-   push @tags, 'Hidden' if $mis->hidden();
-   push @tags, 'New' unless $headings{$mis->name()};
-   push @tags, $mis->tag();
-   $names{$mis->tag()} = sprintf '%2d %s (%s)', $level, $mis->name(), "@tags";
-   push @{$groups[($level+9)/10]}, $mis;
+   next if $old_missions{$mis->tag()};
+   my $level = $mis->level() or next;
+   my $grp = int(($mis->level() - 1) / 10);
+   push @{$groups[$grp]}, $mis;
+}
+my $curr_page = 0;
+foreach my $group (@groups) {
+   sort_group($group);
+   ++$curr_page;
 }
 
-sort_group($_) foreach @groups;
-
+my (%blocks, %followups);
 sub sort_group {
    my ($group) = @_;
+   @$group = sort { $a->level() <=> $b->level() } @$group;
    foreach my $mis (@$group) {
-      $blocks{$mis->tag()} = { before=>{}, after=>{}, ids=>[$mis->tag()] };
+      $blocks{$mis->tag()} = { before=>{}, after=>{}, missions=>[$mis] };
    }
-   foreach my $mis (@$group) {
-      my $blk = $blocks{$mis->tag()} or die;
-      foreach my $id (prereq_ids($mis)) {
-         my $refblk = $blocks{$id} or next;
-         $blk->{before}{$id} = 1;
+   foreach my $id (sort keys %blocks) {
+      my $block = $blocks{$id} or die;
+      my $mis = $block->{missions}[0];
+      foreach my $prereq (prereqs($mis)) {
+         my $refblk = $blocks{$prereq} or next;
          $refblk->{after}{$mis->tag()} = 1;
+         $block->{before}{$prereq} = 1;
       }
    }
+   coalesce($_) foreach sort keys %blocks;
+   print_block($_) foreach sort block_compare keys %blocks;
+   %blocks = ();
+   %followups = ();
+   print "-" x 42, "\n\n";
+}
 
-   my $changed;
-   do {
-      $changed = 0;
-      foreach my $id (sort { $names{$a} cmp $names{$b} } keys %blocks) {
-         my $blk = $blocks{$id} or next;
-         GROW: while (keys(%{$blk->{after}}) == 1) {
-            my ($nextid) = keys(%{$blk->{after}});
-            my $nextblk = $blocks{$nextid} or die;
-            die unless $nextblk->{before}{$id};
-            my $prereqs = prereqs($id);
-            foreach my $revid (keys %{$nextblk->{before}}) {
-               last GROW unless $prereqs->{$revid};
-            }
-            foreach my $revid (keys %{$nextblk->{before}}) {
-               my $revblk = $blocks{$revid} or die;
-               delete $revblk->{after}{$nextid};
-            }
-            push @{$blk->{ids}}, @{$nextblk->{ids}};
-            $blk->{after} = $nextblk->{after};
-            foreach my $refid (keys %{$blk->{after}}) {
-               my $refblk = $blocks{$refid} or die;
-               delete $refblk->{before}{$nextid} or die;
-               $refblk->{before}{$id} = 1;
-            }
-            delete $blocks{$nextid};
-            $changed = 1;
+sub block_compare {
+   my $amis = BN::Mission->get($a) or die;
+   my $bmis = BN::Mission->get($b) or die;
+   $amis->level() <=> $bmis->level() || $amis->name() cmp $bmis->name();
+}
+
+sub coalesce {
+   my ($id) = @_;
+   my $block = $blocks{$id} or return;
+
+   while (1) {
+      my $nextid;
+      my $nextlev = 999;
+      foreach my $checkid (keys %{$block->{after}}) {
+         my $checkblk = $blocks{$checkid} or die;
+         my $checkmis = $checkblk->{missions}[0];
+         my $checklev = $checkmis->level();
+         if ($checklev < $nextlev) {
+            $nextlev = $checklev;
+            $nextid = $checkid;
+         }
+         elsif ($checklev == $nextlev) {
+            $nextid = undef;
          }
       }
-   } while $changed;
+      return unless $nextid;
+      my $nextblk = $blocks{$nextid} or die;
+      return if keys(%{$nextblk->{before}}) > 1;
+      die unless $nextblk->{before}{$id};
 
-   print_block($_) foreach sort { $names{$a} cmp $names{$b} } keys %blocks;
+      foreach my $refid (sort keys %{$block->{after}}) {
+         my $refblk = $blocks{$refid} or die;
+         delete $refblk->{before}{$id} or die;
+      }
 
-   print "-" x 42, "\n\n";
-   %blocks = ();
+      foreach my $refid (sort keys %{$nextblk->{after}}) {
+         my $refblk = $blocks{$refid} or die;
+         delete $refblk->{before}{$nextid} or die;
+         $refblk->{before}{$id} = 1;
+      }
+
+      my $lastmis = $block->{missions}[-1];
+      delete $block->{after}{$nextid};
+      $followups{$lastmis->tag()} = $block->{after} if %{$block->{after}};
+      push @{$block->{missions}}, @{$nextblk->{missions}};
+      $block->{after} = $nextblk->{after};
+      delete $blocks{$nextid} or die;
+   }
 }
 
 sub print_block {
@@ -111,20 +135,23 @@ sub print_block {
    my $block = $blocks{$id} or die;
    return if $block->{mark};
    $block->{mark} = 1;
-   print_block($_) foreach sort keys %{$block->{before}};
-   print "<$_\n" foreach
-      sort map { $names{$blocks{$_}{ids}[-1]} } keys %{$block->{before}};
-   print_mission($_) foreach @{$block->{ids}};
-   print ">$_\n" foreach sort map { $names{$_} } keys %{$block->{after}};
+   print_block($_) foreach sort block_compare keys %{$block->{before}};
+   print_mission($_) foreach @{$block->{missions}};
+   print_followups($block->{after});
    print "\n";
 }
 
 my %already_have;
-
 sub print_mission {
-   my ($id) = @_;
-   my $mis = BN::Mission->get($id) or die;
-   print "|$names{$id}\n";
+   my ($mis) = @_;
+   print "===", name_hidden($mis), "===\n";
+   my @prereqs;
+   my $level = $mis->level();
+   push @prereqs, "[[Levels#$level|Level $level]]";
+   foreach my $prereq (prereqs($mis)) {
+      push @prereqs, mission_link(BN::Mission->get($prereq));
+   }
+   print "Prereqs: ", join(', ', @prereqs), "\n" if @prereqs;
 
    foreach my $obj ($mis->objectives()) {
       my $t = $obj->{_t} or next;
@@ -132,58 +159,99 @@ sub print_mission {
       if ($txt =~ /^Build/) {
          next if $already_have{$txt}++;
       }
-      print "    :* $txt\n";
+      print "* $txt\n";
    }
 
    if (my $rewards = $mis->rewards()) {
-      print "    :Rewards: $rewards\n";
+      print "Rewards: $rewards<br>\n";
    }
 
    my @unlocks;
    foreach my $obj ($mis->unlocks_buildings(), $mis->unlocks_units()) {
       push @unlocks, $obj->wikilink();
    }
-   print "    :Unlocks: ", join(', ', @unlocks), "\n" if @unlocks;
+   print "Unlocks: ", join(', ', @unlocks), "<br>\n" if @unlocks;
+
+   print_followups($followups{$mis->tag()});
 }
 
-my %prereq_cache;
-
-sub prereqs {
-   my ($id) = @_;
-   return $prereq_cache{$id} if $prereq_cache{$id};
-   my $mis = BN::Mission->get($id) or die;
-   my %prereqs;
-   $prereqs{$id} = 1;
-   $prereq_cache{$id} = \%prereqs;
-   foreach my $preid (prereq_ids($mis)) {
-      my $prereqs = prereqs($preid);
-      $prereqs{$_} = 1 foreach keys %$prereqs;
-   }
-   return \%prereqs;
+sub print_followups {
+   my ($followups) = @_;
+   return unless $followups && %$followups;
+   my @followup = map { mission_link(BN::Mission->get($_)) }
+      sort block_compare keys %$followups;
+   print "Followups: ", join(', ', @followup), "\n" if @followup;
 }
 
-sub prereq_ids {
+sub mission_link {
    my ($mis) = @_;
-   my $level = $mis->level() // 0;
-   my @ids;
+   my $page = '';
+   my $num = int(($mis->level() - 1) / 10);
+   if ($num != $curr_page) {
+      my $lo = $num * 10 + 1;
+      my $hi = $lo + 9;
+      $hi = 65 if $hi > 65;
+      $page = "Missions $lo-$hi";
+   }
+   my $name = name_hidden($mis);
+   return "[[$page#$name|$name]]";
+}
+
+sub name_hidden {
+   my ($mis) = @_;
+   my $name = $mis->name();
+   $name .= ' (Hidden)' if $mis->hidden() && $name !~ /hidden/i;
+   return $name;
+}
+
+my (%full_prereqs, %min_prereqs);
+sub prereqs {
+   my ($mis) = @_;
+   my $misid = $mis->tag();
+   return @{$min_prereqs{$misid}} if $min_prereqs{$misid};
+   my %prereqs;
+   $prereqs{$misid} = 1;
+   $full_prereqs{$misid} = \%prereqs;
+   my @filtered;
+   $min_prereqs{$misid} = \@filtered;
+
+   my @prereqs;
    foreach my $prereq ($mis->prereqs(), $mis->completion()->prereqs()) {
-      next if $prereq->{inverse};
       my $t = $prereq->{_t} or next;
+      my $preid;
       if ($t eq 'CompleteMissionPrereqConfig') {
-         my $id = $prereq->{missionId} or next;
-         push @ids, $id;
+         $preid = $prereq->{missionId};
+         next if $old_missions{$preid};
       }
       elsif ($t eq 'CompleteAnyMissionPrereqConfig'
          || $t eq 'ActiveMissionPrereqConfig')
       {
          my $ids = $prereq->{missionIds} or next;
-         foreach my $id (@$ids) {
-            my $m = BN::Mission->get($id) or next;
-            next if ($m->level()//0) > $level;
-            push @ids, $id;
+         foreach my $testid (@$ids) {
+            next if $old_missions{$testid};
+            die "too many ids for $misid" if $preid;
+            $preid = $testid;
          }
       }
+      next unless $preid;
+      my $m = BN::Mission->get($preid) or next;
+      prereqs($m);
+      my $p = $full_prereqs{$preid};
+      while (my ($k,$v) = each %$p) {
+         $prereqs{$k} = 1;
+      }
+      push @prereqs, { id=>$preid, full=>$p };
    }
-   return @ids;
+
+   CHECK: foreach my $prereq (@prereqs) {
+      my $preid = $prereq->{id};
+      foreach my $other (@prereqs) {
+         next if $other->{id} eq $preid;
+         next CHECK if $other->{full}{$preid};
+      }
+      push @filtered, $preid;
+   }
+
+   return @filtered;
 }
 
