@@ -219,11 +219,6 @@ sub describe {
    elsif ($t eq 'MinPopulationCapacityPrereqConfig') {
       return "Population $prereq->{capacity}";
    }
-   elsif ($t eq 'CompleteMissionPrereqConfig') {
-      my $mis = BN::Mission->get($prereq->{missionId}) or return;
-      my $name = $mis->name();
-      return "Complete [[#$name|$name]]";
-   }
    elsif ($t eq 'BuildingLevelPrereqConfig') {
       my $ids = $prereq->{compositionIds} or return;
       my $what = join ' or ', map { $_->wikilink() }
@@ -239,9 +234,18 @@ sub describe {
    elsif ($t eq 'HaveLandExpansionsPrereqConfig') {
       return "Expand to $prereq->{count} spaces";
    }
-   else {
-      return "Other: $t";
+   elsif ($t eq 'CompleteMissionPrereqConfig') {
+      my $m = BN::Mission->get($prereq->{missionId}) or return;
+      return 'Complete ' . $m->wikilink();
    }
+   elsif ($t eq 'CompleteAnyMissionPrereqConfig'
+      || $t eq 'ActiveMissionPrereqConfig')
+   {
+      my $ids = $prereq->{missionIds} or return;
+      return 'Complete ' . join(' or ', map { $_->wikilink() }
+         map { BN::Mission->get($_) } @$ids);
+   }
+   return "Other: $t";
 }
 
 sub count {
