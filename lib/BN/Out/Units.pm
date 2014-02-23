@@ -4,12 +4,6 @@ use warnings;
 use Data::Dump qw( dump );
 
 sub write {
-   mkdir 'units';
-   mkdir 'locked';
-   mkdir 'enemies';
-   mkdir 'other';
-
-   my %seen;
    foreach my $unit (BN::Unit->all()) {
       my $side = $unit->side() // '';
       my $dir = $unit->building() || $unit->from_missions() ? 'units'

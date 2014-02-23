@@ -25,8 +25,12 @@ sub filename {
       $file =~ s/^[-.]/_/;
       $file = '_' if $file eq '';
    }
+   for my $num (0 .. $#path-1) {
+      my $dir = join('/', @path[0..$num]);
+      mkdir $dir unless $seen_files{lc($dir)}++;
+   }
    my $file = join('/', @path);
-   my $num = ++$seen_files{$file};
+   my $num = ++$seen_files{lc($file)};
    $file .= '-' . $num if $num > 1;
    return $file;
 }
