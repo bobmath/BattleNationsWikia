@@ -352,12 +352,14 @@ sub describe {
    elsif ($t eq 'CollectJobPrereqConfig') {
       if (my $job = BN::Job->get($prereq->{jobId})) {
          my $name = $job->name();
+         my $verb = 'Make';
          if (my ($bldid) = $job->buildings()) {
             my $bld = BN::Building->get($bldid);
             my $bldname = $bld->name();
+            $verb = 'Grow' if ($bld->gets_bonus()//'') =~ /Agricultural/;
             $name = "[[$bldname#Goods|$name]]";
          }
-         return "Make $name" . count($prereq);
+         return "$verb $name" . count($prereq);
       }
    }
    elsif ($t eq 'TurnInPrereqConfig') {
