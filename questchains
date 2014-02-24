@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use lib 'lib';
-use BN;
+use BN::Out;
 
 my %old_missions;
 $old_missions{$_} = 1 foreach qw(
@@ -83,8 +83,6 @@ my %places = (
    raptorNest              => "[[Raptor Nest]]",
 );
 
-binmode STDOUT, ':utf8';
-
 my @groups;
 foreach my $mis (BN::Mission->all()) {
    next if $old_missions{$mis->tag()};
@@ -93,14 +91,20 @@ foreach my $mis (BN::Mission->all()) {
    push @{$groups[$grp]}, $mis;
 }
 my $curr_page = 0;
+my $curr_file;
 foreach my $group (@groups) {
-   sort_group($group);
+   $curr_file = sprintf 'Level %d-%d missions',
+      $curr_page*10+1, $curr_page*10+10;
+   my $filename = BN::Out->filename('missions', $curr_file);
+   open my $F, '>:utf8', $filename or die;
+   print $F $curr_file, "\n\n";
+   sort_group($F, $group);
    ++$curr_page;
 }
 
 my (%blocks, %followups);
 sub sort_group {
-   my ($group) = @_;
+   my ($F, $group) = @_;
    @$group = sort { $a->level() <=> $b->level() } @$group;
    foreach my $mis (@$group) {
       $blocks{$mis->tag()} = { before=>{}, after=>{}, missions=>[$mis] };
@@ -115,10 +119,9 @@ sub sort_group {
       }
    }
    coalesce($_) foreach sort keys %blocks;
-   print_block($_) foreach sort block_compare keys %blocks;
+   print_block($F, $_) foreach sort block_compare keys %blocks;
    %blocks = ();
    %followups = ();
-   print "-" x 42, "\n\n";
 }
 
 sub block_compare {
@@ -172,27 +175,27 @@ sub coalesce {
 }
 
 sub print_block {
-   my ($id) = @_;
+   my ($F, $id) = @_;
    my $block = $blocks{$id} or die;
    return if $block->{mark};
    $block->{mark} = 1;
-   print_block($_) foreach sort block_compare keys %{$block->{before}};
-   print_mission($_) foreach @{$block->{missions}};
-   print_followups($block->{after});
-   print "\n";
+   print_block($F, $_) foreach sort block_compare keys %{$block->{before}};
+   print_mission($F, $_) foreach @{$block->{missions}};
+   print_followups($F, $block->{after});
+   print $F "\n";
 }
 
 my %already_have;
 sub print_mission {
-   my ($mis) = @_;
-   print "===", name_hidden($mis), "===\n";
+   my ($F, $mis) = @_;
+   print $F "===", name_hidden($mis), "===\n";
    my @prereqs;
    my $level = $mis->level();
    push @prereqs, "[[Levels#$level|Level $level]]";
    foreach my $prereq (prereqs($mis)) {
       push @prereqs, mission_link(BN::Mission->get($prereq));
    }
-   print "Prereqs: ", join(', ', @prereqs), "\n" if @prereqs;
+   print $F "Prereqs: ", join(', ', @prereqs), "\n" if @prereqs;
 
    foreach my $obj ($mis->objectives()) {
       my $t = $obj->{_t} or next;
@@ -200,28 +203,28 @@ sub print_mission {
       if ($txt =~ /^Build/) {
          next if $already_have{$txt}++;
       }
-      print "* $txt\n";
+      print $F "* $txt\n";
    }
 
    if (my $rewards = $mis->rewards()) {
-      print "Rewards: $rewards<br>\n";
+      print $F "Rewards: $rewards<br>\n";
    }
 
    my @unlocks;
    foreach my $obj ($mis->unlocks_buildings(), $mis->unlocks_units()) {
       push @unlocks, $obj->wikilink();
    }
-   print "Unlocks: ", join(', ', @unlocks), "<br>\n" if @unlocks;
+   print $F "Unlocks: ", join(', ', @unlocks), "<br>\n" if @unlocks;
 
-   print_followups($followups{$mis->tag()});
+   print_followups($F, $followups{$mis->tag()});
 }
 
 sub print_followups {
-   my ($followups) = @_;
+   my ($F, $followups) = @_;
    return unless $followups && %$followups;
    my @followup = map { mission_link(BN::Mission->get($_)) }
       sort block_compare keys %$followups;
-   print "Followups: ", join(', ', @followup), "\n" if @followup;
+   print $F "Followups: ", join(', ', @followup), "\n" if @followup;
 }
 
 sub mission_link {
