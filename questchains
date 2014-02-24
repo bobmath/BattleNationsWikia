@@ -1,6 +1,5 @@
 #!/usr/bin/env perl
 # Experimental tool to work out mission sequences.
-# Lines starting with < are prerequisites; > are followups.
 use strict;
 use warnings;
 use lib 'lib';
@@ -27,6 +26,7 @@ $old_missions{$_} = 1 foreach qw(
    p01_BUILD_140_BuildResourceDepot
    p01_BUILD_150_CollectTaxes
    p01_BUILD_280_BuildBunker2
+   p01_BUILD_290_BuildBunker2
    p01_BUILD_510_BuildHospital
    p01_FARMS_010_BuildFarm1
    p01_HOSP_010_QueueSomething
@@ -34,6 +34,7 @@ $old_missions{$_} = 1 foreach qw(
    p01_NEWINTRO_140_BuildHospital
    p01_NEWINTRO_143_StartAdvHospital
    p01_RTANK_010_RaiderScouts
+   p01_RTANK_060_BuildToolShop
    p01_RTANK_070_MakeTools
    p01_UPBLD_010_BuildingUpgradeLvl1
    p01_UPBLD_010_BuildingUpgradeLvl1_LateGame
@@ -397,7 +398,7 @@ sub describe {
       return "Defend $prereq->{percent}% of buildings";
    }
    elsif ($t eq 'HaveLandExpansionsPrereqConfig') {
-      return "Expand $prereq->{count} spaces";
+      return $text || "Expand $prereq->{count} spaces";
    }
    elsif ($t eq 'CompleteMissionPrereqConfig') {
       my $m = BN::Mission->get($prereq->{missionId});
