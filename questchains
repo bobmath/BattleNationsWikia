@@ -262,6 +262,7 @@ sub prereqs {
    my @prereqs;
    foreach my $prereq ($mis->prereqs(), $mis->completion()->prereqs()) {
       my $t = $prereq->{_t} or next;
+      next if $prereq->{inverse};
       my $preid;
       if ($t eq 'CompleteMissionPrereqConfig') {
          $preid = $prereq->{missionId};
