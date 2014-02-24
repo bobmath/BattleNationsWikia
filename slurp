@@ -23,8 +23,9 @@ if (open my $MAP, '<', 'namemap') {
    }
 }
 
-foreach my $dir (qw{ units buildings }) {
+foreach my $dir (qw{ units buildings missions }) {
    foreach my $file (glob "$dir/*") {
+      next unless -f $file;
       my $page = $namemap{$file};
       unless ($page) {
          open my $F, '<', $file or die "Can't read $file: $!";
