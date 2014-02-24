@@ -39,18 +39,18 @@ sub unit_profile {
    my ($F, $unit) = @_;
    print $F $unit->name(), "\n";
    print $F "{{UnitProfile\n";
-   print_line($F, 'image', BN::Out->icon($unit->icon(), 40));
-   print_line($F, 'shortname', $unit->shortname())
+   profile_line($F, 'image', BN::Out->icon($unit->icon(), 40));
+   profile_line($F, 'shortname', $unit->shortname())
       unless $unit->shortname() eq $unit->name();
-   print_line($F, 'unit type', $unit->type());
-   print_line($F, 'unit level', $unit->level());
+   profile_line($F, 'unit type', $unit->type());
+   profile_line($F, 'unit level', $unit->level());
    if (my $build = $unit->building()) {
       my $name = $train_map{$build};
-      print_line($F, "$name level", $unit->building_level() || 1) if $name;
+      profile_line($F, "$name level", $unit->building_level() || 1) if $name;
    }
-   print_line($F, 'other requirements', $unit->other_reqs());
-   print_line($F, 'immunities', $unit->immunities());
-   print_line($F, 'blocking', $unit->blocking());
+   profile_line($F, 'other requirements', $unit->other_reqs());
+   profile_line($F, 'immunities', $unit->immunities());
+   profile_line($F, 'blocking', $unit->blocking());
 
    my @notes;
    if (my ($rank) = $unit->ranks()) {
@@ -63,8 +63,8 @@ sub unit_profile {
       damage_mods($F, 'base', $rank->damage_mods());
    }
 
-   print_line($F, 'notes', join('<br>', @notes)) if @notes;
-   print_line($F, 'game file name', $unit->tag());
+   profile_line($F, 'notes', join('<br>', @notes)) if @notes;
+   profile_line($F, 'game file name', $unit->tag());
    print $F "}}\n";
 }
 
@@ -72,10 +72,14 @@ sub damage_mods {
    my ($F, $tag, $mods) = @_;
    foreach my $key (sort keys %$mods) {
       my $val = $mods->{$key};
-      printf $F "| %-23s = %s\n",
-         join('_', $tag, lc($key), 'defense'), $val*100
+      profile_line($F, join('_', $tag, lc($key), 'defense'), $val*100)
          unless $val == 1;
    }
+}
+
+sub profile_line {
+   my ($F, $tag, $val) = @_;
+   printf $F "| %-22s = %s\n", $tag, $val if defined $val;
 }
 
 sub unit_weapons {
