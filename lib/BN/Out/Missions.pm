@@ -10,6 +10,8 @@ sub write {
       print $file, "\n";
       open my $F, '>', $file or die "Can't write $file: $!";;
       print $F dump($mis), "\n";
+      close $F;
+      BN::Out->checksum($file);
    }
 }
 
