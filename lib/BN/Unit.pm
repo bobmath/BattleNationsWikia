@@ -311,6 +311,15 @@ BN->accessor(other_reqs => sub {
          }
       }
    }
+   if (my $prereqs = $unit->{visibilityPrereq}) {
+      foreach my $key (sort keys %$prereqs) {
+         my $prereq = $prereqs->{$key} or next;
+         my $t = $prereq->{_t} or next;
+         if ($t eq 'ActiveTagPrereqConfig') {
+            push @reqs, 'Promotional';
+         }
+      }
+   }
    return unless @reqs;
    return join '<br>', sort @reqs;
 });
