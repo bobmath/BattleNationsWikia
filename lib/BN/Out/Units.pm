@@ -39,7 +39,7 @@ sub unit_profile {
    my ($F, $unit) = @_;
    print $F $unit->name(), "\n";
    print $F "{{UnitProfile\n";
-   profile_line($F, 'image', BN::Out->icon($unit->icon(), 40));
+   profile_line($F, 'image', BN::Out->icon($unit->icon(), 200));
    profile_line($F, 'shortname', $unit->shortname())
       unless $unit->shortname() eq $unit->name();
    profile_line($F, 'unit type', $unit->type());
