@@ -20,6 +20,8 @@ sub get {
       bless $mis, $class;
       $mis->{_tag} = $key;
       my $name = BN::Text->get($mis->{title});
+      $name = 'noname' unless length $name;
+      $name .= ' (Hidden)' if $mis->{hideIcon} && $name !~ /hidden/i;
       $name =~ s/\x{2026}/.../g;
       $mis->{_name} = $name;
    }
@@ -41,7 +43,6 @@ BN->simple_accessor('hidden', 'hideIcon');
 
 sub wikilink {
    my ($mis) = @_;
-   return 'Mission' if $mis->{hideIcon};
    return "[[Missions#$mis->{_name}|$mis->{_name}]]";
 }
 

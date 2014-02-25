@@ -158,7 +158,7 @@ sub print_block {
 my %already_have;
 sub print_mission {
    my ($F, $mis) = @_;
-   print $F "===", name_hidden($mis), "===\n";
+   print $F "===", $mis->name(), "===\n";
    my @prereqs;
    my $level = $mis->level();
    push @prereqs, "[[Levels#$level|Level $level]]";
@@ -207,15 +207,8 @@ sub mission_link {
       $hi = 65 if $hi > 65;
       $page = "Level $lo-$hi missions";
    }
-   my $name = name_hidden($mis);
-   return "[[$page#$name|$name]]";
-}
-
-sub name_hidden {
-   my ($mis) = @_;
    my $name = $mis->name();
-   $name .= ' (Hidden)' if $mis->hidden() && $name !~ /hidden/i;
-   return $name;
+   return "[[$page#$name|$name]]";
 }
 
 my (%full_prereqs, %min_prereqs);
