@@ -261,8 +261,11 @@ sub prereqs {
    CHECK: foreach my $prereq (@prereqs) {
       my $preid = $prereq->{id};
       foreach my $other (@prereqs) {
-         next if $other->{id} eq $preid;
-         next CHECK if $other->{full}{$preid};
+         next if $other->{id} eq $preid || $other->{mark};
+         if ($other->{full}{$preid}) {
+            $prereq->{mark} = 1;
+            next CHECK;
+         }
       }
       push @filtered, $preid;
    }
