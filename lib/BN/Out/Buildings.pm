@@ -59,8 +59,7 @@ sub building_summary {
    }
    foreach my $id ($build->mission_reqs()) {
       my $mis = BN::Mission->get($id) or next;
-      my $name = $mis->name();
-      push @unlock, $mis->hidden() ? 'Mission' : "[[Missions#$name|$name]]";
+      push @unlock, $mis->wikilink();
    }
    push @unlock, 'Unique' if $build->unique();
    print_line($F, 'unlocked', join(', ', @unlock)) if @unlock;
