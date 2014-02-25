@@ -145,6 +145,7 @@ sub get_script {
    foreach my $lines (@$data) {
       my $text = $lines->{text} or next;
       foreach my $line (@$text) {
+         $line->{_title} = BN::Text->fetch($line->{title}) if $line->{title};
          $line->{_body} = BN::Text->fetch($line->{body});
       }
    }
