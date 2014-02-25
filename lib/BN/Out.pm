@@ -40,7 +40,8 @@ sub icon {
    return $icon unless defined $icon;
    $icon =~ s/\.png$//;
    $icon =~ s/\@2x$//;
-   return "[[File:\u$icon.png|${size}px|link=]]";
+   my $sz = $size ? "|${size}px|link=" : '';
+   return "[[File:\u$icon.png$sz]]";
 }
 
 my $MD5;
