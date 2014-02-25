@@ -26,6 +26,15 @@ sub get {
    return $mis;
 }
 
+sub get_by_name {
+   my ($class, $key) = @_;
+   return unless defined $key;
+   foreach my $mis ($class->all()) {
+      return $mis if $mis->{_name} eq $key;
+   }
+   return;
+}
+
 BN->simple_accessor('name');
 BN->simple_accessor('tag');
 BN->simple_accessor('hidden', 'hideIcon');
@@ -113,6 +122,33 @@ sub unlocks_units {
    }
    return unless $mis->{_unlocks_units};
    return map { BN::Unit->get($_) } @{$mis->{_unlocks_units}};
+}
+
+sub scripts {
+   my ($mis) = @_;
+   my %scripts;
+   $scripts{start}    = get_script($mis->{startScript});
+   $scripts{complete} = get_script($mis->{completeScript});
+   $scripts{finish}   = get_script($mis->{finishScript});
+   $scripts{desc}     = get_script($mis->{description});
+   return \%scripts;
+}
+
+my $dialogs;
+
+sub get_script {
+   my ($script) = @_;
+   $script = $script->{scriptId} if ref($script);
+   return $script unless $script;
+   $dialogs ||= BN::JSON->read('Dialogs.json');
+   my $data = $dialogs->{$script} or return $script;
+   foreach my $lines (@$data) {
+      my $text = $lines->{text} or next;
+      foreach my $line (@$text) {
+         $line->{_body} = BN::Text->fetch($line->{body});
+      }
+   }
+   return $data;
 }
 
 sub completion {
