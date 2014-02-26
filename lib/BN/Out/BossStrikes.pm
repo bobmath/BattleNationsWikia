@@ -13,9 +13,9 @@ sub write {
          " !! Points to earn !! Total points earned\n";
       my $sum;
       foreach my $tier ($strike->tiers()) {
-         my $award = BN->format_amount($tier->cost()) . " &rarr; "
-            . BN->commify($tier->points_awarded());
          my $rewards = BN->format_amount($tier->rewards()) || '-';
+         my $award = join('', BN->format_amount($tier->cost()), " &rarr; ",
+            '{{BSPoints|', BN->commify($tier->points_awarded()), '}}');
          my $pts = $tier->points_needed();
          $pts /= 10 if $pts > 10_000_000; # kludge
          $sum += $pts;
