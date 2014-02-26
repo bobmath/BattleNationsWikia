@@ -1,6 +1,7 @@
 package BN::Tier;
 use strict;
 use warnings;
+use Storable qw( dclone );
 
 sub new {
    my ($class, $tier, $num, $default) = @_;
@@ -23,5 +24,12 @@ BN->accessor(rewards => sub {
    my ($tier) = @_;
    return BN->flatten_amount(delete $tier->{rewards});
 });
+
+sub extend {
+   my ($tier) = @_;
+   my $copy = dclone($tier);
+   $copy->{_tier}++;
+   $copy->{requiredCompletionPoints} *= 2;
+}
 
 1 # end BN::Tier
