@@ -43,7 +43,17 @@ BN->simple_accessor('hidden', 'hideIcon');
 
 sub wikilink {
    my ($mis) = @_;
-   return "[[Missions#$mis->{_name}|$mis->{_name}]]";
+   my $page;
+   if (my $level = $mis->level()) {
+      my $lo = int(($level - 1) / 10) * 10 + 1;
+      my $hi = $lo + 9;
+      $hi = 65 if $hi > 65;
+      $page = "Level $lo-$hi missions";
+   }
+   else {
+      $page = 'Missions';
+   }
+   return "[[$page#$mis->{_name}|$mis->{_name}]]";
 }
 
 sub level {
