@@ -180,6 +180,19 @@ sub print_mission {
       print $F "Rewards: $rewards<br>\n";
    }
 
+   my @rewards;
+   foreach my $enc ($mis->encounters()) {
+      my $rewards = $enc->rewards() or next;
+      push @rewards, BN->format_amount($rewards, 0, ' &nbsp; ');
+   }
+   if (@rewards == 1) {
+      print $F "Encounter rewards: @rewards<br>\n";
+   }
+   elsif (@rewards) {
+      print $F "Encounter rewards:\n";
+      print $F "* $_\n" foreach @rewards;
+   }
+
    my @unlocks;
    foreach my $obj ($mis->unlocks_buildings(), $mis->unlocks_units()) {
       push @unlocks, $obj->wikilink();

@@ -150,6 +150,30 @@ sub get_script {
    return $data;
 }
 
+sub encounters {
+   my ($mis) = @_;
+   if (!exists $mis->{z_encounters}) {
+      $mis->{z_encounters} = undef;
+      if (my $objectives = $mis->{objectives}) {
+         foreach my $key (sort keys %$objectives) {
+            my $objective = $objectives->{$key} or next;
+            my $prereq = $objective->{prereq} or next;
+            my $t = $prereq->{_t} or next;
+            if ($t eq 'DefeatEncounterPrereqConfig') {
+               my $id = $prereq->{encounterId} or next;
+               push @{$mis->{z_encounters}}, $id;
+            }
+            elsif ($t eq 'DefeatEncounterSetPrereqConfig') {
+               my $ids = $prereq->{encounterIds} or next;
+               push @{$mis->{z_encounters}}, @$ids;
+            }
+         }
+      }
+   }
+   return unless $mis->{z_encounters};
+   return map { BN::Encounter->get($_) } @{$mis->{z_encounters}};
+}
+
 sub completion {
    my ($mis) = @_;
    return $mis->{z_completion} ||= BN::Mission::Completion->new($mis->{_tag});
@@ -195,4 +219,4 @@ sub prereqs {
    return @prereqs;
 }
 
-1 # end BN::Mission
+1 # end BN::Mission::Completion
