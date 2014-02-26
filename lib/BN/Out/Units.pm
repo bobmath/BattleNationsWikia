@@ -6,7 +6,8 @@ use Data::Dump qw( dump );
 sub write {
    foreach my $unit (BN::Unit->all()) {
       my $side = $unit->side() // '';
-      my $dir = $unit->building() || $unit->from_missions() ? 'units'
+      my $dir = $unit->building() || $unit->from_missions()
+            || $unit->boss_strike() ? 'units'
          : $side eq 'Player' ? 'locked'
          : $side eq 'Hostile' ? 'enemies'
          : 'other';
