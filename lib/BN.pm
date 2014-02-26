@@ -147,6 +147,7 @@ sub sort_amount {
 my %resource_templ = (
    chem     => 'Vials',
    z2points => 'Z2Points',
+   currency_black => 'Black Nanopods',
 );
 
 sub resource_template {
