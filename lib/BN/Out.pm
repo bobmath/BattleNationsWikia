@@ -7,11 +7,13 @@ use BN;
 use BN::Out::Buildings;
 use BN::Out::Missions;
 use BN::Out::Units;
+use BN::Out::BossStrikes;
 
 sub write {
    BN::Out::Units->write();
    BN::Out::Buildings->write();
    BN::Out::Missions->write();
+   BN::Out::BossStrikes->write();
 }
 
 my %seen_files;

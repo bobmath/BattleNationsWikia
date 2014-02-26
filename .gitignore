@@ -1,5 +1,5 @@
-.DS_Store
 *.png
+.DS_Store
 buildings/
 enemies/
 locked/
@@ -7,5 +7,6 @@ missions/
 new.md5
 old.md5
 other/
+strikes/
 units/
 wiki/

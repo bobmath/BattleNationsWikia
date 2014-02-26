@@ -66,6 +66,8 @@ use BN::BLevel;
 use BN::Job;
 use BN::Mission;
 use BN::Prereqs;
+use BN::BossStrike;
+use BN::Tier;
 
 my %resource_map = (
    currency => 'nanopods',
