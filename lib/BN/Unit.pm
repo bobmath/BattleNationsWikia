@@ -320,8 +320,27 @@ BN->accessor(other_reqs => sub {
          }
       }
    }
+   push @reqs, 'Boss Strike' if $unit->boss_strike();
    return unless @reqs;
    return join '<br>', sort @reqs;
 });
+
+sub boss_strike {
+   my ($unit) = @_;
+   if (!exists $unit->{_boss_strike}) {
+      $_->{_boss_strike} = undef foreach BN::Unit->all();
+      foreach my $strike (BN::BossStrike->all()) {
+         foreach my $tier ($strike->tiers()) {
+            my $rewards = $tier->rewards() or next;
+            my $units = $rewards->{units} or next;
+            foreach my $id (sort keys %$units) {
+               my $u = BN::Unit->get($id) or next;
+               $u->{_boss_strike} = $strike->tag();
+            }
+         }
+      }
+   }
+   return BN::BossStrike->get($unit->{_boss_strike});
+}
 
 1 # end BN::Unit

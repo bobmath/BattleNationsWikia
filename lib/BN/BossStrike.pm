@@ -8,7 +8,7 @@ my $json_file = 'CoopBossEventConfig.json';
 sub all {
    my ($class) = @_;
    $strikes ||= BN::JSON->read($json_file);
-   return map { $class->get($_) } grep { !/_qa|_test/i } sort keys %$strikes;
+   return map { $class->get($_) } sort grep { !/_qa|_test/i } keys %$strikes;
 }
 
 sub get {
