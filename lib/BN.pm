@@ -89,8 +89,17 @@ sub flatten_amount {
    while (@src) {
       my $src = shift @src or next;
       while (my ($k,$v) = each %$src) {
-         if (ref $v) { push @src, $v }
-         elsif ($v) { $flat{$resource_map{$k} || $k} = $v }
+         if (ref $v) {
+            if ($k eq 'units') {
+               $flat{$k} = $v;
+            }
+            else {
+               push @src, $v;
+            }
+         }
+         elsif ($v) {
+            $flat{$resource_map{$k} || $k} = $v;
+         }
       }
    }
    $flat{time} = $time if $time;
@@ -149,9 +158,19 @@ sub resource_template {
 sub format_amount {
    my ($class, $cost, $time, $join) = @_;
    my $flat = $class->flatten_amount($cost, $time) or return;
-   return join $join || ' ',
-      map { $class->resource_template($_, $flat->{$_}) }
+   my $units = delete $flat->{units};
+   my @amount = map { $class->resource_template($_, $flat->{$_}) }
       $class->sort_amount(keys %$flat);
+   if ($units) {
+      foreach my $key (sort keys %$units) {
+         my $num = $units->{$key} or next;
+         my $unit = BN::Unit->get($key);
+         my $name = $unit ? $unit->wikilink() : $key;
+         $name .= " x $num" if $num > 1;
+         push @amount, $name;
+      }
+   }
+   return join $join || ' ', @amount;
 }
 
 sub commify {
