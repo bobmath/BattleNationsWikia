@@ -164,13 +164,14 @@ sub format_amount {
    my @amount = map { $class->resource_template($_, $flat->{$_}) }
       $class->sort_amount(keys %$flat);
    if ($units) {
-      foreach my $key (sort keys %$units) {
-         my $num = $units->{$key} or next;
+      my @units;
+      while (my ($key, $num) = each %$units) {
          my $unit = BN::Unit->get($key);
          my $name = $unit ? $unit->wikilink() : $key;
          $name .= " x $num" if $num > 1;
-         push @amount, $name;
+         push @units, $name;
       }
+      push @amount, sort @units;
    }
    return join $join || ' ', @amount;
 }
