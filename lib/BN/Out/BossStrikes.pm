@@ -8,16 +8,19 @@ sub write {
       my $file = BN::Out->filename('strikes', $strike->name());
       open my $F, '>', $file or die "Can't write $file: $!";
 
+      my @tiers = $strike->tiers();
+      push @tiers, $tiers[-1]->extend() for 1..2;
+
       print $F qq({| class="wikitable standout"\n);
       print $F "|-\n! Tier !! Rewards !! Points awarded",
-         " !! Points to earn !! Total points earned\n";
+         " !! Points to earn !! Total points\n";
       my $sum;
-      foreach my $tier ($strike->tiers()) {
+      foreach my $tier (@tiers) {
          my $rewards = BN->format_amount($tier->rewards()) || '-';
          my $award = join('', BN->format_amount($tier->cost()), " &rarr; ",
             '{{BSPoints|', BN->commify($tier->points_awarded()), '}}');
          my $pts = $tier->points_needed();
-         $pts /= 10 if $pts > 10_000_000; # kludge
+         $pts /= 10 if $pts > 10_000_000 && $tier->tier() < 10; # kludge
          $sum += $pts;
          print $F qq{|- align="center"\n};
          print $F '! ', $tier->tier(), "\n";

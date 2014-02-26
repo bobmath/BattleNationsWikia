@@ -30,6 +30,7 @@ sub extend {
    my $copy = dclone($tier);
    $copy->{_tier}++;
    $copy->{requiredCompletionPoints} *= 2;
+   return $copy;
 }
 
 1 # end BN::Tier
