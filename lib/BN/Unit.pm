@@ -320,6 +320,12 @@ BN->accessor(other_reqs => sub {
          }
       }
    }
+   if (!$build) {
+      if (my ($mis_id) = $unit->from_missions()) {
+         my $mis = BN::Mission->get($mis_id);
+         push @reqs, $mis->wikilink() if $mis;
+      }
+   }
    push @reqs, 'Boss Strike' if $unit->boss_strike();
    return unless @reqs;
    return join '<br>', sort @reqs;
