@@ -8,7 +8,7 @@ sub write {
       my $file = BN::Out->filename('strikes', $strike->name());
       open my $F, '>', $file or die "Can't write $file: $!";
 
-      print $F qq({| class="wikitable\n);
+      print $F qq({| class="wikitable standout"\n);
       print $F "|-\n! Tier !! Rewards !! Points awarded",
          " !! Points to earn !! Total points earned\n";
       my $sum;
@@ -20,8 +20,9 @@ sub write {
          $pts /= 10 if $pts > 10_000_000; # kludge
          $sum += $pts;
          print $F qq{|- align="center"\n};
-         print $F '| ', join(' || ', $tier->tier(), $rewards,
-            $award, BN->commify($pts), BN->commify($sum)), "\n";
+         print $F '! ', $tier->tier(), "\n";
+         print $F '| ', join(' || ', $rewards, $award,
+            BN->commify($pts), BN->commify($sum)), "\n";
       }
       print $F "|}\n";
 
