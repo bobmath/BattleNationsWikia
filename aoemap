@@ -1,0 +1,74 @@
+#!/usr/bin/env perl
+# Maps of average AOE attack damage
+use strict;
+use warnings;
+use lib 'lib';
+use BN;
+
+my %default = ( data => [{damagePercent=>100, pos=>{ x=>0, y=>0 }}] );
+
+foreach my $unit (BN::Unit->all()) {
+   next unless $unit->side() eq 'Player';
+   foreach my $weap ($unit->weapons()) {
+      foreach my $attack ($weap->attacks()) {
+         my $targ = $attack->{targetArea};
+         my $dmg = $attack->{damageArea};
+         next unless $dmg || $targ;
+         print $unit->name(), ' : ', $weap->name(), ' : ',
+            $attack->name(), "\n";
+         my $avg = ($attack->mindmg() + $attack->maxdmg()) / 2;
+         $avg *= $attack->numattacks() || 1;
+         show_area($avg, $targ||\%default, $dmg||\%default);
+         print "\n";
+      }
+   }
+}
+
+sub show_area {
+   my ($avg, $target, $damage) = @_;
+   my $tdat = $target->{data};
+   my $ddat = $damage->{data};
+   my %map;
+
+   my $rand = $target->{random};
+   my $tot;
+   if ($rand) {
+      $tot += $_->{weight} foreach @$tdat;
+   }
+
+   my $xmin = 0;
+   my $xmax = 0;
+   my $ymin = 0;
+   my $ymax = 0;
+
+   foreach my $targ (@$tdat) {
+      my $x1 = $targ->{pos}{x};
+      my $y1 = $targ->{pos}{y};
+      my $wt = $rand ? $targ->{weight} / $tot
+                     : $targ->{damagePercent} / 100;
+      foreach my $dam (@$ddat) {
+         my $x = -$x1 - $dam->{pos}{x};
+         my $y = $y1 + $dam->{pos}{y};
+         next if $x < -4 || $x > 4;
+         $xmin = $x if $x < $xmin;
+         $xmax = $x if $x > $xmax;
+         $ymin = $y if $y < $ymin;
+         $ymax = $y if $y > $ymax;
+         $map{$y}{$x} += $avg * $wt * $dam->{damagePercent} / 100;
+      }
+   }
+
+   foreach my $y ($ymin .. $ymax) {
+      foreach my $x ($xmin .. $xmax) {
+         my $val = $map{$y}{$x};
+         $val = $val ? sprintf('%.0f', $val) : '';
+         if ($x == 0 && $y == 0) {
+            $val = ($target->{type}||'') eq 'Weapon' ? "[$val]" : "($val)";
+         }
+         my $pad = 6 - length($val);
+         print ' 'x(($pad+1)/2), $val, ' 'x($pad/2);
+      }
+      print "\n";
+   }
+}
+
