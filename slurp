@@ -39,8 +39,8 @@ sub get_page {
    my ($name) = @_;
    $name =~ s/\s+/_/g;
    my $file = $name;
-   $file =~ s/['"\/]//g;
-   $file =~ s/^\./_/;
+   $file =~ s/[^\w\s\-.]//g;
+   $file =~ s/^[-.]/_/;
    $file = "wiki/$file";
    return if -e $file;
 
