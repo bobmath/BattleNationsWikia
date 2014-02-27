@@ -40,6 +40,7 @@ BN->simple_accessor('name');
 BN->simple_accessor('building_level', 'buildingLevel');
 BN->simple_accessor('side', 'side');
 BN->simple_accessor('icon', 'icon');
+BN->simple_accessor('visibility_prereq', 'visibilityPrereq');
 
 BN->accessor(shortname => sub {
    my ($unit) = @_;
