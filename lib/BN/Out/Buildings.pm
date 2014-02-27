@@ -368,11 +368,9 @@ sub quest_goods {
          $n = 0;
       }
       my $g = 'good' . ++$n;
-      my $name = $job->name();
       my ($id) = $job->missions() or die;
       my $mis = BN::Mission->get($id) or die;
-      my $mname = $mis->name();
-      print_line($F, $g, "[[Missions#$mname|$name]]");
+      print_line($F, $g, $mis->wikilink($job->name()));
       print_line($F, $g.'image', BN::Out->icon($job->icon(), 40));
       if (my $cost = $job->cost()) {
          print_line($F, $g.'time', BN->format_time($cost->{time}));
