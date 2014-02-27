@@ -20,7 +20,6 @@ sub write {
          my $award = join('', BN->format_amount($tier->cost()), " &rarr; ",
             '{{BSPoints|', BN->commify($tier->points_awarded()), '}}');
          my $pts = $tier->points_needed();
-         $pts /= 10 if $pts > 10_000_000 && $tier->tier() < 10; # kludge
          $sum += $pts;
          print $F qq{|- align="center"\n};
          print $F '! ', $tier->tier(), "\n";
