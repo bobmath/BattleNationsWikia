@@ -106,7 +106,7 @@ sub unit_weapons {
          print_line($F, 'attack' . ++$n, '');
          print $F "{{$attackbox\n";
          print_line($F, 'name', $attack->name());
-         print_line($F, 'weaponicon', BN::Out->icon($attack->icon(), 40));
+         print_line($F, 'weaponicon', BN::Out->icon($attack->icon(), '40px'));
          $r += print_line($F, 'rank', $rank);
          $r += print_line($F, 'damagetype', $attack->dmgtype());
          print_line($F, 'mindmg', $attack->mindmg());
