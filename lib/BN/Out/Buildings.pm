@@ -294,8 +294,8 @@ sub orchard_goods {
    print $F "{{OrchardGoodsBox\n";
    print_line($F, 'float', 'left');
    print_line($F, 'good1time', BN->format_time($tax->{time}));
-   print_line($F, 'good1xp', $tax->{XP});
-   print_line($F, 'good1gold', $tax->{gold});
+   print_line($F, 'good1xp', BN->commify($tax->{XP}));
+   print_line($F, 'good1gold', BN->commify($tax->{gold}));
    print $F "}}\n\n";
 }
 
