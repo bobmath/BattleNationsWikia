@@ -350,4 +350,26 @@ sub boss_strike {
    return BN::BossStrike->get($unit->{_boss_strike});
 }
 
+sub enemy_levels {
+   my $encounters = BN::JSON->read('BattleEncounters.json');
+   my %levels;
+   if (my $armies = $encounters->{armies}) {
+      while (my ($key, $army) = each %$armies) {
+         my $level = $army->{level} or next;
+         my $units = $army->{units} or next;
+         foreach my $unit (@$units) {
+            my $id = $unit->{unitId} or next;
+            $levels{$id} = $level
+               if !exists($levels{$id}) || $levels{$id} > $level;
+         }
+      }
+   }
+
+   foreach my $unit (BN::Unit->all()) {
+      next unless $unit->{side} && $unit->{side} eq 'Hostile';
+      $unit->{_level} = $1 if $unit->{_tag} =~ /_(\d+)$/;
+      $unit->{_level} //= $levels{$unit->{_tag}};
+   }
+}
+
 1 # end BN::Unit

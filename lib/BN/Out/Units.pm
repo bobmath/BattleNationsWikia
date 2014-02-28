@@ -4,13 +4,21 @@ use warnings;
 use Data::Dump qw( dump );
 
 sub write {
+   my %enemies;
    foreach my $unit (BN::Unit->all()) {
       my $side = $unit->side() // '';
-      my $dir = $unit->building() || $unit->from_missions()
-            || $unit->boss_strike() ? 'units'
-         : $side eq 'Player' ? 'locked'
-         : $side eq 'Hostile' ? 'enemies'
-         : 'other';
+      my $dir;
+      if ($side eq 'Player') {
+         $dir = $unit->building() || $unit->from_missions()
+               || $unit->boss_strike() ? 'units' : 'locked';
+      }
+      elsif ($side eq 'Hostile') {
+         push @{$enemies{$unit->name()}}, $unit;
+         next;
+      }
+      else {
+         $dir = 'other';
+      }
       my $file = BN::Out->filename($dir, $unit->name());
       print $file, "\n";
       open my $F, '>', $file or die "Can't write $file: $!";;
@@ -20,6 +28,21 @@ sub write {
       unit_ranks($F, $unit);
       unit_cost($F, $unit);
       print $F "\n", dump($unit), "\n";
+      close $F;
+      BN::Out->checksum($file);
+   }
+
+   foreach my $name (sort keys %enemies) {
+      my $units = $enemies{$name} or die;
+      @$units = sort {$a->level() <=> $b->level()} @$units;
+      my $file = BN::Out->filename('enemies', $name);
+      print $file, "\n";
+      open my $F, '>', $file or die "Can't write $file: $!";
+      print $F $name, " (enemy)\n";
+
+      enemy_profile($F, $units);
+
+      print $F "\n", dump($units), "\n";
       close $F;
       BN::Out->checksum($file);
    }
@@ -285,6 +308,73 @@ sub print_line {
    return 0 unless defined $val;
    printf $F "| %-14s = %s\n", $tag, $val;
    return 1;
+}
+
+sub enemy_profile {
+   my ($F, $units) = @_;
+   my $unit = $units->[0];
+   my $affil = guess_affil($unit->tag());
+   my (@notes, @tags);
+   print $F "{{UnitInfobox\n";
+   profile_line($F, 'icon', BN::Out->icon($unit->icon()));
+   profile_line($F, 'name', $unit->name());
+   if (my $short = $unit->shortname()) {
+      profile_line($F, 'shortname', $short) unless $short eq $unit->name();
+   }
+   profile_line($F, 'ut', $unit->type());
+   profile_line($F, 'affiliation', $affil);
+   profile_line($F, 'immunities', $unit->immunities());
+   profile_line($F, 'blocking', $unit->blocking());
+
+   if (my ($rank) = $unit->ranks()) {
+      if ($unit->max_armor()) {
+         damage_mods($F, 'armor', $rank->armor_mods());
+         if (my $type = $rank->armor_type()) {
+            push @notes, 'No armor while stunned' if $type eq 'active';
+         }
+      }
+      damage_mods($F, 'base', $rank->damage_mods());
+   }
+
+   foreach my $i (0 .. $#$units) {
+      $unit = $units->[$i];
+      my $n = ($i % 3) + 1;
+      if ($n == 1) {
+         $n = '' if $i == $#$units;
+         if ($i) {
+            profile_line($F, 'game file name', join(', ', @tags));
+            @tags = ();
+            print $F "}}\n";
+            print $F "{{UnitInfobox\n";
+            profile_line($F, 'name', '-');
+            profile_line($F, 'affiliation', $affil);
+         }
+      }
+
+      profile_line($F, 'enemylevel'.$n, $unit->level());
+      if (my ($rank) = $unit->ranks()) {
+         profile_line($F, 'hp'.$n, $rank->hp());
+         profile_line($F, 'armor'.$n, $rank->armor() || undef);
+         profile_line($F, 'dodge'.$n, $rank->dodge() || undef);
+         profile_line($F, 'bravery'.$n, $rank->bravery());
+         profile_line($F, 'defense'.$n, $rank->defense());
+         profile_line($F, 'uv'.$n, $rank->uv());
+      }
+      push @tags, $unit->tag();
+   }
+
+   profile_line($F, 'notes', join('<br>', @notes)) if @notes;
+   profile_line($F, 'game file name', join(', ', @tags));
+   print $F "}}\n";
+}
+
+sub guess_affil {
+   my ($tag) = @_;
+   return 'fr'     if $tag =~ /fr_/;
+   return 'raider' if $tag =~ /_raider/;
+   return 'rebel'  if $tag =~ /_rebel/;
+   return 'sw'     if $tag =~ /sw_/;
+   return;
 }
 
 1 # end BN::Out::Units

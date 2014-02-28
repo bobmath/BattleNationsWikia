@@ -28,6 +28,8 @@ sub calc_levels {
       $mis->{_level} = 1;
    }
 
+   BN::Unit->enemy_levels();
+
    my $changed;
    do {
       $changed = 0;
