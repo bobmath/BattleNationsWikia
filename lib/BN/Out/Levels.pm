@@ -1,31 +1,8 @@
 package BN::Out::Levels;
 use strict;
 use warnings;
-use Data::Dump qw( dump );
 
 sub write {
-   my $levels = BN::JSON->read('Levels.json');
-   my $num_levels = keys %$levels;
-
-   my $expand = BN::JSON->read('ExpandLandCosts.json');
-   my @land_total = (4);
-   my @land_change = (0);
-   foreach my $exp (@$expand) {
-      my $prereqs = $exp->{prereq} or next;
-      foreach my $key (sort keys %$prereqs) {
-         my $prereq = $prereqs->{$key} or next;
-         my $t = $prereq->{_t} or next;
-         if ($t eq 'LevelPrereqConfig') {
-            my $level = $prereq->{level} or next;
-            $land_change[$level]++;
-         }
-      }
-   }
-   for my $level (1 .. $num_levels) {
-      my $change = $land_change[$level] ||= 0;
-      $land_total[$level] = $land_total[$level-1] + $change;
-   }
-
    my @unlocked;
    foreach my $unit (BN::Unit->all()) {
       next unless $unit->building();
@@ -47,16 +24,17 @@ sub write {
    print $F qq({| class="wikitable standout"\n|-\n! Level !! XP Needed !! ),
       "Reward !! Unlocked !! Population !! Districts\n";
 
-   my $prev_pop = $levels->{1}{populationLimit};
+   my $prev_pop = 20;
+   my $prev_land = 4;
    my $next_xp = '-';
-   for my $level (1 .. $num_levels) {
-      my $lev = $levels->{$level} or next;
+   for my $level (1 .. BN::Level->max()) {
+      my $lev = BN::Level->get($level) or die;
       print $F qq{|-\n! <div id="$level">$level</div>\n};
 
       print $F "| $next_xp\n";
-      $next_xp = '{{XP|' . BN->commify($lev->{nextLevelXp}) . '}}';
+      $next_xp = '{{XP|' . BN->commify($lev->next_xp()) . '}}';
 
-      print $F "| ", BN->format_amount($lev->{awards})||'-', "\n";
+      print $F "| ", $lev->rewards()||'-', "\n";
 
       if (my $unlocked = $unlocked[$level]) {
          print $F "| ", join(', ', sort @$unlocked), "\n";
@@ -65,7 +43,7 @@ sub write {
          print $F "| -\n";
       }
 
-      my $pop = $lev->{populationLimit};
+      my $pop = $lev->population();
       if ($pop > $prev_pop) {
          my $diff = $pop - $prev_pop;
          print $F "| {{PopulationPlus|$pop (+$diff)}}\n";
@@ -75,20 +53,20 @@ sub write {
       }
       $prev_pop = $pop;
 
-      if ($land_change[$level]) {
-         print $F "| $land_total[$level] (+$land_change[$level])\n";
+      my $land = $lev->land();
+      if ($land > $prev_land) {
+         my $diff = $land - $prev_land;
+         print $F "| $land (+$diff)\n";
       }
       else {
-         print $F "| $land_total[$level]\n";
+         print $F "| $land\n";
       }
+      $prev_land = $land;
    }
 
-   print $F "|-\n! MAX\n| $next_xp\n| {{Stars|15}}\n| -\n";
-   print $F "| {{Population|$prev_pop}}\n";
-   print $F "| $land_total[$num_levels]\n";
-   print $F "|}\n\n";
+   print $F "|-\n! MAX\n| $next_xp\n| {{Stars|15}}\n| -\n",
+      "| {{Population|$prev_pop}}\n| $prev_land\n|}\n\n";
 
-   print $F dump($levels), "\n", dump($expand), "\n";
    close $F;
    BN::Out->checksum($file);
 }

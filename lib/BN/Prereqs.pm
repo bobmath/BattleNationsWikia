@@ -60,7 +60,8 @@ sub add_prereq {
    if ($t eq 'LevelPrereqConfig') {
       my $level = $prereq->{level} or return;
       return if $level < 1;
-      $level = 71 if $level > 71;
+      my $max = BN::Level->max() + 10;
+      $level = $max if $level > $max;
       $obj->{_level} = $level;
    }
    elsif ($t eq 'CompleteMissionPrereqConfig') {

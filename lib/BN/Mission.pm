@@ -41,18 +41,19 @@ BN->simple_accessor('name');
 BN->simple_accessor('tag');
 BN->simple_accessor('hidden', 'hideIcon');
 
+sub page {
+   my ($class, $level) = @_;
+   return 'Missions' unless $level;
+   my $lo = int(($level - 1) / 10) * 10 + 1;
+   my $hi = $lo + 9;
+   my $max = BN::Level->max();
+   $hi = $max if $hi > $max && $lo < $max;
+   return "Level $lo-$hi missions";
+}
+
 sub wikilink {
    my ($mis, $text) = @_;
-   my $page;
-   if (my $level = $mis->level()) {
-      my $lo = int(($level - 1) / 10) * 10 + 1;
-      my $hi = $lo + 9;
-      $hi = 65 if $hi > 65;
-      $page = "Level $lo-$hi missions";
-   }
-   else {
-      $page = 'Missions';
-   }
+   my $page = $mis->page($mis->level());
    $text //= $mis->{_name};
    return "[[$page#$mis->{_name}|$text]]";
 }

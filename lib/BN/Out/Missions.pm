@@ -42,7 +42,7 @@ $old_missions{$_} = 1 foreach qw(
    p01_ZOEY1_010_BuildHovel
 );
 
-my ($curr_page, $curr_file);
+my $curr_page;
 
 sub write {
    my @groups;
@@ -54,11 +54,10 @@ sub write {
    }
    $curr_page = 0;
    foreach my $group (@groups) {
-      $curr_file = sprintf 'Level %d-%d missions',
-         $curr_page*10+1, $curr_page*10+10;
-      my $filename = BN::Out->filename('missions', $curr_file);
-      open my $F, '>:utf8', $filename or die;
-      print $F $curr_file, "\n\n";
+      my $page = BN::Mission->page($curr_page*10 + 1);
+      my $filename = BN::Out->filename('missions', $page);
+      open my $F, '>:utf8', $filename or die "Can't write $filename: $!";
+      print $F $page, "\n\n";
       sort_group($F, $group);
       ++$curr_page;
    }
@@ -212,14 +211,8 @@ sub print_followups {
 
 sub mission_link {
    my ($mis) = @_;
-   my $page = '';
    my $num = int(($mis->level() - 1) / 10);
-   if ($num != $curr_page) {
-      my $lo = $num * 10 + 1;
-      my $hi = $lo + 9;
-      $hi = 65 if $hi > 65;
-      $page = "Level $lo-$hi missions";
-   }
+   my $page = ($num == $curr_page) ? '' : BN::Mission->page($num*10+1);
    my $name = $mis->name();
    return "[[$page#$name|$name]]";
 }

@@ -57,6 +57,7 @@ sub list_accessor {
 
 use BN::JSON;
 use BN::Text;
+use BN::Level;
 use BN::Unit;
 use BN::Weapon;
 use BN::Attack;
