@@ -51,7 +51,7 @@ sub write {
    my $next_xp = '-';
    for my $level (1 .. $num_levels) {
       my $lev = $levels->{$level} or next;
-      print $F "|-\n! $level\n";
+      print $F qq{|-\n! <div id="$level">$level</div>\n};
 
       print $F "| $next_xp\n";
       $next_xp = '{{XP|' . BN->commify($lev->{nextLevelXp}) . '}}';
