@@ -41,8 +41,9 @@ sub unit_profile {
    print $F $unit->name(), "\n";
    print $F "{{UnitProfile\n";
    profile_line($F, 'image', BN::Out->icon($unit->icon()));
-   profile_line($F, 'shortname', $unit->shortname())
-      unless $unit->shortname() eq $unit->name();
+   if (my $short = $unit->shortname()) {
+      profile_line($F, 'shortname', $short) unless $short eq $unit->name();
+   }
    profile_line($F, 'unit type', $unit->type());
    profile_line($F, 'unit level', $unit->level());
    if (my $build = $unit->building()) {

@@ -27,9 +27,7 @@ sub get {
       if (my $struct = $build->{StructureMenu}) {
          $build->{_name} = BN::Text->get($struct->{name});
       }
-      else {
-         $build->{_name} = 'noname';
-      }
+      $build->{_name} //= $key;
    }
    return $build;
 }

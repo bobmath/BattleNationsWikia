@@ -19,7 +19,7 @@ sub get {
    if (ref($unit) eq 'HASH') {
       bless $unit, $class;
       $unit->{_tag} = $key;
-      my $name = BN::Text->get($unit->{name});
+      my $name = BN::Text->get($unit->{name}) || $key;
       $name =~ s/^Speciment/Specimen/;
       $unit->{_name} = $name;
    }
@@ -44,7 +44,7 @@ BN->simple_accessor('visibility_prereq', 'visibilityPrereq');
 
 BN->accessor(shortname => sub {
    my ($unit) = @_;
-   return BN::Text->get($unit->{shortName});
+   return BN::Text->get($unit->{shortName}) // $unit->{_name};
 });
 
 sub wikilink {

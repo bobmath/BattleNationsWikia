@@ -15,13 +15,6 @@ sub load_text {
 
 sub get {
    my ($class, $key) = @_;
-   return 'none' unless defined $key;
-   load_text() unless $text;
-   return $text->{lc($key)} // $text->{$key} // $key;
-}
-
-sub fetch {
-   my ($class, $key) = @_;
    return undef unless defined $key;
    load_text() unless $text;
    return $text->{lc($key)};

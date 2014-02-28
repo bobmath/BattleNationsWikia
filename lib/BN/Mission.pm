@@ -19,8 +19,7 @@ sub get {
    if (ref($mis) eq 'HASH') {
       bless $mis, $class;
       $mis->{_tag} = $key;
-      my $name = BN::Text->get($mis->{title});
-      $name = 'noname' unless length $name;
+      my $name = BN::Text->get($mis->{title}) || $key;
       $name .= ' (Hidden)' if $mis->{hideIcon} && $name !~ /hidden/i;
       $name =~ s/\x{2026}/.../g;
       $mis->{_name} = $name;
@@ -145,8 +144,8 @@ sub get_script {
    foreach my $lines (@$data) {
       my $text = $lines->{text} or next;
       foreach my $line (@$text) {
-         $line->{_title} = BN::Text->fetch($line->{title}) if $line->{title};
-         $line->{_body} = BN::Text->fetch($line->{body});
+         $line->{_title} = BN::Text->get($line->{title}) if $line->{title};
+         $line->{_body} = BN::Text->get($line->{body});
       }
    }
    return $data;

@@ -12,7 +12,7 @@ sub get {
    my $att = $attacks->{$key} or return;
    $att = bless dclone($att), $class;
    $att->{_tag} = $key;
-   $att->{_name} = BN::Text->get($att->{name});
+   $att->{_name} = BN::Text->get($att->{name}) || $key;
 
    if (my $stats = delete $att->{stats}) {
       while (my ($k,$v) = each %$stats) {

@@ -314,7 +314,7 @@ my %places = (
 
 sub describe {
    my ($prereq) = @_;
-   my $text = BN::Text->fetch($prereq->{objectiveText});
+   my $text = BN::Text->get($prereq->{objectiveText});
    my $t = $prereq->{_t} or return $text;
    if ($t eq 'LevelPrereqConfig') {
       my $level = $prereq->{level};

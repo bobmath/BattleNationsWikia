@@ -8,7 +8,7 @@ sub new {
    bless $weap, $class;
    $weap->{_tag} = $key or die;
    $weap->{_unit_tag} = $unit_tag;
-   $weap->{_name} = BN::Text->get($weap->{name});
+   $weap->{_name} = BN::Text->get($weap->{name}) || $key;
    return $weap;
 }
 

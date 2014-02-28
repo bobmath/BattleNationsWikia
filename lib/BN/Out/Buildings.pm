@@ -116,8 +116,9 @@ sub building_defense {
    my ($F, $build) = @_;
    my $unit = BN::Unit->get($build->defense()) or return;
    print $F "{{UnitInfobox\n";
-   print_line($F, 'shortname', $unit->shortname())
-      unless $unit->shortname() eq $build->name();
+   if (my $short = $unit->shortname()) {
+      print_line($F, 'shortname', $short) unless $short eq $unit->name();
+   }
    print_line($F, 'blocking', $unit->blocking());
    print_line($F, 'immunities', $unit->immunities());
 

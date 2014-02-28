@@ -12,7 +12,7 @@ sub get {
    if (ref($job) eq 'HASH') {
       bless $job => $class;
       $job->{_tag} = $key;
-      $job->{_name} = BN::Text->get($job->{name});
+      $job->{_name} = BN::Text->get($job->{name}) || $key;
    }
    return $job;
 }

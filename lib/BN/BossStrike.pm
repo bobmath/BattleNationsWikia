@@ -36,7 +36,8 @@ sub get {
    if (ref($strike) eq 'HASH') {
       bless $strike, $class;
       $strike->{_tag} = $key;
-      $strike->{_name} = BN::Text->get($strike->{uiConfig}{eventTitle});
+      $strike->{_name} = BN::Text->get($strike->{uiConfig}{eventTitle})
+         || $key;
    }
    return $strike;
 }
