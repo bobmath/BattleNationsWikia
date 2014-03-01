@@ -371,7 +371,6 @@ sub enemy_levels {
       if (!$unit->{_level} || $unit->{_level} <= 1) {
          $unit->{_level} = $levels{$unit->{_tag}};
       }
-      $unit->{_level} //= 1;
    }
 }
 
