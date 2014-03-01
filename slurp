@@ -23,7 +23,7 @@ if (open my $MAP, '<', 'namemap') {
    }
 }
 
-foreach my $dir (qw{ units buildings missions }) {
+foreach my $dir (qw{ units buildings missions enemies }) {
    foreach my $file (glob "$dir/*") {
       next unless -f $file;
       my $page = $namemap{$file};
