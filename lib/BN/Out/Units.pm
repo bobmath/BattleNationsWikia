@@ -46,11 +46,20 @@ sub write {
       my $file = BN::Out->filename('enemies', $name);
       print $file, "\n";
       open my $F, '>', $file or die "Can't write $file: $!";
-      print $F $units->[0]->enemy_name(), "\n";
 
-      enemy_profile($F, $units);
+      my $unit = $units->[0];
+      my $affil = guess_affil($unit->tag());
+      if ($name eq $unit->name()) {
+         $name = $unit->enemy_name();
+      }
+      else {
+         $name .= ' (enemy)';
+      }
+      print $F $name, "\n";
+
+      enemy_profile($F, $units, $affil);
       enemy_defense($F, $units);
-      enemy_attacks($F, $units);
+      enemy_attacks($F, $units, $affil);
 
       print $F "\n", dump($units), "\n";
       close $F;
@@ -321,9 +330,8 @@ sub print_line {
 }
 
 sub enemy_profile {
-   my ($F, $units) = @_;
+   my ($F, $units, $affil) = @_;
    my $unit = $units->[0];
-   my $affil = guess_affil($unit->tag());
    my (@notes, @tags);
    print $F "{{UnitInfobox\n";
    profile_line($F, 'image', BN::Out->icon($unit->icon()));
@@ -450,8 +458,7 @@ sub format_defense {
 }
 
 sub enemy_attacks {
-   my ($F, $units) = @_;
-   my $affil = guess_affil($units->[0]->tag());
+   my ($F, $units, $affil) = @_;
    print $F "==Attacks==\n";
    foreach my $unit (@$units) {
       if (@$units > 1) {
