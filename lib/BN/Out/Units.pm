@@ -14,7 +14,12 @@ sub write {
       }
       elsif ($side eq 'Hostile') {
          if ($unit->level()) {
-            push @{$enemies{$unit->name()}}, $unit;
+            my $name = $unit->name();
+            if ($name =~ /^Specimen [a-h]\d+ ['"](.+)['"]$/) {
+               $name = $1;
+               $name =~ s/^(?:Proto-|Advanced|Archetype)\s*//;
+            }
+            push @{$enemies{$name}}, $unit;
             next;
          }
          $dir = 'other';
@@ -487,7 +492,9 @@ sub old_attacks {
          my $r = 1;
          print_line($F, 'affiliation', $affil);
          print_line($F, 'weaponicon', BN::Out->icon($attack->icon(), '40px'));
-         $r += print_line($F, 'offense', $attack->offense() + $accuracy);
+         if (my $off = $attack->offense()) {
+            $r += print_line($F, 'offense', $off + $accuracy);
+         }
 
          my $type = $attack->dmgtype();
          my $min = int($attack->mindmg() * (1 + $power/50));
@@ -518,6 +525,7 @@ sub old_attacks {
 sub guess_affil {
    my ($tag) = @_;
    return 'fr'     if $tag =~ /fr_/;
+   return 'inf'    if $tag =~ /_zombie_/;
    return 'raider' if $tag =~ /_raider/;
    return 'rebel'  if $tag =~ /_rebel/;
    return 'sw'     if $tag =~ /sw_/;
