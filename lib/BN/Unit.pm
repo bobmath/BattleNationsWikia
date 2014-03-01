@@ -368,7 +368,10 @@ sub enemy_levels {
    foreach my $unit (BN::Unit->all()) {
       next unless $unit->{side} && $unit->{side} eq 'Hostile';
       $unit->{_level} = $1 if $unit->{_tag} =~ /_(\d+)$/;
-      $unit->{_level} //= $levels{$unit->{_tag}};
+      if (!$unit->{_level} || $unit->{_level} <= 1) {
+         $unit->{_level} = $levels{$unit->{_tag}};
+      }
+      $unit->{_level} //= 1;
    }
 }
 
