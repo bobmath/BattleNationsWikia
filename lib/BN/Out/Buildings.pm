@@ -138,7 +138,7 @@ sub building_defense {
    print_line($F, 'game file name', $unit->tag());
    print $F "}}\n";
 
-   BN::Out::Units::unit_weapons($F, $unit);
+   BN::Out::Units::old_attacks($F, $unit);
    print $F "\n";
 }
 

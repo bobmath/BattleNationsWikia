@@ -13,8 +13,11 @@ sub write {
                || $unit->boss_strike() ? 'units' : 'locked';
       }
       elsif ($side eq 'Hostile') {
-         push @{$enemies{$unit->name()}}, $unit;
-         next;
+         if ($unit->level()) {
+            push @{$enemies{$unit->name()}}, $unit;
+            next;
+         }
+         $dir = 'other';
       }
       else {
          $dir = 'other';
@@ -41,6 +44,8 @@ sub write {
       print $F $name, " (enemy)\n";
 
       enemy_profile($F, $units);
+      enemy_defense($F, $units);
+      enemy_attacks($F, $units);
 
       print $F "\n", dump($units), "\n";
       close $F;
@@ -316,7 +321,7 @@ sub enemy_profile {
    my $affil = guess_affil($unit->tag());
    my (@notes, @tags);
    print $F "{{UnitInfobox\n";
-   profile_line($F, 'icon', BN::Out->icon($unit->icon()));
+   profile_line($F, 'image', BN::Out->icon($unit->icon()));
    profile_line($F, 'name', $unit->name());
    if (my $short = $unit->shortname()) {
       profile_line($F, 'shortname', $short) unless $short eq $unit->name();
@@ -372,9 +377,7 @@ sub enemy_profile {
 
    profile_line($F, 'notes', join('<br>', @notes)) if @notes;
    profile_line($F, 'game file name', join(', ', @tags));
-   print $F "}}\n";
-
-   enemy_defense($F, $units);
+   print $F "}}\n\n";
 }
 
 sub enemy_defense {
@@ -401,7 +404,8 @@ sub enemy_defense {
    }
    return unless %diff || %adiff;
 
-   print $F qq(\n{| class="wikitable"\n|-\n);
+   print $F "==Damage mods==\n";
+   print $F qq({| class="wikitable"\n|-\n);
    print $F '! Defense', map({ ' !! ' . $_->level() } @$units), "\n";
 
    if (%adiff) {
@@ -427,7 +431,7 @@ sub enemy_defense {
       }
    }
 
-   print $F "|}\n";
+   print $F "|}\n\n";
 }
 
 sub format_defense {
@@ -438,6 +442,77 @@ sub format_defense {
       push @mods, "{{$key|$val%}}";
    }
    return join '<br>', @mods;
+}
+
+sub enemy_attacks {
+   my ($F, $units) = @_;
+   my $affil = guess_affil($units->[0]->tag());
+   print $F "==Attacks==\n";
+   foreach my $unit (@$units) {
+      if (@$units > 1) {
+         my $level = $unit->level();
+         print $F "===Level $level attacks===\n";
+      }
+      old_attacks($F, $unit, $affil);
+   }
+   print $F "\n";
+}
+
+sub old_attacks {
+   my ($F, $unit, $affil) = @_;
+   my $power = 0;
+   my $accuracy = 0;
+   if (my ($rank) = $unit->ranks()) {
+      $power = $rank->power() || 0;
+      $accuracy = $rank->accuracy() || 0;
+   }
+   my $id = 'id="' . ($affil || 'attack') . '"';
+
+   print $F qq{<div class="tabber" $id>\n};
+   foreach my $weap ($unit->weapons()) {
+      my $name = $weap->name();
+      print $F qq{<div class="tabbertab" title="$name" $id>\n};
+      print $F "{{WeaponBox\n";
+      print_line($F, 'game file name', $weap->tag());
+      print_line($F, 'affiliation', $affil);
+      print_line($F, 'ammo', $weap->ammo());
+      print_line($F, 'reload', $weap->reload());
+      print_line($F, 'attacks', '');
+      print $F qq{<div class="tabber" $id>\n};
+
+      foreach my $attack ($weap->attacks()) {
+         $name = $attack->name();
+         print $F qq{<div class="tabbertab" title="$name" $id>\n};
+         print $F "{{UnitAttackBox\n";
+         my $r = 1;
+         print_line($F, 'affiliation', $affil);
+         print_line($F, 'weaponicon', BN::Out->icon($attack->icon(), '40px'));
+         $r += print_line($F, 'offense', $attack->offense() + $accuracy);
+
+         my $type = $attack->dmgtype();
+         my $min = int($attack->mindmg() * (1 + $power/50));
+         my $max = int($attack->maxdmg() * (1 + $power/50));
+         my $num = $attack->numattacks();
+         $max .= " (x$num)" if $num;
+         $r += print_line($F, 'damage',
+            $type ? "{{$type|$min-$max}}" : "$min-$max");
+
+         $r += print_line($F, 'armorpiercing', $attack->armorpiercing());
+         $r += print_line($F, 'crit', $attack->crit());
+         $r += print_line($F, 'range', $attack->range());
+         $r += print_line($F, 'lof', $attack->lof());
+         $r += print_line($F, 'cooldown', $attack->cooldown() || undef);
+         $r += print_line($F, 'effects', $attack->effects());
+         print_line($F, 'targets', $attack->targets());
+         print_line($F, 'targetbox-rows', $r) if $r > 7;
+         print_line($F, 'game file name', $attack->tag());
+         print $F "}}</div>\n";
+      }
+
+      print $F "</div>\n}}</div>\n";
+   }
+
+   print $F "</div>\n{{Clear}}\n";
 }
 
 sub guess_affil {
