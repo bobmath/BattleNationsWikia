@@ -38,6 +38,9 @@ sub write {
       print $F "|}\n\n";
 
       my %encounters;
+      foreach my $encounter (@{$strike->{globalEventEncounters}}) {
+         $encounters{$encounter->{encounterId}} = 1;
+      }
       foreach my $tier ($strike->tiers()) {
          foreach my $encounter (@{$tier->{encounters}}) {
             $encounters{$encounter->{encounterId}} = 1;
@@ -68,7 +71,7 @@ sub write {
 
       my @names = sort keys %names;
       my $break = 0;
-      print $F "{|\n|-\n";
+      print $F qq({| width="100%"\n|-\n);
       foreach my $i (0 .. $#names) {
          if ($i >= $break) {
             print $F "|\n";
