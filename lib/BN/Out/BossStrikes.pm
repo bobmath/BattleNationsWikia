@@ -4,13 +4,6 @@ use warnings;
 use Data::Dump qw( dump );
 
 sub write {
-   my %unit_names;
-   foreach my $unit (BN::Unit->all()) {
-      my $side = $unit->side() or next;
-      $unit_names{$unit->name()} |= 1 if $side eq 'Player';
-      $unit_names{$unit->name()} |= 2 if $side eq 'Hostile';
-   }
-
    my $encounters = BN::JSON->read('BattleEncounters.json');
 
    foreach my $strike (BN::BossStrike->all()) {
@@ -59,14 +52,7 @@ sub write {
       my %names;
       foreach my $key (keys %units) {
          my $unit = BN::Unit->get($key) or next;
-         my $name = $unit->name();
-         my $flag = $unit_names{$name} or next;
-         if ($flag == 3) {
-            $names{"[[$name (enemy)|$name]]"} = 1;
-         }
-         else {
-            $names{"[[$name]]"} = 1;
-         }
+         $names{$unit->wikilink()} = 1;
       }
 
       my @names = sort keys %names;

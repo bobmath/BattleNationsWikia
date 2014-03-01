@@ -46,7 +46,7 @@ sub write {
       my $file = BN::Out->filename('enemies', $name);
       print $file, "\n";
       open my $F, '>', $file or die "Can't write $file: $!";
-      print $F $name, " (enemy)\n";
+      print $F $units->[0]->enemy_name(), "\n";
 
       enemy_profile($F, $units);
       enemy_defense($F, $units);

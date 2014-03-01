@@ -47,9 +47,27 @@ BN->accessor(shortname => sub {
    return BN::Text->get($unit->{shortName}) // $unit->{_name};
 });
 
+my %unit_names;
+BN->accessor(enemy_name => sub {
+   my ($unit) = @_;
+   my $name = $unit->{_name};
+   return $name unless ($unit->{side}||'') eq 'Hostile';
+   unless (%unit_names) {
+      foreach my $u (BN::Unit->all()) {
+         my $side = $u->{side} or next;
+         $unit_names{$u->name()} |= 1 if $side eq 'Player';
+         $unit_names{$u->name()} |= 2 if $side eq 'Hostile';
+      }
+   }
+   $name .= ' (enemy)' if $unit_names{$name} == 3;
+   return $name;
+});
+
 sub wikilink {
    my ($unit) = @_;
-   return "[[$unit->{_name}]]";
+   my $ename = $unit->enemy_name();
+   my $name = $unit->{_name};
+   return ($name eq $ename) ? "[[$name]]" : "[[$ename|$name]]";
 }
 
 my %blocking = (
