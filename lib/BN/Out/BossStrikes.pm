@@ -4,8 +4,6 @@ use warnings;
 use Data::Dump qw( dump );
 
 sub write {
-   my $encounters = BN::JSON->read('BattleEncounters.json');
-
    foreach my $strike (BN::BossStrike->all()) {
       my $file = BN::Out->filename('strikes', $strike->name());
       open my $F, '>', $file or die "Can't write $file: $!";
@@ -42,10 +40,9 @@ sub write {
 
       my %units;
       foreach my $key (keys %encounters) {
-         my $army = $encounters->{armies}{$key} or next;
-         my $units = $army->{units} or next;
-         foreach my $unit (@$units) {
-            $units{$unit->{unitId}} = 1;
+         my $encounter = BN::Encounter->get($key) or next;
+         foreach my $unit ($encounter->units()) {
+            $units{$unit} = 1;
          }
       }
 
