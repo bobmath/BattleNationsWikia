@@ -326,13 +326,20 @@ sub enemy_profile {
    profile_line($F, 'immunities', $unit->immunities());
    profile_line($F, 'blocking', $unit->blocking());
 
-   if (my ($rank) = $unit->ranks()) {
-      if ($unit->max_armor()) {
+   my $has_armor;
+   foreach my $u (@$units) {
+      my ($rank) = $u->ranks();
+      if ($rank->armor()) {
+         $has_armor = 1;
          damage_mods($F, 'armor', $rank->armor_mods());
          if (my $type = $rank->armor_type()) {
             push @notes, 'No armor while stunned' if $type eq 'active';
          }
+         last;
       }
+   }
+
+   if (my ($rank) = $unit->ranks()) {
       damage_mods($F, 'base', $rank->damage_mods());
    }
 
@@ -354,7 +361,7 @@ sub enemy_profile {
       profile_line($F, 'enemylevel'.$n, $unit->level());
       if (my ($rank) = $unit->ranks()) {
          profile_line($F, 'hp'.$n, $rank->hp());
-         profile_line($F, 'armor'.$n, $rank->armor() || undef);
+         profile_line($F, 'armor'.$n, $rank->armor() || 0) if $has_armor;
          profile_line($F, 'dodge'.$n, $rank->dodge() || undef);
          profile_line($F, 'bravery'.$n, $rank->bravery());
          profile_line($F, 'defense'.$n, $rank->defense());
@@ -366,6 +373,71 @@ sub enemy_profile {
    profile_line($F, 'notes', join('<br>', @notes)) if @notes;
    profile_line($F, 'game file name', join(', ', @tags));
    print $F "}}\n";
+
+   enemy_defense($F, $units);
+}
+
+sub enemy_defense {
+   my ($F, $units) = @_;
+   my ($aprev, $prev, %adiff, %diff);
+   CHECK: foreach my $unit (@$units) {
+      my ($rank) = $unit->ranks() or next;
+      my $def = $rank->damage_mods();
+      if ($prev) {
+         while (my ($k,$v) = each %$def) {
+            $diff{$k} = 1 unless $prev->{$k} == $v;
+         }
+      }
+      $prev = $def;
+
+      next unless $rank->armor();
+      $def = $rank->armor_mods();
+      if ($aprev) {
+         while (my ($k,$v) = each %$def) {
+            $adiff{$k} = 1 unless $aprev->{$k} == $v;
+         }
+      }
+      $aprev = $def;
+   }
+   return unless %diff || %adiff;
+
+   print $F qq(\n{| class="wikitable"\n|-\n);
+   print $F '! Defense', map({ ' !! ' . $_->level() } @$units), "\n";
+
+   if (%adiff) {
+      print $F "|-\n! Armor\n";
+      my @keys = sort keys %adiff;
+      foreach my $unit (@$units) {
+         my ($rank) = $unit->ranks() or next;
+         if ($rank->armor()) {
+            print $F '| ', format_defense($rank->armor_mods(), \@keys), "\n";
+         }
+         else {
+            print $F "| -\n";
+         }
+      }
+   }
+
+   if (%diff) {
+      print $F "|-\n! Base\n";
+      my @keys = sort keys %diff;
+      foreach my $unit (@$units) {
+         my ($rank) = $unit->ranks() or next;
+         print $F '| ', format_defense($rank->damage_mods(), \@keys), "\n";
+      }
+   }
+
+   print $F "|}\n";
+}
+
+sub format_defense {
+   my ($mods, $keys) = @_;
+   my @mods;
+   foreach my $key (@$keys) {
+      my $val = $mods->{$key} * 100;
+      push @mods, "{{$key|$val%}}";
+   }
+   return join '<br>', @mods;
 }
 
 sub guess_affil {
