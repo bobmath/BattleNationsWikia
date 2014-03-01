@@ -59,7 +59,9 @@ BN->accessor(enemy_name => sub {
          $unit_names{$u->name()} |= 2 if $side eq 'Hostile';
       }
    }
-   $name .= ' (enemy)' if $unit_names{$name} == 3;
+   if ($unit_names{$name} == 3) {
+      $name .= ($name =~ /^Frontier /) ? ' (civilian)' : ' (enemy)';
+   }
    return $name;
 });
 
