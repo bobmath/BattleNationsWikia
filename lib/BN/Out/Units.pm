@@ -378,7 +378,7 @@ sub enemy_profile {
 
       profile_line($F, 'enemylevel'.$n, $unit->level());
       if (my ($rank) = $unit->ranks()) {
-         profile_line($F, 'hp'.$n, $rank->hp());
+         profile_line($F, 'hp'.$n, BN->commify($rank->hp()));
          profile_line($F, 'armor'.$n, $rank->armor() || 0) if $has_armor;
          profile_line($F, 'dodge'.$n, $rank->dodge() || undef);
          profile_line($F, 'bravery'.$n, $rank->bravery());
