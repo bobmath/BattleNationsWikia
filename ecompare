@@ -1,0 +1,95 @@
+#!/usr/bin/env perl
+# Compare generated wikitext for enemies to what's on the wiki.
+# Download pages with slurp script first.
+# This uses a very simplistic wikitext parser because I don't feel like
+# writing a real one. It mostly works for most of the current pages on
+# the wiki.
+use strict;
+use warnings;
+
+opendir my $DIR, 'enemies' or die;
+my @files = sort grep { !/^\./ } readdir $DIR;
+closedir $DIR;
+
+my $picky = 1;
+
+my %ignore;
+$ignore{$_} = 1 for qw(
+   image
+   targetbox-rows
+   weaponicon
+);
+
+my %namemap;
+if (open my $F, '<', 'namemap') {
+   while (<$F>) {
+      $namemap{$1} = $2 if /^\s*(.*?)\s*=\s*(.*?)\s*$/;
+   }
+}
+
+foreach my $file (@files) {
+   my $file1 = "enemies/$file";
+   my $file2 = $namemap{$file1};
+   if (!$file2) {
+      open my $F, '<', $file1 or die;
+      chomp($file2 = <$F>);
+   }
+   $file2 =~ s/[^-.\w\s]+//g;
+   $file2 =~ s/\s+/_/g;
+   $file2 = "wiki/$file2";
+   my $stat1 = read_stat($file1) or next;
+   my $stat2 = read_stat($file2) or next;
+   print "\n", $file, "\n";
+   $stat1->{$_} ||= {} foreach keys %$stat2;
+   for my $name (sort keys %$stat1) {
+      print $name, "\n";
+      my $sec1 = $stat1->{$name};
+      my $sec2 = $stat2->{$name} || {};
+      $sec1->{$_} //= '' foreach keys  %$sec2;
+      for my $key (sort keys %$sec1) {
+         my $val1 = $sec1->{$key};
+         my $val2 = $sec2->{$key} // '';
+         if (lc($val1) ne lc($val2)) {
+            if (length($val1) >= 20 || length($val2) >= 20) {
+               print "   $key <<$val1>>\n   $key <<$val2>>\n";
+            }
+            else {
+               print "   $key <<$val1>> <<$val2>>\n";
+            }
+         }
+      }
+   }
+}
+
+sub read_stat {
+   my ($file) = @_;
+   open my $F, '<', $file or return;
+   my (%stat, $sec);
+   local $_;
+   while (<$F>) {
+      if (/^\s*\|\s*(.*?)\s*=\s*(.*)/) {
+         my $key = lc($1);
+         my $val = $2;
+         next if $key =~ /image$/ || $ignore{$key};
+         $sec->{$key} = $val;
+      }
+      elsif (/^\{\{(\w+)/) {
+         my $key = $1;
+         next if lc($key) eq 'clear';
+         my $k = $key;
+         my $n = 1;
+         while ($stat{$k}) {
+            $k = $key . '-' . ++$n;
+         }
+         $sec = $stat{$k} = {};
+      }
+      elsif (/^\s*$/) {
+      }
+      else {
+         $sec = undef;
+      }
+   }
+   return unless %stat;
+   return \%stat;
+}
+
