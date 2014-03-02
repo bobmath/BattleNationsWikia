@@ -87,6 +87,7 @@ my %ignore_types;
 $ignore_types{$_} = 1 foreach qw(
    Airc
    Ani
+   FlyingCritter
    Hospital
    Inf
    MissileStrike
