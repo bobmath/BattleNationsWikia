@@ -48,7 +48,7 @@ sub write {
       open my $F, '>', $file or die "Can't write $file: $!";
 
       my $unit = $units->[0];
-      my $affil = guess_affil($unit->tag());
+      my $affil = guess_affil($unit);
       if ($name eq $unit->name()) {
          $name = $unit->enemy_name();
       }
@@ -498,6 +498,7 @@ sub old_attacks {
          print $F "{{UnitAttackBox\n";
          my $r = 1;
          print_line($F, 'affiliation', $affil);
+         print_line($F, 'nocat', 'true') unless $affil;
          print_line($F, 'weaponicon', BN::Out->icon($attack->icon(), '40px'));
          if (my $off = $attack->offense()) {
             $r += print_line($F, 'offense', $off + $accuracy);
@@ -530,12 +531,15 @@ sub old_attacks {
 }
 
 sub guess_affil {
-   my ($tag) = @_;
+   my ($unit) = @_;
+   my $tag = $unit->tag();
    return 'fr'     if $tag =~ /fr_/;
    return 'inf'    if $tag =~ /_zombie_/;
    return 'raider' if $tag =~ /_raider/;
    return 'rebel'  if $tag =~ /_rebel/;
    return 'sw'     if $tag =~ /sw_/;
+   my $type = $unit->type() // '';
+   return 'critter' if $type =~ /Critter/;
    return;
 }
 
