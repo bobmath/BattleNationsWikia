@@ -511,10 +511,7 @@ sub old_attacks {
          print_line($F, 'affiliation', $affil);
          print_line($F, 'nocat', 'true') unless $affil;
          print_line($F, 'weaponicon', BN::Out->icon($attack->icon(), '40px'));
-         if (my $off = $attack->offense()) {
-            $r += print_line($F, 'offense', $off + $accuracy);
-         }
-
+         $r += print_line($F, 'offense', $attack->offense($accuracy));
          $r += print_line($F, 'damage', $attack->damage($power));
          $r += print_line($F, 'armorpiercing', $attack->armorpiercing());
          $r += print_line($F, 'crit', $attack->crit($crit));

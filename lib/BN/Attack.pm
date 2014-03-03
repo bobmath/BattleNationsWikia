@@ -163,12 +163,11 @@ sub damage {
    return $type ? "{{$type|$min-$max}}" : "$min-$max";
 }
 
-BN->accessor(offense => sub {
-   my ($att) = @_;
-   my $offense = $att->{attack} or return;
-   my $base = $att->{base_ATK} || 0;
-   return $offense + $base;
-});
+sub offense {
+   my ($att, $bonus) = @_;
+   return ($att->{attack} || 0) + ($att->{base_ATK} || 0)
+      + ($bonus || 0) * ($att->{attackFromUnit} // 1);
+}
 
 BN->accessor(ammoused => sub {
    my ($att) = @_;
