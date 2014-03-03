@@ -388,6 +388,23 @@ sub enemy_levels {
          $unit->{_level} = $levels{$unit->{_tag}};
       }
    }
+
+   my %override = (
+      fr_guy_chainsaw_ignorable        => undef,
+      fr_guy_dynamite_ignorable        => undef,
+      fr_guy_hunter_ignorable          => undef,
+      fr_guy_pyro_ignorable            => undef,
+      fr_guy_shotgun_ignorable         => undef,
+      s_bigfoot_adult                  => 40,
+      s_bigfoot_child                  => 40,
+      s_raider_sniper_tutorial         => undef,
+      veh_raider_mammoth_armored       => 35,
+      veh_raider_mammoth_armored_low   => 25,
+   );
+   while (my ($key, $val) = each %override) {
+      my $unit = BN::Unit->get($key) or next;
+      $unit->{_level} = $val;
+   }
 }
 
 1 # end BN::Unit
