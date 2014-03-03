@@ -517,14 +517,7 @@ sub old_attacks {
             $r += print_line($F, 'offense', $off + $accuracy);
          }
 
-         my $type = $attack->dmgtype();
-         my $min = int($attack->mindmg() * (1 + $power/50));
-         my $max = int($attack->maxdmg() * (1 + $power/50));
-         my $num = $attack->numattacks();
-         $max .= " (x$num)" if $num;
-         $r += print_line($F, 'damage',
-            $type ? "{{$type|$min-$max}}" : "$min-$max");
-
+         $r += print_line($F, 'damage', $attack->damage($power));
          $r += print_line($F, 'armorpiercing', $attack->armorpiercing());
          $r += print_line($F, 'crit', $attack->crit($crit));
          $r += print_line($F, 'range', $attack->range());

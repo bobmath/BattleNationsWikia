@@ -152,15 +152,16 @@ BN->multi_accessor('mindmg', 'maxdmg', sub {
    return ($min, $max);
 });
 
-BN->accessor(damage => sub {
-   my ($att) = @_;
+sub damage {
+   my ($att, $power) = @_;
+   my $mult = 1 + ($power || 0) * ($att->{damageFromUnit} // 1) / 50;
    my $type = $att->dmgtype();
-   my $min = $att->mindmg();
-   my $max = $att->maxdmg();
+   my $min = int($att->mindmg() * $mult);
+   my $max = int($att->maxdmg() * $mult);
    my $num = $att->numattacks();
    $max .= " (x$num)" if $num;
    return $type ? "{{$type|$min-$max}}" : "$min-$max";
-});
+}
 
 BN->accessor(offense => sub {
    my ($att) = @_;
