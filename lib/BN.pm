@@ -111,33 +111,36 @@ sub flatten_amount {
    return \%flat;
 }
 
-my %resource_order = (
-   XP        => 1,
-   SP        => 2,
-   time      => 3,
-   nanopods  => 4,
-   z2points  => 5,
-   gold      => 6,
-   stone     => 7,
-   wood      => 8,
-   iron      => 9,
-   oil       => 10,
-   concrete  => 11,
-   lumber    => 12,
-   steel     => 13,
-   coal      => 14,
-   bars      => 15,
-   gears     => 16,
-   skulls    => 17,
-   teeth     => 18,
-   merits    => 19,
-   chem      => 20,
-   stars     => 21,
-   laurels   => 22,
-   widgets   => 23,
-   powder    => 24,
-   necklaces => 25,
-);
+my %resource_order = do {
+   my $n;
+   map { ($_,++$n) } qw{
+      XP
+      SP
+      time
+      nanopods
+      z2points
+      gold
+      stone
+      concrete
+      wood
+      lumber
+      iron
+      steel
+      oil
+      coal
+      bars
+      laurels
+      gears
+      widgets
+      skulls
+      powder
+      teeth
+      necklaces
+      merits
+      chem
+      stars
+   };
+};
 
 sub sort_amount {
    my ($class, @keys) = @_;
