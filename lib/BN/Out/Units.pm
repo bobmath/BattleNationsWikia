@@ -379,10 +379,11 @@ sub enemy_profile {
       profile_line($F, 'enemylevel'.$n, $unit->level());
       if (my ($rank) = $unit->ranks()) {
          profile_line($F, 'hp'.$n, BN->commify($rank->hp()));
-         profile_line($F, 'armor'.$n, $rank->armor() || 0) if $has_armor;
+         profile_line($F, 'armor'.$n, BN->commify($rank->armor() || 0))
+            if $has_armor;
          profile_line($F, 'dodge'.$n, $rank->dodge() || undef);
-         profile_line($F, 'bravery'.$n, $rank->bravery());
-         profile_line($F, 'defense'.$n, $rank->defense());
+         profile_line($F, 'bravery'.$n, BN->commify($rank->bravery()));
+         profile_line($F, 'defense'.$n, BN->commify($rank->defense()));
          profile_line($F, 'uv'.$n, $rank->uv());
       }
       push @tags, $unit->tag();
