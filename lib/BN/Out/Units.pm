@@ -520,6 +520,7 @@ sub old_attacks {
          $r += print_line($F, 'effects', $attack->effects());
          print_line($F, 'targets', $attack->targets());
          print_line($F, 'targetbox-rows', $r) if $r > 7;
+         print_line($F, 'notes', $attack->notes());
          print_line($F, 'game file name', $attack->tag());
          print $F "}}</div>\n";
       }
