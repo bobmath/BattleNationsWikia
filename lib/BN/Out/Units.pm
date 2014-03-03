@@ -398,7 +398,7 @@ sub enemy_profile {
 
    profile_line($F, 'notes', join('<br>', @notes)) if @notes;
    profile_line($F, 'game file name', join(', ', @tags));
-   print $F "}}\n==Overview==\n{{Clear}}\n\n"
+   print $F "}}\n==Overview==\n\n"
 }
 
 sub enemy_defense {
