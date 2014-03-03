@@ -120,25 +120,16 @@ my %resource_order = do {
       nanopods
       z2points
       gold
-      stone
-      concrete
-      wood
-      lumber
-      iron
-      steel
-      oil
-      coal
-      bars
-      laurels
-      gears
-      widgets
-      skulls
-      powder
-      teeth
-      necklaces
-      merits
+      stone    concrete
+      wood     lumber
+      iron     steel
+      oil      coal
+      bars     laurels
+      gears    widgets
+      skulls   powder
+      teeth    necklaces
       chem
-      stars
+      merits   stars
    };
 };
 
