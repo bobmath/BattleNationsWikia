@@ -199,7 +199,6 @@ sub crit {
    if (my $mods = $att->{criticalBonuses}) {
       foreach my $targ (sort keys %$mods) {
          my $val = $crit + $mods->{$targ};
-         $val = 100 if $val > 100;
          my $targname = $critmap{$targ} || $targ;
          push @crit, "$val% vs. $targname";
       }
