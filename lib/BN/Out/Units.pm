@@ -526,6 +526,7 @@ sub old_attacks {
          $r += print_line($F, 'damage', $attack->damage($power));
          $r += print_line($F, 'armorpiercing', $attack->armorpiercing());
          $r += print_line($F, 'crit', $attack->crit($crit));
+         $r += print_line($F, 'ammoused', $attack->ammoused());
          $r += print_line($F, 'range', $attack->range());
          $r += print_line($F, 'lof', $attack->lof());
          $r += print_line($F, 'cooldown', $attack->cooldown() || undef);
