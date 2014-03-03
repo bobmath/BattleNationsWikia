@@ -194,10 +194,9 @@ sub crit {
    my $mult = $att->{critFromUnit} // 1;
    my $crit = ($att->{criticalHitPercent} || 0) + ($bonus || 0) * $mult
       + ($att->{base_critPercent} || 0) * ($att->{critFromWeapon} // 1);
-   $crit = 100 if $crit > 100;
    my @crit;
    push @crit, $crit . '%' if $crit != 5;
-   if ($crit < 100 && (my $mods = $att->{criticalBonuses})) {
+   if (my $mods = $att->{criticalBonuses}) {
       foreach my $targ (sort keys %$mods) {
          my $val = $crit + $mods->{$targ};
          $val = 100 if $val > 100;
