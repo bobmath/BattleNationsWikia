@@ -502,7 +502,8 @@ sub old_attacks {
       print_line($F, 'attacks', '');
       print $F qq{<div class="tabber" $id>\n};
 
-      foreach my $attack ($weap->attacks()) {
+      my @attacks = $weap->attacks();
+      foreach my $attack (@attacks) {
          $name = $attack->name();
          print $F qq{<div class="tabbertab" title="$name" $id>\n};
          print $F "{{UnitAttackBox\n";
@@ -527,6 +528,9 @@ sub old_attacks {
          $r += print_line($F, 'range', $attack->range());
          $r += print_line($F, 'lof', $attack->lof());
          $r += print_line($F, 'cooldown', $attack->cooldown() || undef);
+         $r += print_line($F, 'globalcooldown',
+            $attack->globalcooldown() || undef) if @attacks > 1;
+         $r += print_line($F, 'preptime', $attack->preptime() || undef);
          $r += print_line($F, 'effects', $attack->effects());
          print_line($F, 'targets', $attack->targets());
          print_line($F, 'targetbox-rows', $r) if $r > 7;
