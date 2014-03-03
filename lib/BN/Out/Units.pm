@@ -544,7 +544,7 @@ sub guess_affil {
    return 'rebel'  if $tag =~ /_rebel/;
    return 'sw'     if $tag =~ /sw_/;
    my $type = $unit->type() // '';
-   return 'critter' if $type =~ /Critter/;
+   return 'critter' if $type =~ /Critter|Spiderwasp/;
    return;
 }
 
