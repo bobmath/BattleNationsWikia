@@ -357,6 +357,15 @@ sub enemy_profile {
       }
    }
 
+   my $has_dodge;
+   foreach my $u (@$units) {
+      my ($rank) = $u->ranks();
+      if ($rank->dodge()) {
+         $has_dodge = 1;
+         last;
+      }
+   }
+
    if (my ($rank) = $unit->ranks()) {
       damage_mods($F, 'base', $rank->damage_mods());
    }
@@ -381,7 +390,7 @@ sub enemy_profile {
          profile_line($F, 'hp'.$n, BN->commify($rank->hp()));
          profile_line($F, 'armor'.$n, BN->commify($rank->armor() || 0))
             if $has_armor;
-         profile_line($F, 'dodge'.$n, $rank->dodge() || undef);
+         profile_line($F, 'dodge'.$n, $rank->dodge() || 0) if $has_dodge;
          profile_line($F, 'bravery'.$n, BN->commify($rank->bravery()));
          profile_line($F, 'defense'.$n, BN->commify($rank->defense()));
          profile_line($F, 'uv'.$n, $rank->uv());
