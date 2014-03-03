@@ -192,8 +192,8 @@ my %critmap = (
 sub crit {
    my ($att, $bonus, $maxbonus) = @_;
    my $mult = $att->{critFromUnit} // 1;
-   my $crit = ($att->{criticalHitPercent} || 0) + ($bonus || 0) * $mult
-      + ($att->{base_critPercent} || 0) * ($att->{critFromWeapon} // 1);
+   my $crit = int(($att->{criticalHitPercent} || 0) + ($bonus || 0) * $mult
+      + ($att->{base_critPercent} || 0) * ($att->{critFromWeapon} // 1));
    my @crit;
    push @crit, $crit . '%' if $crit != 5;
    if (my $mods = $att->{criticalBonuses}) {
