@@ -163,7 +163,7 @@ sub unit_weapons {
          $r += print_line($F, 'globalcooldown',
             $attack->globalcooldown() || undef) if $nattacks > 1;
          $r += print_line($F, 'preptime', $attack->preptime() || undef);
-         $r += print_line($F, 'crit', $attack->crit());
+         $r += print_line($F, 'crit', $attack->crit(0, $unit->max_crit()));
          $r += print_line($F, 'armorpiercing', $attack->armorpiercing());
          $r += print_line($F, 'effects', $attack->effects());
          print_line($F, 'dot', $attack->dot());
