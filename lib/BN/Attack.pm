@@ -42,6 +42,7 @@ BN->simple_accessor('icon', 'icon');
 BN->simple_accessor('cooldown', 'abilityCooldown');
 BN->simple_accessor('globalcooldown', 'globalCooldown');
 BN->simple_accessor('preptime', 'chargeTime');
+BN->simple_accessor('crit_from_rank', 'critFromUnit');
 
 BN->accessor(range => sub {
    my ($att) = @_;
@@ -188,12 +189,11 @@ my %critmap = (
    Zombie      => '[[:Category:Infected|Infected]]',
 );
 
-BN->accessor(crit => sub {
-   my ($att) = @_;
-   my $crit = $att->{criticalHitPercent} || 0;
-   my $base = $att->{base_critPercent} || 0;
-   my $mult = $att->{critFromWeapon} || 0;
-   $crit += int($base * $mult);
+sub crit {
+   my ($att, $bonus) = @_;
+   my $crit = ($att->{criticalHitPercent} || 0)
+      + ($bonus || 0) * ($att->{critFromUnit} // 1)
+      + ($att->{base_critPercent} || 0) * ($att->{critFromWeapon} // 1);
    my @crit;
    push @crit, $crit . '%' if $crit != 5;
    if (my $mods = $att->{criticalBonuses}) {
@@ -205,7 +205,7 @@ BN->accessor(crit => sub {
    }
    return unless @crit;
    return join('<br>', @crit);
-});
+}
 
 BN->accessor(rank => sub {
    my ($att) = @_;

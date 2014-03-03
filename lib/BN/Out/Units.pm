@@ -484,9 +484,11 @@ sub old_attacks {
    my ($F, $unit, $affil) = @_;
    my $power = 0;
    my $accuracy = 0;
+   my $crit = 0;
    if (my ($rank) = $unit->ranks()) {
       $power = $rank->power() || 0;
       $accuracy = $rank->accuracy() || 0;
+      $crit = $rank->crit() || 0;
    }
    my $id = 'id="' . ($affil || 'attack') . '"';
 
@@ -524,7 +526,7 @@ sub old_attacks {
             $type ? "{{$type|$min-$max}}" : "$min-$max");
 
          $r += print_line($F, 'armorpiercing', $attack->armorpiercing());
-         $r += print_line($F, 'crit', $attack->crit());
+         $r += print_line($F, 'crit', $attack->crit($crit));
          $r += print_line($F, 'range', $attack->range());
          $r += print_line($F, 'lof', $attack->lof());
          $r += print_line($F, 'cooldown', $attack->cooldown() || undef);
