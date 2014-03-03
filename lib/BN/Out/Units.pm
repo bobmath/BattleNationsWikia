@@ -129,7 +129,6 @@ sub profile_line {
 sub unit_weapons {
    my ($F, $unit) = @_;
    my $first = 1;
-   my $mods = $unit->mods();
    my $attackbox = $unit->ranks() > 6 ? 'Attack9BoxTabber' : 'AttackBoxTabber';
    foreach my $weap ($unit->weapons()) {
       print $F $first ? "\n<tabber>\n" : "|-|\n";
@@ -174,9 +173,8 @@ sub unit_weapons {
             print_line($F, 'targets', $targ);
             print_line($F, 'targetbox-rows', $r) if $r > 7;
          }
-         if ($mods) {
+         if (my $mods = $attack->rank_mods($unit)) {
             foreach my $key (sort keys %$mods) {
-               next if $key =~ /(\d+)$/ && $1 < $rank;
                print_line($F, $key, $mods->{$key});
             }
          }

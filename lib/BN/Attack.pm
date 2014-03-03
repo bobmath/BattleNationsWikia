@@ -235,4 +235,37 @@ BN->accessor(cost => sub {
    return BN->format_amount(delete($reqs->{cost}), $reqs->{buildTime});
 });
 
+sub rank_mods {
+   my ($att, $unit) = @_;
+   my %mods;
+   my $mult = $att->{attackFromUnit} // 1;
+   onemod(\%mods, 'accuracy', $att->rank(),
+      map { ($_->accuracy() || 0) * $mult } $unit->ranks());
+   $mult = $att->{damageFromUnit} // 1;
+   onemod(\%mods, 'power', $att->rank(),
+      map { ($_->power() || 0) * $mult } $unit->ranks());
+   return unless %mods;
+   return \%mods;
+}
+
+sub onemod {
+   my ($mods, $tag, $rank, @vals) = @_;
+   if (@vals >= 2 && !$vals[0] && $vals[1] != 5) {
+      my $step = $vals[1];
+      for my $i (2 .. $#vals) {
+         if ($i*$step != $vals[$i]) {
+            undef $step;
+            last;
+         }
+      }
+      if (defined $step) {
+         $mods->{$tag} = $step;
+         return;
+      }
+   }
+   for my $i ($rank-1 .. $#vals) {
+      $mods->{$tag . ($i+1)} = $vals[$i] if $vals[$i] != 5*$i;
+   }
+}
+
 1 # end BN::Attack

@@ -110,37 +110,6 @@ BN->accessor(type => sub {
    return join('-', @types);
 });
 
-BN->accessor(mods => sub {
-   my ($unit) = @_;
-   my $ranks = [ $unit->ranks() ];
-   my %mods;
-   onemod(\%mods, 'accuracy', $ranks);
-   onemod(\%mods, 'power', $ranks);
-   return unless %mods;
-   return \%mods;
-});
-
-sub onemod {
-   my ($mods, $tag, $ranks) = @_;
-   my @vals = map { $_->{$tag} || 0 } @$ranks;
-   if (@vals >= 2 && !$vals[0] && $vals[1] != 5) {
-      my $step = $vals[1];
-      for my $i (2 .. $#vals) {
-         if ($i*$step != $vals[$i]) {
-            undef $step;
-            last;
-         }
-      }
-      if (defined $step) {
-         $mods->{$tag} = $step;
-         return;
-      }
-   }
-   for my $i (0 .. $#vals) {
-      $mods->{$tag . ($i+1)} = $vals[$i] if $vals[$i] != 5*$i;
-   }
-}
-
 BN->accessor(maxabil =>, sub {
    my ($unit) = @_;
    my $max = 0;
