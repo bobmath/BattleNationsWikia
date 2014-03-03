@@ -284,6 +284,16 @@ BN->accessor(max_armor => sub {
    return $max;
 });
 
+BN->accessor(max_crit => sub {
+   my ($unit) = @_;
+   my $max = 0;
+   foreach my $rank ($unit->ranks()) {
+      my $crit = $rank->crit() or next;
+      $max = $crit if $crit > $max;
+   }
+   return $max;
+});
+
 BN->accessor(max_ability_slots => sub {
    my ($unit) = @_;
    my $max = 0;
