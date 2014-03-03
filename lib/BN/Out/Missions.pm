@@ -65,7 +65,8 @@ sub write {
       my $file = BN::Out->filename('missions', $mis->level(), $mis->name());
       print $file, "\n";
       open my $F, '>', $file or die "Can't write $file: $!";;
-      print $F dump($mis), "\n";
+      print $F dump($mis), "\n\n";
+      print $F dump($mis->scripts()), "\n";
       close $F;
       BN::Out->checksum($file);
    }
