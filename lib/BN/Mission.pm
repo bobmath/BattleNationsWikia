@@ -126,10 +126,10 @@ sub unlocks_units {
 sub scripts {
    my ($mis) = @_;
    my %scripts;
-   $scripts{start}    = get_script($mis->{startScript});
-   $scripts{complete} = get_script($mis->{completeScript});
-   $scripts{finish}   = get_script($mis->{finishScript});
-   $scripts{desc}     = get_script($mis->{description});
+   $scripts{'1start'}    = get_script($mis->{startScript});
+   $scripts{'2desc'}     = get_script($mis->{description});
+   $scripts{'3finish'}   = get_script($mis->{finishScript});
+   $scripts{'4complete'} = get_script($mis->{completeScript});
    return \%scripts;
 }
 
