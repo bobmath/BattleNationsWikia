@@ -403,7 +403,7 @@ sub enemy_profile {
 
 sub enemy_defense {
    my ($F, $units) = @_;
-   my ($aprev, $prev, %adiff, %diff);
+   my ($aprev, $prev, $iprev, %adiff, %diff, $idiff);
    CHECK: foreach my $unit (@$units) {
       my ($rank) = $unit->ranks() or next;
       my $def = $rank->damage_mods();
@@ -422,8 +422,12 @@ sub enemy_defense {
          }
       }
       $aprev = $def;
+
+      my $immune = $unit->immunities() || '';
+      $idiff = 1 if defined($iprev) && $iprev ne $immune;
+      $iprev = $immune;
    }
-   return unless %diff || %adiff;
+   return unless %diff || %adiff || $idiff;
 
    print $F "==Damage mods==\n";
    print $F qq({| class="wikitable"\n|-\n);
@@ -449,6 +453,13 @@ sub enemy_defense {
       foreach my $unit (@$units) {
          my ($rank) = $unit->ranks() or next;
          print $F '| ', format_defense($rank->damage_mods(), \@keys), "\n";
+      }
+   }
+
+   if ($idiff) {
+      print $F "|-\n! Immunities\n";
+      foreach my $unit (@$units) {
+         print $F '| ', ($unit->immunities() || ''), "\n";
       }
    }
 
