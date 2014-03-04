@@ -391,7 +391,13 @@ sub enemy_profile {
          profile_line($F, 'dodge'.$n, $rank->dodge() || 0) if $has_dodge;
          profile_line($F, 'bravery'.$n, BN->commify($rank->bravery()));
          profile_line($F, 'defense'.$n, BN->commify($rank->defense()));
-         profile_line($F, 'uv'.$n, $rank->uv());
+         if (my $uv = $rank->uv()) {
+            profile_line($F, 'uv'.$n, $uv);
+            my $sp = $rank->sp_reward();
+            profile_line($F, 'spreward'.$n, $sp) unless $sp == $uv*4;
+            my $gold = $rank->gold_reward();
+            profile_line($F, 'goldreward'.$n, $gold) unless $gold == $uv*20;
+         }
       }
       push @tags, $unit->tag();
    }
