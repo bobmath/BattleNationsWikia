@@ -42,6 +42,7 @@ sub filename {
 sub icon {
    my ($class, $icon, @opts) = @_;
    return $icon unless defined $icon;
+   $icon =~ s{^bundle://}{};
    $icon =~ s/\.png$//;
    $icon =~ s/\@2x$//;
    return '[[' . join('|', "File:\u$icon.png", @opts) . ']]';
