@@ -237,12 +237,21 @@ BN->accessor(cost => sub {
 sub rank_mods {
    my ($att, $unit) = @_;
    my %mods;
+   my @ranks = $unit->ranks();
    my $mult = $att->{attackFromUnit} // 1;
    onemod(\%mods, 'accuracy', $att->rank(),
-      map { ($_->accuracy() || 0) * $mult } $unit->ranks());
+      map { ($_->accuracy() || 0) * $mult } @ranks);
    $mult = $att->{damageFromUnit} // 1;
    onemod(\%mods, 'power', $att->rank(),
-      map { ($_->power() || 0) * $mult } $unit->ranks());
+      map { ($_->power() || 0) * $mult } @ranks);
+   if (@ranks > 6 && @ranks < 9) {
+      my $dot = $att->dot();
+      for my $i (@ranks+1 .. 9) {
+         $mods{"damage$i"} = '-';
+         $mods{"offense$i"} = '-';
+         $mods{"dot$i"} = '-' if $dot;
+      }
+   }
    return unless %mods;
    return \%mods;
 }
