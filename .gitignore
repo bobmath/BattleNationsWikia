@@ -1,4 +1,5 @@
 *.png
+*.swp
 .DS_Store
 buildings/
 enemies/
