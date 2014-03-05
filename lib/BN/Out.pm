@@ -9,6 +9,7 @@ use BN::Out::Missions;
 use BN::Out::Units;
 use BN::Out::BossStrikes;
 use BN::Out::Levels;
+use BN::Out::Guilds;
 
 sub write {
    BN::Out::Units->write();
@@ -16,6 +17,7 @@ sub write {
    BN::Out::Missions->write();
    BN::Out::BossStrikes->write();
    BN::Out::Levels->write();
+   BN::Out::Guilds->write();
 }
 
 my %seen_files;
