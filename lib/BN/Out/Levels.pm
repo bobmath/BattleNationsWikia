@@ -16,7 +16,7 @@ sub write {
       push @{$unlocked[$level]}, $bld->wikilink();
    }
 
-   my $file = BN::Out->filename('missions', 'Levels');
+   my $file = BN::Out->filename('info', 'Levels');
    open my $F, '>', $file or die "Can't write $file: $!";
 
    print $F "Levels\n\n";
