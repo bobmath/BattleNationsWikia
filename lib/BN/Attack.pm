@@ -43,6 +43,9 @@ BN->simple_accessor('cooldown', 'abilityCooldown');
 BN->simple_accessor('globalcooldown', 'globalCooldown');
 BN->simple_accessor('preptime', 'chargeTime');
 BN->simple_accessor('crit_from_rank', 'critFromUnit');
+BN->simple_accessor('target_area', 'targetArea');
+BN->simple_accessor('damage_area', 'damageArea');
+BN->simple_accessor('max_range', 'maxRange');
 
 BN->accessor(range => sub {
    my ($att) = @_;

@@ -1,0 +1,215 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use lib 'lib';
+use BN;
+use Cairo;
+use POSIX qw( ceil );
+
+my $grid_size = 40;
+my $max_width = 300;
+my $max_height = 200;
+my $x_factor = 0.86603;
+my $y_factor = 0.5;
+
+die "usage: $0 unit-ids\n" unless @ARGV;
+draw_aoe($_) foreach @ARGV;
+
+sub draw_aoe {
+   my ($id) = @_;
+   my $unit = BN::Unit->get($id) or die "Can't find unit $id\n";
+   foreach my $weapon ($unit->weapons()) {
+      foreach my $attack ($weapon->attacks()) {
+         draw_attack($unit, $attack);
+      }
+   }
+}
+
+sub draw_attack {
+   my ($unit, $attack) = @_;
+   my @plots = ( get_aoe($attack->target_area()),
+      get_aoe($attack->damage_area()) ) or return;
+   if (@plots == 2 && !$plots[0]{random}) {
+      @plots = convolve(@plots);
+   }
+   $plots[0]{range} = $attack->max_range();
+
+   calc_size($_) foreach @plots;
+   my $width = 0;
+   my $height = 0;
+   foreach my $plot (@plots) {
+      $width += 4 if $width;
+      $plot->{xcenter} += $width;
+      $width += $plot->{width};
+      $height = $plot->{height} if $plot->{height} > $height;
+   }
+
+   my $file = $unit->shortname() . '_' . $attack->name();
+   $file =~ s/\W+//g;
+   my $temp = $file . '-temp.png';
+   $file .= '.png';
+   print "$file  $width x $height\n";
+
+   my $surface = Cairo::ImageSurface->create('argb32', $width, $height);
+   my $c = Cairo::Context->create($surface);
+   draw_grid($c, $height, $attack, $_) foreach @plots;
+   $c->show_page();
+   $surface->write_to_png($temp);
+   system("pngcrush -q -new -brute -rem alla $temp $file") == 0 or die;
+   unlink $temp;
+}
+
+sub draw_grid {
+   my ($c, $height, $attack, $plot) = @_;
+   $c->save();
+   $c->transform(Cairo::Matrix->init($plot->{xscale}, $plot->{yscale},
+      -$plot->{xscale}, $plot->{yscale}, $plot->{xcenter},
+      int($plot->{ycenter} + ($height - $plot->{height})/2)));
+   $c->set_line_width(1 / $plot->{xscale});
+   $c->set_font_size(0.35);
+
+   my ($scale, $tag, @center, @color);
+   if ($plot->{random}) {
+      $scale = 100;
+      $tag = '%';
+      @color = ( 0, 1, 1 );
+      @center = ( 0, 0.8, 0.8 );
+   }
+   else {
+      $scale = ($attack->mindmg() + $attack->maxdmg()) / 2;
+      $tag = '';
+      @color = ( 1, 1, 0 );
+      @center = ( 1, 0.3, 0.3 );
+   }
+
+   foreach my $sq (@{$plot->{squares}}) {
+      next unless $sq->{visible};
+      my $x = $sq->{x};
+      my $y = $sq->{y};
+      $c->set_source_rgb($x || $y ? @color : @center);
+      $c->rectangle($x - 0.5, $y - 0.5, 1, 1);
+      $c->fill();
+      $c->set_source_rgb(0, 0, 0);
+      $c->rectangle($x - 0.5, $y - 0.5, 1, 1);
+      $c->stroke();
+
+      my $val = $sq->{val} * $scale;
+      $val = 1 if $val < 1;
+      $val = sprintf '%.0f%s', $val, $tag;
+      my $size = $c->text_extents($val);
+      $c->move_to($x - $size->{width}/2, $y + $size->{height}/2);
+      $c->show_text($val);
+   }
+
+   $c->restore();
+}
+
+sub calc_size {
+   my ($plot) = @_;
+   my ($ymax, $ymin) = @_;
+   if ($plot->{type} eq 'Weapon') {
+      $ymax = -1;
+      $ymin = -5;
+   }
+   else {
+      $ymax = 2;
+      $ymin = -2;
+      if (my $range = $plot->{range}) {
+         $ymax = $range-1 if $ymax >= $range;
+      }
+   }
+
+   my $left = 0;
+   my $right = 0;
+   my $top = 0;
+   my $bottom = 0;
+   foreach my $sq (@{$plot->{squares}}) {
+      next if abs($sq->{x}) > 4;
+      next if $sq->{y} < $ymin || $sq->{y} > $ymax;
+      next if abs($sq->{x}) == 4 && $sq->{y} == $ymin;
+
+      $sq->{visible} = 1;
+      my $x = $sq->{x} - $sq->{y};
+      my $y = $sq->{x} + $sq->{y};
+      $left = $x if $x < $left;
+      $right = $x if $x > $right;
+      $top = $y if $y < $top;
+      $bottom = $y if $y > $bottom;
+   }
+
+   my $width = $right - $left + 2;
+   my $height = $bottom - $top + 2;
+   my $size = $grid_size;
+   my ($xscale, $yscale, $pixwid, $pixhgt);
+   my $calc_size = sub {
+      $xscale = $size * $x_factor;
+      $yscale = $size * $y_factor;
+      $pixwid = ceil($width * $xscale + 2);
+      $pixhgt = ceil($height * $yscale + 2);
+   };
+   $calc_size->();
+   if ($pixwid > $max_width) {
+      $size = ($max_width - 2.01) / $x_factor / $width;
+      $calc_size->();
+   }
+   if ($pixhgt > $max_height) {
+      $size = ($max_height - 2.01) / $y_factor / $height;
+      $calc_size->();
+   }
+   $plot->{width}   = $pixwid;
+   $plot->{height}  = $pixhgt;
+   $plot->{xscale}  = $xscale;
+   $plot->{yscale}  = $yscale;
+   $plot->{xcenter} = int($xscale * (1 - $left) + 1.5);
+   $plot->{ycenter} = int($yscale * (1 -  $top) + 1.5);
+}
+
+sub convolve {
+   my ($targ_area, $dmg_area) = @_;
+   my $targ_squares = $targ_area->{squares};
+   my $dmg_squares = $dmg_area->{squares};
+
+   my %map;
+   foreach my $targ (@$targ_squares) {
+      foreach my $dmg (@$dmg_squares) {
+         my $x = $targ->{x} + $dmg->{x};
+         my $y = $targ->{y} + $dmg->{y};
+         $map{$y}{$x} += $targ->{val} * $dmg->{val};
+      }
+   }
+
+   my @squares;
+   foreach my $y (sort { $a <=> $b } keys %map) {
+      my $row = $map{$y} or die;
+      foreach my $x (sort { $a <=> $b } keys %$row) {
+         push @squares, { x=>$x, y=>$y, val=>$row->{$x} };
+      }
+   }
+
+   return { squares=>\@squares, type=>$targ_area->{type} };
+}
+
+sub get_aoe {
+   my ($area) = @_;
+   return unless $area;
+   my $squares = $area->{data} or return;
+
+   my ($rand, $weight);
+   if ($rand = $area->{random}) {
+      $weight += $_->{weight} foreach @$squares;
+   }
+
+   my @squares;
+   foreach my $square (@$squares) {
+      my $pos = $square->{pos} or next;
+      push @squares, {
+         x => $pos->{x}, y => $pos->{y},
+         val => $rand ? $square->{weight} / $weight
+                      : $square->{damagePercent} / 100,
+      };
+   }
+   return unless @squares > 1;
+
+   return { squares=>\@squares, random=>$rand, type=>$area->{type}//'' };
+}
+
