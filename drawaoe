@@ -34,7 +34,7 @@ sub draw_attack {
    }
    $plots[0]{range} = $attack->max_range();
 
-   calc_size($_) foreach @plots;
+   calc_size($_, $unit) foreach @plots;
    my $width = 0;
    my $height = 0;
    foreach my $plot (@plots) {
@@ -101,24 +101,73 @@ sub draw_grid {
       $c->show_text($val);
    }
 
+   if (defined(my $unitpos = $plot->{unitpos})) {
+      my ($x, $y) = $c->user_to_device(0, $unitpos);
+      $c->restore();
+      $c->save();
+      draw_icon($c, $x, $y, $plot);
+   }
+
    $c->restore();
 }
 
+sub find_icon {
+   my ($unit, $plot) = @_;
+   my $file = $unit->back_icon();
+   $file =~ s{^bundle://}{};
+   my @files = ( glob("$BN::JSON::new_dir/$file*"),
+      glob("$BN::JSON::app_dir/$file*") ) or return;
+
+   my $best = shift @files;
+   if (@files) {
+      my $size = -s $best;
+      foreach my $test (@files) {
+         my $test_size = -s $test;
+         if ($test_size > $size) {
+            $size = $test_size;
+            $best = $test;
+         }
+      }
+   }
+
+   return $plot->{icon} = $best;
+}
+
+sub draw_icon {
+   my ($c, $x, $y, $plot) = @_;
+   my $icon = Cairo::ImageSurface->create_from_png($plot->{icon});
+   my $width = $icon->get_width();
+   my $height = $icon->get_height();
+
+   my $dest_width = $plot->{xscale} * 1.6;
+   my $dest_height = $dest_width * $height / $width;
+   $c->translate($x - 0.5 * $dest_width, $y - 0.6 * $dest_height);
+   my $scale = $dest_width / $width;
+   $c->scale($scale, $scale);
+
+   $c->set_source_surface($icon, 0, 0);
+   $c->rectangle(0, 0, $width, $height);
+   $c->fill();
+}
+
 sub calc_size {
-   my ($plot) = @_;
-   my ($ymax, $ymin) = @_;
+   my ($plot, $unit) = @_;
+   my ($ymax, $ymin, $unitpos);
    if ($plot->{type} eq 'Weapon') {
       $ymax = -1;
       $ymin = -5;
+      $unitpos = 0 if $plot->{range};
    }
    else {
       $ymax = 2;
       $ymin = -2;
       if (my $range = $plot->{range}) {
          $ymax = $range-1 if $ymax >= $range;
+         $unitpos = $range;
       }
    }
 
+   my $yhi = 0;
    my $left = 0;
    my $right = 0;
    my $top = 0;
@@ -127,6 +176,7 @@ sub calc_size {
       next if abs($sq->{x}) > 4;
       next if $sq->{y} < $ymin || $sq->{y} > $ymax;
       next if abs($sq->{x}) == 4 && $sq->{y} == $ymin;
+      $yhi = $sq->{y} if $sq->{y} > $yhi;
 
       $sq->{visible} = 1;
       my $x = $sq->{x} - $sq->{y};
@@ -135,6 +185,14 @@ sub calc_size {
       $right = $x if $x > $right;
       $top = $y if $y < $top;
       $bottom = $y if $y > $bottom;
+   }
+
+   if (defined($unitpos) && find_icon($unit, $plot)) {
+      $yhi += 2;
+      $unitpos = $yhi if $unitpos > $yhi;
+      $left = -$unitpos if -$unitpos < $left;
+      $bottom = $unitpos if $unitpos > $bottom;
+      $plot->{unitpos} = $unitpos;
    }
 
    my $width = $right - $left + 2;
@@ -203,7 +261,7 @@ sub get_aoe {
    foreach my $square (@$squares) {
       my $pos = $square->{pos} or next;
       push @squares, {
-         x => $pos->{x}, y => $pos->{y},
+         x => -$pos->{x}, y => $pos->{y},
          val => $rand ? $square->{weight} / $weight
                       : $square->{damagePercent} / 100,
       };

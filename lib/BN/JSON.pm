@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use JSON::XS qw( decode_json );
 
-my ($app_dir, $new_dir);
+our ($app_dir, $new_dir);
 if ($^O eq 'darwin') {
    $app_dir = '/Applications/BattleNations.app/Contents/Resources/bundle';
    my $user_dir = (getpwuid $<)[7] or die 'User dir not found';
