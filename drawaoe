@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+# Make maps of aoe damage.
 use strict;
 use warnings;
 use lib 'lib';
