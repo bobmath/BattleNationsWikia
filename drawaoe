@@ -44,7 +44,11 @@ sub draw_attack {
       $height = $plot->{height} if $plot->{height} > $height;
    }
 
-   my $file = $unit->shortname() . '_' . $attack->name();
+   my $file = $unit->shortname();
+   if ($unit->side() eq 'Hostile') {
+      $file .= $unit->level() // '';
+   }
+   $file .= '_' . $attack->name();
    $file =~ s/\W+//g;
    my $temp = $file . '-temp.png';
    $file .= '.png';
@@ -112,8 +116,8 @@ sub draw_grid {
 }
 
 sub find_icon {
-   my ($unit, $plot) = @_;
-   my $file = $unit->back_icon();
+   my ($unit, $plot, $flip) = @_;
+   my $file = $flip ? $unit->icon() : $unit->back_icon();
    $file =~ s{^bundle://}{};
    my @files = ( glob("$BN::JSON::new_dir/$file*"),
       glob("$BN::JSON::app_dir/$file*") ) or return;
@@ -175,6 +179,8 @@ sub calc_size {
       }
    }
 
+   my $flip = $unit->side() eq 'Hostile';
+
    my $yhi = 0;
    my $left = 0;
    my $right = 0;
@@ -185,8 +191,13 @@ sub calc_size {
       next if $sq->{y} < $ymin || $sq->{y} > $ymax;
       next if abs($sq->{x}) == 4 && $sq->{y} == $ymin;
       $yhi = $sq->{y} if $sq->{y} > $yhi;
-
       $sq->{visible} = 1;
+
+      if ($flip) {
+         $sq->{x} = -$sq->{x};
+         $sq->{y} = -$sq->{y};
+      }
+
       my $x = $sq->{x} - $sq->{y};
       my $y = $sq->{x} + $sq->{y};
       $left = $x if $x < $left;
@@ -195,11 +206,23 @@ sub calc_size {
       $bottom = $y if $y > $bottom;
    }
 
-   if (defined($unitpos) && find_icon($unit, $plot)) {
+   if (defined($unitpos) && find_icon($unit, $plot, $flip)) {
       $yhi += 2;
       $unitpos = $yhi if $unitpos > $yhi;
-      $left = -$unitpos if -$unitpos < $left;
-      $bottom = $unitpos if $unitpos > $bottom;
+      my ($x, $y);
+      if ($flip) {
+         $unitpos = -$unitpos;
+         $x = -$unitpos;
+         $y = $unitpos - 1;
+      }
+      else {
+         $x = -$unitpos;
+         $y = $unitpos;
+      }
+      $left = $x if $x < $left;
+      $right = $x if $x > $right;
+      $top = $y if $y < $top;
+      $bottom = $y if $y > $bottom;
       $plot->{unitpos} = $unitpos;
    }
 
