@@ -139,8 +139,16 @@ sub draw_icon {
    my $width = $icon->get_width();
    my $height = $icon->get_height();
 
-   my $dest_width = $plot->{xscale} * 1.6;
-   my $dest_height = $dest_width * $height / $width;
+   my ($dest_width, $dest_height);
+   if ($width >= $height) {
+      $dest_width = $plot->{xscale} * 1.6;
+      $dest_height = $dest_width * $height / $width;
+   }
+   else {
+      $dest_height = $plot->{xscale} * 1.6;
+      $dest_width = $dest_height * $width / $height;
+   }
+
    $c->translate($x - 0.5 * $dest_width, $y - 0.6 * $dest_height);
    my $scale = $dest_width / $width;
    $c->scale($scale, $scale);
