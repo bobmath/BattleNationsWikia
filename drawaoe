@@ -57,7 +57,7 @@ sub draw_attack {
 
    my $surface = Cairo::ImageSurface->create('argb32', $width, $height);
    my $c = Cairo::Context->create($surface);
-   draw_grid($c, $height, $attack, $_) foreach @plots;
+   draw_grid($c, $height, $unit, $attack, $_) foreach @plots;
    $c->show_page();
    $surface->write_to_png($temp);
    system("pngcrush -q -new -brute -rem alla $temp $file") == 0 or die;
@@ -65,7 +65,7 @@ sub draw_attack {
 }
 
 sub draw_grid {
-   my ($c, $height, $attack, $plot) = @_;
+   my ($c, $height, $unit, $attack, $plot) = @_;
    $c->save();
    $c->transform(Cairo::Matrix->init($plot->{xscale}, $plot->{yscale},
       -$plot->{xscale}, $plot->{yscale}, $plot->{xcenter},
@@ -81,7 +81,12 @@ sub draw_grid {
       @center = ( 0, 0.8, 0.8 );
    }
    else {
-      $scale = ($attack->mindmg() + $attack->maxdmg()) / 2;
+      my $power = 0;
+      if (my ($rank) = $unit->ranks()) {
+         $power = $rank->power();
+      }
+      my ($min, $max) = $attack->adjusted_dmg($power);
+      $scale = ($min + $max) / 2;
       $tag = '';
       @color = ( 1, 1, 0 );
       @center = ( 1, 0.3, 0.3 );

@@ -42,7 +42,6 @@ BN->simple_accessor('icon', 'icon');
 BN->simple_accessor('cooldown', 'abilityCooldown');
 BN->simple_accessor('globalcooldown', 'globalCooldown');
 BN->simple_accessor('preptime', 'chargeTime');
-BN->simple_accessor('crit_from_rank', 'critFromUnit');
 BN->simple_accessor('target_area', 'targetArea');
 BN->simple_accessor('damage_area', 'damageArea');
 BN->simple_accessor('max_range', 'maxRange');
@@ -149,7 +148,7 @@ BN->multi_accessor('mindmg', 'maxdmg', sub {
    my $base_min = $att->{base_damage_min} or return;
    my $base_max = $att->{base_damage_max} or return;
    my $dmg = $att->{damage} || 0;
-   my $mult = $att->{damageFromWeapon} || 0;
+   my $mult = $att->{damageFromWeapon} // 1;
    my $min = int($base_min * $mult) + $dmg;
    my $max = int($base_max * $mult) + $dmg;
    return ($min, $max);
@@ -157,13 +156,17 @@ BN->multi_accessor('mindmg', 'maxdmg', sub {
 
 sub damage {
    my ($att, $power) = @_;
-   my $mult = 1 + ($power || 0) * ($att->{damageFromUnit} // 1) / 50;
+   my ($min, $max) = $att->adjusted_dmg($power);
    my $type = $att->dmgtype();
-   my $min = int($att->mindmg() * $mult);
-   my $max = int($att->maxdmg() * $mult);
    my $num = $att->numattacks();
    $max .= " (x$num)" if $num;
    return $type ? "{{$type|$min-$max}}" : "$min-$max";
+}
+
+sub adjusted_dmg {
+   my ($att, $power) = @_;
+   my $mult = 1 + ($power || 0) * ($att->{damageFromUnit} // 1) / 50;
+   return (int($att->mindmg() * $mult), int($att->maxdmg() * $mult));
 }
 
 sub offense {
