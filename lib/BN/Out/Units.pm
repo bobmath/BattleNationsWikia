@@ -527,6 +527,19 @@ sub old_attacks {
          my $r = 1;
          print_line($F, 'affiliation', $affil);
          print_line($F, 'nocat', 'true') unless $affil;
+
+         if (is_aoe($attack->target_area())
+            || is_aoe($attack->damage_area()))
+         {
+            my $file = $unit->shortname();
+            if ($unit->side() eq 'Hostile') {
+               $file .= $unit->level() // '';
+            }
+            $file .= '_' . $attack->name();
+            $file =~ s/\W+//g;
+            print_line($F, 'image', "[[File:$file.png]]");
+         }
+
          print_line($F, 'weaponicon', BN::Out->icon($attack->icon(), '40px'));
          $r += print_line($F, 'offense', $attack->offense($accuracy));
          $r += print_line($F, 'damage', $attack->damage($power));
@@ -551,6 +564,13 @@ sub old_attacks {
    }
 
    print $F "</div>\n{{Clear}}\n";
+}
+
+sub is_aoe {
+   my ($area) = @_;
+   return unless $area;
+   my $squares = $area->{data} or return;
+   return @$squares > 1;
 }
 
 sub guess_affil {
