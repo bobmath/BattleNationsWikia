@@ -8,7 +8,8 @@ my $encounters;
 sub all {
    my ($class) = @_;
    $encounters ||= BN::JSON->read($json_file);
-   return map { $class->get($_) } sort keys %{$encounters->{armies}};
+   return map { $class->get($_) } sort grep { !/^test/ }
+      keys %{$encounters->{armies}};
 }
 
 sub get {
