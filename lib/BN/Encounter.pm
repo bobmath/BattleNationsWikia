@@ -42,4 +42,20 @@ BN->list_accessor(units => sub {
    return sort keys %units;
 });
 
+sub tables {
+   my ($enc) = @_;
+   if (!exists $enc->{z_tables}) {
+      $_->{z_tables} = undef foreach BN::Encounter->all();
+      foreach my $key (sort keys %{$encounters->{tables}}) {
+         my $table = $encounters->{tables}{$key};
+         foreach my $inf (@{$table->{encounters}}) {
+            my $e = BN::Encounter->get($inf->{encounterId}) or next;
+            push @{$e->{z_tables}}, $key;
+         }
+      }
+   }
+   return unless $enc->{z_tables};
+   return @{$enc->{z_tables}};
+}
+
 1 # end BN::Encounter
