@@ -351,19 +351,18 @@ sub boss_strike {
    return BN::BossStrike->get($unit->{_boss_strike});
 }
 
+my %encounters;
 sub encounters {
    my ($unit) = @_;
-   if (!exists $unit->{z_encounters}) {
-      $_->{z_encounters} = undef for BN::Unit->all();
+   if (!%encounters) {
       foreach my $enc (BN::Encounter->all()) {
          foreach my $id ($enc->units()) {
-            my $u = BN::Unit->get($id) or next;
-            push @{$u->{z_encounters}}, $enc->tag();
+            push @{$encounters{$id}}, $enc->tag();
          }
       }
    }
-   return unless $unit->{z_encounters};
-   return @{$unit->{z_encounters}};
+   my $enc = $encounters{$unit->tag()} or return;
+   return @$enc;
 }
 
 sub enemy_levels {
