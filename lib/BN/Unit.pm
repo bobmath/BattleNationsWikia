@@ -240,6 +240,7 @@ sub level {
 
 sub prereqs {
    my ($unit) = @_;
+   return if $unit->{side} eq 'Hostile';
    my $prereqs = $unit->{prereq} or return;
    return map { $prereqs->{$_} } sort keys %$prereqs;
 }
@@ -375,9 +376,10 @@ sub enemy_levels {
       fr_guy_hunter_ignorable          => undef,
       fr_guy_pyro_ignorable            => undef,
       fr_guy_shotgun_ignorable         => undef,
+      raptor_zombie_enemy_20           => undef,
+      raptor_zombie_enemy_40           => undef,
       s_bigfoot_adult                  => 40,
       s_bigfoot_child                  => 40,
-      s_raider_sniper_tutorial         => undef,
       veh_raider_mammoth_armored       => 35,
       veh_raider_mammoth_armored_low   => 25,
    );
