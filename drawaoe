@@ -5,6 +5,8 @@ use warnings;
 use lib 'lib';
 use BN;
 use Cairo;
+use File::Glob qw( bsd_glob GLOB_NOCASE );
+use Getopt::Std qw( getopts );
 use POSIX qw( ceil );
 
 my $grid_size = 40;
@@ -12,6 +14,9 @@ my $max_width = 300;
 my $max_height = 200;
 my $x_factor = 0.86603;
 my $y_factor = 0.5;
+
+my %opts;
+getopts('i:', \%opts) or die "Invalid options\n";
 
 die "usage: $0 unit-ids\n" unless @ARGV;
 draw_aoe($_) foreach @ARGV;
@@ -123,10 +128,10 @@ sub draw_grid {
 
 sub find_icon {
    my ($unit, $plot, $flip) = @_;
-   my $file = $flip ? $unit->icon() : $unit->back_icon();
+   my $file = $opts{i} || ($flip ? $unit->icon() : $unit->back_icon());
    $file =~ s{^bundle://}{};
-   my @files = ( glob("$BN::JSON::new_dir/$file*"),
-      glob("$BN::JSON::app_dir/$file*") ) or return;
+   my @files = ( bsd_glob("$BN::JSON::new_dir/$file*", GLOB_NOCASE),
+      bsd_glob("$BN::JSON::app_dir/$file*", GLOB_NOCASE) ) or return;
 
    my $best = shift @files;
    if (@files) {
