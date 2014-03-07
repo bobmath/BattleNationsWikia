@@ -240,7 +240,6 @@ sub level {
 
 sub prereqs {
    my ($unit) = @_;
-   return if $unit->{side} eq 'Hostile';
    my $prereqs = $unit->{prereq} or return;
    return map { $prereqs->{$_} } sort keys %$prereqs;
 }
@@ -363,7 +362,8 @@ sub enemy_levels {
    }
 
    foreach my $unit (BN::Unit->all()) {
-      next unless $unit->{side} && $unit->{side} eq 'Hostile';
+      next unless $unit->{side} eq 'Hostile';
+      $unit->{z_prereqs} = [] if $unit->{z_prereqs};
       $unit->{_level} = $1 if $unit->{_tag} =~ /_(\d+)$/;
       if (!$unit->{_level} || $unit->{_level} <= 1) {
          $unit->{_level} = $levels{$unit->{_tag}};
@@ -380,6 +380,7 @@ sub enemy_levels {
       raptor_zombie_enemy_40           => undef,
       s_bigfoot_adult                  => 40,
       s_bigfoot_child                  => 40,
+      s_raider_sniper_tutorial         => 3,
       veh_raider_mammoth_armored       => 35,
       veh_raider_mammoth_armored_low   => 25,
    );
