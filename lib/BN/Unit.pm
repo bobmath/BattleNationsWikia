@@ -351,6 +351,21 @@ sub boss_strike {
    return BN::BossStrike->get($unit->{_boss_strike});
 }
 
+sub encounters {
+   my ($unit) = @_;
+   if (!exists $unit->{z_encounters}) {
+      $_->{z_encounters} = undef for BN::Unit->all();
+      foreach my $enc (BN::Encounter->all()) {
+         foreach my $id ($enc->units()) {
+            my $u = BN::Unit->get($id) or next;
+            push @{$u->{z_encounters}}, $enc->tag();
+         }
+      }
+   }
+   return unless $unit->{z_encounters};
+   return @{$unit->{z_encounters}};
+}
+
 sub enemy_levels {
    my %levels;
    foreach my $enc (BN::Encounter->all()) {
@@ -378,11 +393,8 @@ sub enemy_levels {
       fr_guy_shotgun_ignorable         => undef,
       raptor_zombie_enemy_20           => undef,
       raptor_zombie_enemy_40           => undef,
-      s_bigfoot_adult                  => 40,
-      s_bigfoot_child                  => 40,
       s_raider_sniper_tutorial         => 3,
-      veh_raider_mammoth_armored       => 35,
-      veh_raider_mammoth_armored_low   => 25,
+      veh_raider_mammoth_armored       => 25,
    );
    while (my ($key, $val) = each %override) {
       my $unit = BN::Unit->get($key) or next;
