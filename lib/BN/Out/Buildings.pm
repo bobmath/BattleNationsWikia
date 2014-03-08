@@ -109,7 +109,11 @@ sub building_summary {
    print_line($F, 'sell', BN->format_amount($build->sell_price()));
 
    print_line($F, 'game file name', $build->tag());
-   print $F "}}\n\n";
+   print $F "}}\n";
+   if (my $desc = $build->description()) {
+      print $F "{{IGD|$desc}}\n";
+   }
+   print $F "==Overview==\n{{Clear}}\n\n";
 }
 
 sub building_defense {
@@ -145,7 +149,7 @@ sub building_defense {
 sub building_levels {
    my ($F, $build) = @_;
    my @levels = $build->levels() or return;
-   print $F "{{BuildingLevelBox\n";
+   print $F "==Levels==\n{{BuildingLevelBox\n";
    level_tax($F, $build, \@levels);
    level_resource($F, $build, \@levels);
    if (my $type = $build->input_type()) {
@@ -303,18 +307,37 @@ sub orchard_goods {
 sub building_goods {
    my ($F, $build) = @_;
    my @jobs = $build->jobs() or return;
-   my $type = $build->output_type() or return;
-   if ($type eq 'shopOutput') {
-      shop_goods($F, $build, \@jobs);
+   if (my $type = $build->output_type()) {
+      if ($type eq 'shopOutput') {
+         shop_goods($F, $build, \@jobs);
+      }
+      elsif ($type eq 'millOutput') {
+         mill_goods($F, $build, \@jobs);
+      }
    }
-   elsif ($type eq 'millOutput') {
-      mill_goods($F, $build, \@jobs);
+   else {
+      other_goods($F, \@jobs);
    }
+}
+
+sub other_goods {
+   my ($F, $jobs) = @_;
+   print $F qq(==Goods==\n{| class="wikitable"\n);
+   print $F "|-\n! Item !! Cost !! Reward\n";
+   foreach my $job (@$jobs) {
+      my $item = BN::Out->icon($job->icon(), '40px');
+      $item .= ' ' if $item;
+      $item .= $job->name();
+      my $cost = BN->format_amount($job->cost(), 0, ' &nbsp; ');
+      my $reward = BN->format_amount($job->rewards(), 0, ' &nbsp; ');
+      print $F "|-\n| $item\n| $cost\n| $reward\n";
+   }
+   print $F "|}\n";
 }
 
 sub shop_goods {
    my ($F, $build, $jobs) = @_;
-   print $F "{{ShopGoodsBox\n";
+   print $F "==Goods==\n{{ShopGoodsBox\n";
    my $n;
    for my $job (@$jobs) {
       my $g = 'good' . ++$n;
@@ -336,7 +359,7 @@ sub mill_goods {
    my ($F, $build, $jobs) = @_;
    my @input = $build->mill_input() or return;
    my $output = $build->mill_output() or return;
-   print $F "{{MillGoodsBox\n";
+   print $F "==Goods==\n{{MillGoodsBox\n";
    my $n;
    print_line($F, 'input' . ++$n, BN->resource_template($_)) foreach @input;
    print_line($F, 'output', BN->resource_template($output));

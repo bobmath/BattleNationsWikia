@@ -55,6 +55,12 @@ sub icon {
    return $structure->{icon};
 }
 
+sub description {
+   my ($build) = @_;
+   my $structure = $build->{StructureMenu} or return undef;
+   return BN::Text->get($structure->{description});
+}
+
 sub units {
    my ($build) = @_;
    my $projects = $build->{ProjectList} or return;
