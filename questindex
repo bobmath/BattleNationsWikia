@@ -22,6 +22,7 @@ foreach my $file (glob('wiki/Level*missions')) {
 }
 
 open my $F, '>', 'missions/Mission_index' or die;
+print $F "Mission index\n\n";
 
 foreach my $key (sort keys %groups) {
    my $group = $groups{$key};
