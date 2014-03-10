@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 sub write {
-   my $hints = BN::JSON->read('My_Land_Hint.json');
+   my $hints = BN::File->json('My_Land_Hint.json');
    my $file = BN::Out->filename('info', 'Loading Screen Statements');
    open my $F, '>', $file or die "Can't write $file: $!\n";
 

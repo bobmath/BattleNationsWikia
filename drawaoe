@@ -5,7 +5,6 @@ use warnings;
 use lib 'lib';
 use BN;
 use Cairo;
-use File::Glob qw( bsd_glob GLOB_NOCASE );
 use Getopt::Std qw( getopts );
 use POSIX qw( ceil );
 
@@ -128,8 +127,7 @@ sub find_icon {
    my ($unit, $plot, $flip) = @_;
    my $file = $opts{i} || ($flip ? $unit->icon() : $unit->back_icon());
    $file =~ s{^bundle://}{};
-   my @files = ( bsd_glob("$BN::JSON::new_dir/$file*", GLOB_NOCASE),
-      bsd_glob("$BN::JSON::app_dir/$file*", GLOB_NOCASE) ) or return;
+   my @files = BN::File->glob("$file*") or return;
 
    my $best = shift @files;
    if (@files) {

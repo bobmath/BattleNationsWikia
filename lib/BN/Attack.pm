@@ -8,7 +8,7 @@ my $attacks;
 sub get {
    my ($class, $key, $weap) = @_;
    return unless $key;
-   $attacks ||= BN::JSON->read('BattleAbilities.json');
+   $attacks ||= BN::File->json('BattleAbilities.json');
    my $att = $attacks->{$key} or return;
    $att = bless dclone($att), $class;
    $att->{_tag} = $key;

@@ -7,14 +7,14 @@ my $json_file = 'Missions.json';
 
 sub all {
    my ($class) = @_;
-   $missions ||= BN::JSON->read($json_file);
+   $missions ||= BN::File->json($json_file);
    return map { $class->get($_) } sort keys %$missions;
 }
 
 sub get {
    my ($class, $key) = @_;
    return unless $key;
-   $missions ||= BN::JSON->read($json_file);
+   $missions ||= BN::File->json($json_file);
    my $mis = $missions->{$key} or return;
    if (ref($mis) eq 'HASH') {
       bless $mis, $class;
@@ -139,7 +139,7 @@ sub get_script {
    my ($script) = @_;
    $script = $script->{scriptId} if ref($script);
    return $script unless $script;
-   $dialogs ||= BN::JSON->read('Dialogs.json');
+   $dialogs ||= BN::File->json('Dialogs.json');
    my $data = $dialogs->{$script} or return $script;
    foreach my $lines (@$data) {
       my $text = $lines->{text} or next;

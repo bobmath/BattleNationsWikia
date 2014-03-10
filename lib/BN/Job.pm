@@ -7,7 +7,7 @@ my $jobs;
 sub get {
    my ($class, $key) = @_;
    return unless $key;
-   $jobs ||= BN::JSON->read('JobInfo.json');
+   $jobs ||= BN::File->json('JobInfo.json');
    my $job = $jobs->{jobs}{$key} or return;
    if (ref($job) eq 'HASH') {
       bless $job => $class;

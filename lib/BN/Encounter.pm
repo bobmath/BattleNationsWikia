@@ -7,7 +7,7 @@ my $encounters;
 
 sub all {
    my ($class) = @_;
-   $encounters ||= BN::JSON->read($json_file);
+   $encounters ||= BN::File->json($json_file);
    return map { $class->get($_) } sort grep { !/^test/ }
       keys %{$encounters->{armies}};
 }
@@ -15,7 +15,7 @@ sub all {
 sub get {
    my ($class, $key) = @_;
    return unless $key;
-   $encounters ||= BN::JSON->read($json_file);
+   $encounters ||= BN::File->json($json_file);
    my $enc = $encounters->{armies}{$key} or return;
    if (ref($enc) eq 'HASH') {
       bless $enc, $class;

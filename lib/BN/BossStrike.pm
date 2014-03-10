@@ -23,7 +23,7 @@ $old_strikes{$_} = 1 foreach qw{
 
 sub all {
    my ($class) = @_;
-   $strikes ||= BN::JSON->read($json_file);
+   $strikes ||= BN::File->json($json_file);
    return map { $class->get($_) }
       sort grep { !$old_strikes{$_} } keys %$strikes;
 }
@@ -31,7 +31,7 @@ sub all {
 sub get {
    my ($class, $key) = @_;
    return unless $key;
-   $strikes ||= BN::JSON->read($json_file);
+   $strikes ||= BN::File->json($json_file);
    my $strike = $strikes->{$key} or return;
    if (ref($strike) eq 'HASH') {
       bless $strike, $class;

@@ -55,7 +55,7 @@ sub list_accessor {
    };
 }
 
-use BN::JSON;
+use BN::File;
 use BN::Text;
 use BN::Level;
 use BN::Unit;

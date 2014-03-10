@@ -6,14 +6,14 @@ my $levels;
 my $json_file = 'Levels.json';
 
 sub max {
-   $levels ||= BN::JSON->read($json_file);
+   $levels ||= BN::File->json($json_file);
    return scalar keys %$levels;
 }
 
 sub get {
    my ($class, $key) = @_;
    return unless $key;
-   $levels ||= BN::JSON->read($json_file);
+   $levels ||= BN::File->json($json_file);
    my $lev = $levels->{$key} or return;
    if (ref($lev) eq 'HASH') {
       bless $lev, $class;
@@ -35,7 +35,7 @@ sub land {
    my ($lev) = @_;
    return $lev->{_land} if exists $lev->{_land};
 
-   my $expand = BN::JSON->read('ExpandLandCosts.json');
+   my $expand = BN::File->json('ExpandLandCosts.json');
    my @land = (0) x (BN::Level->max() + 1);
    foreach my $exp (@$expand) {
       my $prereqs = $exp->{prereq} or next;

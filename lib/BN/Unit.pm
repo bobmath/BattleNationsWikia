@@ -7,14 +7,14 @@ my $json_file = 'BattleUnits.json';
 
 sub all {
    my ($class) = @_;
-   $units ||= BN::JSON->read($json_file);
+   $units ||= BN::File->json($json_file);
    return map { $class->get($_) } sort keys %$units;
 }
 
 sub get {
    my ($class, $key) = @_;
    return unless $key;
-   $units ||= BN::JSON->read($json_file);
+   $units ||= BN::File->json($json_file);
    my $unit = $units->{$key} or return;
    if (ref($unit) eq 'HASH') {
       bless $unit, $class;

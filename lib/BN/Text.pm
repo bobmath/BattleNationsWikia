@@ -6,8 +6,8 @@ my $text;
 
 sub load_text {
    return if $text;
-   $text = BN::JSON->read('BattleNations_en.json');
-   my $delta = BN::JSON->read('Delta_en.json');
+   $text = BN::File->json('BattleNations_en.json');
+   my $delta = BN::File->json('Delta_en.json');
    while (my ($k,$v) = each %$delta) {
       $text->{$k} = $v;
    }

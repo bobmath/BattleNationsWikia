@@ -8,13 +8,13 @@ my $json_file = 'Compositions.json';
 
 sub all {
    my ($class) = @_;
-   $buildings ||= BN::JSON->read($json_file);
+   $buildings ||= BN::File->json($json_file);
    return map { $class->get($_) } sort keys %$buildings;
 }
 
 sub get {
    my ($class, $key) = @_;
-   $buildings ||= BN::JSON->read($json_file);
+   $buildings ||= BN::File->json($json_file);
    my $build = $buildings->{$key} or return;
    if (ref($build) eq 'HASH') {
       bless $build, $class;
@@ -94,7 +94,7 @@ sub build_menu {
    my ($build) = @_;
    return $build->{_build_menu} if exists $build->{_build_menu};
 
-   my $buildable = BN::JSON->read('StructureMenu.json');
+   my $buildable = BN::File->json('StructureMenu.json');
 
    foreach my $b (BN::Building->all()) {
       $b->{_build_menu} = undef;
@@ -295,7 +295,7 @@ sub bonus_stack {
       return "$max $name";
    }
    if (my $cat = $bonus->{modCategory}) {
-      $bonus_cats ||= BN::JSON->read('RadialMod.json');
+      $bonus_cats ||= BN::File->json('RadialMod.json');
       my $lim = $bonus_cats->{categories}{$cat} or return;
       $cat .= 's' if $lim > 1;
       return "$lim $cat";

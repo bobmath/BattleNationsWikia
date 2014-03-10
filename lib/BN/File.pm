@@ -1,9 +1,10 @@
-package BN::JSON;
+package BN::File;
 use strict;
 use warnings;
 use JSON::XS qw( decode_json );
+use File::Glob qw( bsd_glob GLOB_NOCASE );
 
-our ($app_dir, $new_dir);
+my ($app_dir, $new_dir);
 if ($^O eq 'darwin') {
    $app_dir = '/Applications/BattleNations.app/Contents/Resources/bundle';
    my $user_dir = (getpwuid $<)[7] or die 'User dir not found';
@@ -14,11 +15,18 @@ else {
 }
 
 sub read {
-   my ($class, $file) = @_;
+   my ($class, $file, $enc) = @_;
+   $enc //= '';
    my $F;
-   open $F, '<:encoding(utf8)', "$new_dir/$file"
-   or open $F, '<:encoding(utf8)', "$app_dir/$file"
-   or die "Can't read $file";
+   open $F, "<$enc", "$new_dir/$file"
+   or open $F, "<$enc", "$app_dir/$file"
+   or die "Can't read $file: $!\n";
+   return $F;
+}
+
+sub json {
+   my ($class, $file) = @_;
+   my $F = $class->read($file, ':encoding(utf8)');
    local $/ = undef;
    my $data = decode_json(<$F>);
    scrub($data);
@@ -38,4 +46,10 @@ sub scrub {
    }
 }
 
-1 # end BN::JSON
+sub glob {
+   my ($class, $pat) = @_;
+   return (bsd_glob("$new_dir/$pat", GLOB_NOCASE),
+           bsd_glob("$app_dir/$pat", GLOB_NOCASE));
+}
+
+1 # end BN::File

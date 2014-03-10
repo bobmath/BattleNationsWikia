@@ -1,13 +1,10 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use lib 'lib';
+use BN;
 use Getopt::Std qw( getopts );;
 use Image::Size qw( imgsize );
-use File::Glob qw( bsd_glob GLOB_NOCASE );
-
-my $user_dir = (getpwuid $<)[7] or die 'User dir not found';
-my $new_dir = $user_dir . '/Library/Containers/com.z2live.battlenations-mac/Data/Library/Caches/jujulib/remoteData';
-my $app_dir = '/Applications/BattleNations.app/Contents/Resources/bundle';
 
 my %opts;
 getopts('s', \%opts);
@@ -15,8 +12,7 @@ die "usage: $0 [-s] icon_name\n" unless @ARGV == 1;
 my $max_size = $opts{s} ? 40 : 400;
 my $file = shift;
 $file =~ s/\.png$//;
-my @infiles = (bsd_glob("$new_dir/$file*.png", GLOB_NOCASE),
-   bsd_glob("$app_dir/$file*.png", GLOB_NOCASE)) or die "not found\n";
+my @infiles = BN::File->glob("$file*.png") or die "not found\n";
 my $infile = shift @infiles;
 
 if (@infiles) {
