@@ -70,6 +70,7 @@ use BN::Prereqs;
 use BN::BossStrike;
 use BN::Tier;
 use BN::Encounter;
+use BN::Animation;
 
 my %resource_map = (
    currency => 'nanopods',
