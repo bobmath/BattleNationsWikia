@@ -86,10 +86,8 @@ sub draw_grid {
       @center = ( 0, 0.8, 0.8 );
    }
    else {
-      my $power = 0;
-      if (my ($rank) = $unit->ranks()) {
-         $power = $rank->power();
-      }
+      my $rank = ($unit->ranks())[$attack->rank()-1];
+      my $power = $rank ? $rank->power() : 0;
       my ($min, $max) = $attack->adjusted_dmg($power);
       $scale = ($min + $max) / 2;
       $tag = '';
