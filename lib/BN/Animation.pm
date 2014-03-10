@@ -197,9 +197,9 @@ sub read_pix {
          my $s = $a / 0xff;
          $r = int($r * $s);
          $g = int($g * $s);
-         $b = int($g * $s);
+         $b = int($b * $s);
       }
-      return pack 'L', $r | ($g << 8) | ($b << 16) | ($a << 24);
+      return pack 'L', ($a << 24) | ($r << 16) | ($g << 8) | $b;
    }
    return chr($r) . chr($g) . chr($b) . chr($a);
 }
