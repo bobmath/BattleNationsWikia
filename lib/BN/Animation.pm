@@ -65,7 +65,9 @@ sub read_anim {
    }
    $anim->{points} = \@points;
 
-   my $num_frames = read_unpack($F, 10, 'x8v');
+   $anim->{box} = [ read_unpack($F, 8, 's<*') ];
+
+   my $num_frames = read_unpack($F, 2, 'v');
    my @frames;
    for (1 .. $num_frames) {
       my $len = read_unpack($F, ($ver == 4 ? 2 : 3), 'v');
@@ -96,15 +98,75 @@ sub read_unpack {
 }
 
 sub frame {
-   my ($anim, $num) = @_;
+   my ($anim, $num, $size, $center) = @_;
    my $frame = $anim->{frames}[$num || 0] or return;
+   die 'Unexpected frame size' if @$frame % 6;
    my $points = $anim->{points};
-   return map { $points->[$_] } @$frame;
+   my $box = $anim->{box};
+
+   my $scale = 1;
+   if ($size) {
+      my $wid = $box->[1] - $box->[0];
+      my $hgt = $box->[3] - $box->[2];
+      $scale = $size / ($wid >= $hgt ? $wid : $hgt);
+   }
+
+   my $xoff = 0;
+   my $yoff = 0;
+   if ($center) {
+      $xoff = ($box->[0] + $box->[1]) / 2;
+      $yoff = ($box->[3] + $box->[2]) / 2;
+   }
+
+   my $xscale = $anim->bmp_width() / 0x7fff;
+   my $yscale = $anim->bmp_height() / 0x7fff;
+
+   my @quads;
+   for (my $i = 0; $i < @$frame; $i += 6) {
+      die 'Unexpected frame arrangement' unless $frame->[$i+3] == $frame->[$i]
+         && $frame->[$i+4] == $frame->[$i+2];
+      my $p0 = $points->[$frame->[$i]];
+      my $p1 = $points->[$frame->[$i+1]];
+      my $p2 = $points->[$frame->[$i+2]];
+      my $p3 = $points->[$frame->[$i+5]];
+      my %q;
+
+      $q{x0} = $p0->[2] * $xscale;  $q{y0} = $p0->[3] * $yscale;
+      $q{x1} = $p1->[2] * $xscale;  $q{y1} = $p1->[3] * $yscale;
+      $q{x2} = $p2->[2] * $xscale;  $q{y2} = $p2->[3] * $yscale;
+      $q{x3} = $p3->[2] * $xscale;  $q{y3} = $p3->[3] * $yscale;
+      my $m11 = $q{x1} - $q{x0};  my $m12 = $q{x2} - $q{x0};
+      my $m21 = $q{y1} - $q{y0};  my $m22 = $q{y2} - $q{y0};
+      my $d = $m11 * $m22 - $m12 * $m21;
+
+      $q{X0} = ($p0->[0]-$xoff) * $scale;  $q{Y0} = ($p0->[1]-$yoff) * $scale;
+      $q{X1} = ($p1->[0]-$xoff) * $scale;  $q{Y1} = ($p1->[1]-$yoff) * $scale;
+      $q{X2} = ($p2->[0]-$xoff) * $scale;  $q{Y2} = ($p2->[1]-$yoff) * $scale;
+      $q{X3} = ($p3->[0]-$xoff) * $scale;  $q{Y3} = ($p3->[1]-$yoff) * $scale;
+      my $M11 = $q{X1} - $q{X0};  my $M12 = $q{X2} - $q{X0};
+      my $M21 = $q{Y1} - $q{Y0};  my $M22 = $q{Y2} - $q{Y0};
+
+      my $a11 = ($M11*$m22 - $M12*$m21) / $d;
+      my $a21 = ($M21*$m22 - $M22*$m21) / $d;
+      my $a12 = ($M12*$m11 - $M11*$m12) / $d;
+      my $a22 = ($M22*$m11 - $M21*$m12) / $d;
+      my $a13 = $q{X0} - $a11*$q{x0} - $a12*$q{y0};
+      my $a23 = $q{Y0} - $a21*$q{x0} - $a22*$q{y0};
+      $q{mat} = [ $a11, $a21, $a12, $a22, $a13, $a23 ];
+
+      push @quads, \%q;
+   }
+   return @quads;
 }
 
 sub sequence {
    my ($anim) = @_;
    return @{$anim->{sequence}};
+}
+
+sub box {
+   my ($anim) = @_;
+   return @{$anim->{box}};
 }
 
 BN->multi_accessor('bmp_width', 'bmp_height' => sub {
