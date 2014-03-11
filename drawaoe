@@ -15,7 +15,7 @@ my $x_factor = 0.86603;
 my $y_factor = 0.5;
 
 my %opts;
-getopts('a:i:', \%opts) or die "Invalid options\n";
+getopts('a:i:u:y:', \%opts) or die "Invalid options\n";
 
 die "usage: $0 unit-ids\n" unless @ARGV;
 draw_aoe($_) foreach @ARGV;
@@ -151,14 +151,16 @@ sub find_icon {
 
 sub draw_icon {
    my ($c, $x, $y, $plot) = @_;
+   my $size = $plot->{xscale} * ($opts{u} || 1.6);
+   my $pos = $plot->{yscale} * ($opts{y} || 1.6);
    if (my $anim = $plot->{anim}) {
       my $wid = $anim->bmp_width();
       my $hgt = $anim->bmp_height();
       my $stride = Cairo::Format::stride_for_width('argb32', $wid);
       my $src = Cairo::ImageSurface->create_for_data(
          $anim->bitmap('cairo', $stride), 'argb32', $wid, $hgt, $stride);
-      $c->translate($x, $y + 1.6*$plot->{yscale});
-      foreach my $quad ($anim->frame(0, $plot->{xscale}*1.6)) {
+      $c->translate($x, $y + $pos);
+      foreach my $quad ($anim->frame(0, $size)) {
          $c->save();
          $c->transform(Cairo::Matrix->init(@{$quad->{mat}}));
          $c->set_source_surface($src, 0, 0);
@@ -178,11 +180,11 @@ sub draw_icon {
 
       my ($dest_width, $dest_height);
       if ($width >= $height) {
-         $dest_width = $plot->{xscale} * 1.6;
+         $dest_width = $size;
          $dest_height = $dest_width * $height / $width;
       }
       else {
-         $dest_height = $plot->{xscale} * 1.6;
+         $dest_height = $size;
          $dest_width = $dest_height * $width / $height;
       }
 
