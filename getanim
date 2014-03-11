@@ -4,10 +4,27 @@ use warnings;
 use lib 'lib';
 use BN;
 use Cairo;
+use Getopt::Std qw( getopts );
 use POSIX qw( ceil );
 
-my $size = 100;
-my $background = 'gray50';
+my %opts;
+getopts('b:cd:ks:t', \%opts);
+my $size = $opts{s} || 200;
+die unless $size > 0;
+my $background = $opts{b} || 'white';
+my $delay = $opts{d} || 5;
+
+my %bgmap = (
+   raider  => '#bb9966',
+   critter => '#ddccaa',
+   fr      => '#eb8100',
+   inf     => '#000000',
+   sw      => '#cccccc',
+   rebel   => '#cccccc',
+   empire  => '#eb8100',
+   player  => '#eb8100',
+);
+$background = $bgmap{$background} || $background;
 
 die unless @ARGV == 1;
 my $name = $ARGV[0];
@@ -50,21 +67,25 @@ foreach my $num (@seq) {
 }
 
 $surface->write_to_png("$name.png");
-system "pngtopam -mix -background=$background $name.png | pnmquant -fs 256"
-   . " | pamdice -width=$size -height=$size -outstem=frame";
+system("pngtopam -mix -background=$background $name.png | pnmquant -nofs 256"
+   . " | pamdice -width=$size -height=$size -outstem=frame") == 0 or die;
 
+my $transparent = $opts{t} ? "-transparent=$background" : '';
 my (@gifs, $gif_num);
 foreach my $frame (@frames) {
    my $gif = sprintf 'frame%02d.gif', ++$gif_num;
    push @gifs, $gif;
-   system "pamtogif $frame > $gif";
+   system("pamtogif $transparent $frame > $gif") == 0 or die;
 }
-system "gifsicle --optimize --loop --delay=10 @gifs > $name.gif";
+my $crop = $opts{c} ? '--crop-transparency' : '';
+system("gifsicle --optimize --loop --delay=$delay --disposal=previous"
+   . " $crop @gifs > $name.gif") == 0 or die;
 
-while ($y < $grid) {
-   push @frames, "frame_${y}_${x}.ppm";
-   if (++$x >= $grid) { $x = 0; $y++; }
+unless ($opts{k}) {
+   while ($y < $grid) {
+      push @frames, "frame_${y}_${x}.ppm";
+      if (++$x >= $grid) { $x = 0; $y++; }
+   }
+   unlink @frames, @gifs;
 }
-
-unlink @frames, @gifs;
 
