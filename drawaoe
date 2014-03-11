@@ -15,7 +15,7 @@ my $x_factor = 0.86603;
 my $y_factor = 0.5;
 
 my %opts;
-getopts('i:', \%opts) or die "Invalid options\n";
+getopts('a:i:', \%opts) or die "Invalid options\n";
 
 die "usage: $0 unit-ids\n" unless @ARGV;
 draw_aoe($_) foreach @ARGV;
@@ -125,6 +125,10 @@ sub draw_grid {
 
 sub find_icon {
    my ($unit, $plot, $flip) = @_;
+   $plot->{anim} = BN::Animation->get(
+      $opts{a} || ($flip ? $unit->animation() : $unit->back_animation()))
+      and return 1;
+
    my $file = $opts{i} || ($flip ? $unit->icon() : $unit->back_icon());
    $file =~ s{^bundle://}{};
    my @files = BN::File->glob("$file*") or return;
@@ -141,32 +145,55 @@ sub find_icon {
       }
    }
 
-   return $plot->{icon} = $best;
+   $plot->{icon} = $best and return 1;
+   return;
 }
 
 sub draw_icon {
    my ($c, $x, $y, $plot) = @_;
-   my $icon = Cairo::ImageSurface->create_from_png($plot->{icon});
-   my $width = $icon->get_width();
-   my $height = $icon->get_height();
-
-   my ($dest_width, $dest_height);
-   if ($width >= $height) {
-      $dest_width = $plot->{xscale} * 1.6;
-      $dest_height = $dest_width * $height / $width;
+   if (my $anim = $plot->{anim}) {
+      my $wid = $anim->bmp_width();
+      my $hgt = $anim->bmp_height();
+      my $stride = Cairo::Format::stride_for_width('argb32', $wid);
+      my $src = Cairo::ImageSurface->create_for_data(
+         $anim->bitmap('cairo', $stride), 'argb32', $wid, $hgt, $stride);
+      $c->translate($x, $y + 1.6*$plot->{yscale});
+      foreach my $quad ($anim->frame(0, $plot->{xscale}*1.6)) {
+         $c->save();
+         $c->transform(Cairo::Matrix->init(@{$quad->{mat}}));
+         $c->set_source_surface($src, 0, 0);
+         $c->move_to($quad->{x0}, $quad->{y0});
+         $c->line_to($quad->{x1}, $quad->{y1});
+         $c->line_to($quad->{x2}, $quad->{y2});
+         $c->line_to($quad->{x3}, $quad->{y3});
+         $c->close_path();
+         $c->fill();
+         $c->restore();
+      }
    }
-   else {
-      $dest_height = $plot->{xscale} * 1.6;
-      $dest_width = $dest_height * $width / $height;
+   elsif (my $file = $plot->{icon}) {
+      my $icon = Cairo::ImageSurface->create_from_png($file);
+      my $width = $icon->get_width();
+      my $height = $icon->get_height();
+
+      my ($dest_width, $dest_height);
+      if ($width >= $height) {
+         $dest_width = $plot->{xscale} * 1.6;
+         $dest_height = $dest_width * $height / $width;
+      }
+      else {
+         $dest_height = $plot->{xscale} * 1.6;
+         $dest_width = $dest_height * $width / $height;
+      }
+
+      $c->translate($x - 0.5 * $dest_width, $y - 0.6 * $dest_height);
+      my $scale = $dest_width / $width;
+      $c->scale($scale, $scale);
+
+      $c->set_source_surface($icon, 0, 0);
+      $c->rectangle(0, 0, $width, $height);
+      $c->fill();
    }
-
-   $c->translate($x - 0.5 * $dest_width, $y - 0.6 * $dest_height);
-   my $scale = $dest_width / $width;
-   $c->scale($scale, $scale);
-
-   $c->set_source_surface($icon, 0, 0);
-   $c->rectangle(0, 0, $width, $height);
-   $c->fill();
 }
 
 sub calc_size {

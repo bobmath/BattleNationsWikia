@@ -41,6 +41,8 @@ BN->simple_accessor('building_level', 'buildingLevel');
 BN->simple_accessor('side', 'side');
 BN->simple_accessor('icon', 'icon');
 BN->simple_accessor('back_icon', 'backIcon');
+BN->simple_accessor('animation', 'frontIdleAnimation');
+BN->simple_accessor('back_animation', 'backIdleAnimation');
 BN->simple_accessor('visibility_prereq', 'visibilityPrereq');
 
 BN->accessor(shortname => sub {
