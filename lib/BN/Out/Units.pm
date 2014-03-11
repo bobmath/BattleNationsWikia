@@ -532,8 +532,9 @@ sub old_attacks {
             || is_aoe($attack->damage_area()))
          {
             my $file = $unit->shortname();
-            if ($unit->side() eq 'Hostile') {
-               $file .= $unit->level() // '';
+            if ($unit->side() eq 'Hostile' && $unit->level()) {
+               $file .= '_' if $file =~ /\d$/;
+               $file .= $unit->level();
             }
             $file .= '_' . $attack->name();
             $file =~ s/\W+//g;
