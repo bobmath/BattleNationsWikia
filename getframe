@@ -4,8 +4,12 @@ use warnings;
 use lib 'lib';
 use BN;
 use Cairo;
+use Getopt::Std qw( getopts );
 
-my $size = 200;
+my %opts;
+getopts('n:s:', \%opts);
+my $size = $opts{s} || 200;
+my $num = $opts{n} || 0;
 
 die unless @ARGV == 1;
 my $name = $ARGV[0];
@@ -22,7 +26,7 @@ my $c = Cairo::Context->create($surface);
 
 $c->translate($size/2, $size/2);
 
-foreach my $quad ($anim->frame(0, $size, 1)) {
+foreach my $quad ($anim->frame($num, $size, 1)) {
    $c->save();
    $c->transform(Cairo::Matrix->init(@{$quad->{mat}}));
    $c->set_source_surface($src, 0, 0);
@@ -35,6 +39,8 @@ foreach my $quad ($anim->frame(0, $size, 1)) {
    $c->restore();
 }
 
-$surface->write_to_png("$name.png");
+$surface->write_to_png("$name-temp.png");
+system("pngcrush -new -brute -q $name-temp.png $name.png") == 0 or die;
+unlink "$name-temp.png";
 system "open $name.png";
 
