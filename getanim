@@ -1,0 +1,70 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use lib 'lib';
+use BN;
+use Cairo;
+use POSIX qw( ceil );
+
+my $size = 100;
+my $background = 'gray50';
+
+die unless @ARGV == 1;
+my $name = $ARGV[0];
+my $anim = BN::Animation->get($name) or die;
+
+my $wid = $anim->bmp_width();
+my $hgt = $anim->bmp_height();
+my $stride = Cairo::Format::stride_for_width('argb32', $wid);
+my $source = Cairo::ImageSurface->create_for_data(
+   $anim->bitmap('cairo', $stride), 'argb32', $wid, $hgt, $stride);
+
+my @seq = $anim->sequence();
+my $grid = ceil(sqrt(@seq));
+my $dim = $size * $grid;
+
+my $surface = Cairo::ImageSurface->create('argb32', $dim, $dim);
+my $c = Cairo::Context->create($surface);
+
+my $x = 0;
+my $y = 0;
+my @frames;
+foreach my $num (@seq) {
+   push @frames, "frame_${y}_${x}.ppm";
+   $c->save();
+   $c->translate(($x + 0.5) * $size, ($y + 0.5) * $size);
+   foreach my $quad ($anim->frame($num, $size, 1)) {
+      $c->save();
+      $c->transform(Cairo::Matrix->init(@{$quad->{mat}}));
+      $c->set_source_surface($source, 0, 0);
+      $c->move_to($quad->{x0}, $quad->{y0});
+      $c->line_to($quad->{x1}, $quad->{y1});
+      $c->line_to($quad->{x2}, $quad->{y2});
+      $c->line_to($quad->{x3}, $quad->{y3});
+      $c->close_path();
+      $c->fill();
+      $c->restore();
+   }
+   $c->restore();
+   if (++$x >= $grid) { $x = 0; $y++; }
+}
+
+$surface->write_to_png("$name.png");
+system "pngtopam -mix -background=$background $name.png | pnmquant -fs 256"
+   . " | pamdice -width=$size -height=$size -outstem=frame";
+
+my (@gifs, $gif_num);
+foreach my $frame (@frames) {
+   my $gif = sprintf 'frame%02d.gif', ++$gif_num;
+   push @gifs, $gif;
+   system "pamtogif $frame > $gif";
+}
+system "gifsicle --optimize --loop --delay=10 @gifs > $name.gif";
+
+while ($y < $grid) {
+   push @frames, "frame_${y}_${x}.ppm";
+   if (++$x >= $grid) { $x = 0; $y++; }
+}
+
+unlink @frames, @gifs;
+
