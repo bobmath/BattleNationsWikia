@@ -171,7 +171,7 @@ sub box {
 
 BN->multi_accessor('bmp_width', 'bmp_height' => sub {
    my ($anim) = @_;
-   my $F = BN::File->read($anim->{_pack} . '_0.z2raw');
+   my $F = BN::File->read($anim->{_pack} . '_0.z2raw', ':raw');
    my ($ver, $wid, $hgt, $bits) = read_unpack($F, 16, 'V*');
    close $F;
    die 'Bad bitmap version' if $ver > 1;
@@ -181,7 +181,7 @@ BN->multi_accessor('bmp_width', 'bmp_height' => sub {
 
 sub bitmap {
    my ($anim, $format, $stride) = @_;
-   my $F = BN::File->read($anim->{_pack} . '_0.z2raw');
+   my $F = BN::File->read($anim->{_pack} . '_0.z2raw', ':raw');
    my ($ver, $wid, $hgt, $bits) = read_unpack($F, 16, 'V*');
    die 'Bad bitmap version' if $ver > 1;
    die 'Bad bitmap depth' unless $bits == 4 || $bits == 8;
