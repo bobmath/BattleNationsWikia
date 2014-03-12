@@ -161,7 +161,7 @@ sub draw_icon {
       my $src = Cairo::ImageSurface->create_for_data(
          $anim->bitmap('cairo', $stride), 'argb32', $wid, $hgt, $stride);
       $c->translate($x, $y + $pos);
-      foreach my $quad ($anim->frame(0, $size)) {
+      foreach my $quad ($anim->frame(0, $size, 0, 0)) {
          $c->save();
          $c->transform(Cairo::Matrix->init(@{$quad->{mat}}));
          $c->set_source_surface($src, 0, 0);
