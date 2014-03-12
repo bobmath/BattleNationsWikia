@@ -54,7 +54,11 @@ sub read_anim {
       $point_size = 8;
    }
    elsif ($ver == 8) {
-      $point_size = read_unpack($F, 2, 'v') ? 12 : 8;
+      my $flags = read_unpack($F, 2, 'v');
+      if    ($flags == 0)     { $point_size = 8 }
+      elsif ($flags == 1)     { $point_size = 12 }
+      elsif ($flags == 0x101) { $point_size = 24 }
+      else { die 'Unknown animation flags' }
    }
 
    my @points;
