@@ -15,7 +15,7 @@ my $x_factor = 0.86603;
 my $y_factor = 0.5;
 
 my %opts;
-getopts('a:i:u:y:', \%opts) or die "Invalid options\n";
+getopts('a:i:n:u:y:', \%opts) or die "Invalid options\n";
 
 die "usage: $0 unit-ids\n" unless @ARGV;
 draw_aoe($_) foreach @ARGV;
@@ -161,7 +161,8 @@ sub draw_icon {
       my $src = Cairo::ImageSurface->create_for_data(
          $anim->bitmap('cairo', $stride), 'argb32', $wid, $hgt, $stride);
       $c->translate($x, $y + $pos);
-      foreach my $quad ($anim->frame(0, $size, 0, 0)) {
+      my $num = $opts{n} || 0;
+      foreach my $quad ($anim->frame($num, $size, 0, $num)) {
          $c->save();
          $c->transform(Cairo::Matrix->init(@{$quad->{mat}}));
          $c->set_source_surface($src, 0, 0);
