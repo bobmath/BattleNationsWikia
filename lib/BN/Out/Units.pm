@@ -35,7 +35,7 @@ sub write {
       unit_weapons($F, $unit);
       unit_ranks($F, $unit);
       unit_cost($F, $unit);
-      print $F "\n", dump($unit), "\n";
+      print $F dump($unit), "\n";
       close $F;
       BN::Out->checksum($file);
    }
