@@ -7,8 +7,8 @@ use Cairo;
 use Getopt::Std qw( getopts );
 
 my %opts;
-getopts('n:s:', \%opts);
-my $size = $opts{s} || 200;
+getopts('n:s:v', \%opts);
+my $size = $opts{s} || 100;
 my $num = $opts{n} || 0;
 
 die unless @ARGV == 1;
@@ -27,6 +27,7 @@ my $c = Cairo::Context->create($surface);
 $c->translate($size/2, $size/2);
 
 foreach my $quad ($anim->frame($num, $size, 1)) {
+   print sqrt(abs($quad->{det})), "\n" if $opts{v};
    $c->save();
    $c->transform(Cairo::Matrix->init(@{$quad->{mat}}));
    $c->set_source_surface($src, 0, 0);

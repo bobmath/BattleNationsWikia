@@ -8,8 +8,8 @@ use Getopt::Std qw( getopts );
 use POSIX qw( ceil );
 
 my %opts;
-getopts('b:cd:ks:t', \%opts);
-my $size = $opts{s} || 200;
+getopts('b:cd:ks:tv', \%opts);
+my $size = $opts{s} || 100;
 die unless $size > 0;
 my $background = $opts{b} || 'white';
 my $delay = $opts{d} || 5;
@@ -51,6 +51,7 @@ foreach my $num (@seq) {
    $c->save();
    $c->translate(($x + 0.5) * $size, ($y + 0.5) * $size);
    foreach my $quad ($anim->frame($num, $size, 1)) {
+      print sqrt(abs($quad->{det})), "\n" if $opts{v};
       $c->save();
       $c->transform(Cairo::Matrix->init(@{$quad->{mat}}));
       $c->set_source_surface($source, 0, 0);

@@ -153,6 +153,7 @@ sub frame {
       my $a13 = $q{X0} - $a11*$q{x0} - $a12*$q{y0};
       my $a23 = $q{Y0} - $a21*$q{x0} - $a22*$q{y0};
       $q{mat} = [ $a11, $a21, $a12, $a22, $a13, $a23 ];
+      $q{det} = $a11*$a22 - $a12*$a21;
 
       push @quads, \%q;
    }
