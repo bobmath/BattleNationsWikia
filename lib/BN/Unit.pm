@@ -75,6 +75,11 @@ sub wikilink {
    return ($name eq $ename) ? "[[$name]]" : "[[$ename|$name]]";
 }
 
+sub description {
+   my ($unit) = @_;
+   return BN::Text->get($unit->{desc});
+}
+
 my %blocking = (
    0 => 'None',
    1 => 'Partial',
