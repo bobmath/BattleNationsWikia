@@ -113,7 +113,7 @@ sub unit_profile {
    if (my $desc = $unit->description()) {
       print $F "{{IGD|$desc}}\n";
    }
-   print $F "==Overview==\n\n";
+   print $F "==Overview==\n{{Clear}}\n\n";
 }
 
 sub damage_mods {
