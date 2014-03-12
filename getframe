@@ -26,7 +26,7 @@ my $c = Cairo::Context->create($surface);
 
 $c->translate($size/2, $size/2);
 
-foreach my $quad ($anim->frame($num, $size, 1)) {
+foreach my $quad ($anim->frame($num, $size, 1, $num)) {
    print sqrt(abs($quad->{det})), "\n" if $opts{v};
    $c->save();
    $c->transform(Cairo::Matrix->init(@{$quad->{mat}}));

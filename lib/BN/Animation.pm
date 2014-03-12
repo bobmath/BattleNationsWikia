@@ -98,24 +98,24 @@ sub read_unpack {
 }
 
 sub frame {
-   my ($anim, $num, $size, $center) = @_;
+   my ($anim, $num, $size, $center, $boxframe) = @_;
    my $frame = $anim->{frames}[$num || 0] or return;
    die 'Unexpected frame size' if @$frame % 6;
    my $points = $anim->{points};
-   my $box = $anim->{box};
+   my @box = $anim->box($boxframe);
 
    my $scale = 1;
    if ($size) {
-      my $wid = $box->[1] - $box->[0];
-      my $hgt = $box->[3] - $box->[2];
+      my $wid = $box[1] - $box[0];
+      my $hgt = $box[3] - $box[2];
       $scale = $size / ($wid >= $hgt ? $wid : $hgt);
    }
 
    my $xoff = 0;
    my $yoff = 0;
    if ($center) {
-      $xoff = ($box->[0] + $box->[1]) / 2;
-      $yoff = ($box->[3] + $box->[2]) / 2;
+      $xoff = ($box[0] + $box[1]) / 2;
+      $yoff = ($box[3] + $box[2]) / 2;
    }
 
    my $xscale = $anim->bmp_width() / 0x7fff;
@@ -166,8 +166,23 @@ sub sequence {
 }
 
 sub box {
-   my ($anim) = @_;
-   return @{$anim->{box}};
+   my ($anim, $frame_num) = @_;
+   my $frame;
+   $frame = $anim->{frames}[$frame_num] if defined $frame_num;
+   return @{$anim->{box}} unless $frame;
+   my $points = $anim->{points};
+   my ($xmin, $xmax, $ymin, $ymax);
+   my $p = $points->[$frame->[0]];
+   $xmin = $xmax = $p->[0];
+   $ymin = $ymax = $p->[1];
+   foreach my $i (1 .. $#$frame) {
+      $p = $points->[$frame->[$i]];
+      $xmin = $p->[0] if $p->[0] < $xmin;
+      $xmax = $p->[0] if $p->[0] > $xmax;
+      $ymin = $p->[1] if $p->[1] < $ymin;
+      $ymax = $p->[1] if $p->[1] > $ymax;
+   }
+   return ($xmin, $xmax, $ymin, $ymax);
 }
 
 BN->multi_accessor('bmp_width', 'bmp_height' => sub {
