@@ -110,6 +110,10 @@ sub unit_profile {
    profile_line($F, 'notes', join('<br>', @notes)) if @notes;
    profile_line($F, 'game file name', $unit->tag());
    print $F "}}\n";
+   if (my $desc = $unit->description()) {
+      print $F "{{IGD|$desc}}\n";
+   }
+   print $F "==Overview==\n\n";
 }
 
 sub damage_mods {
@@ -131,7 +135,7 @@ sub unit_weapons {
    my $first = 1;
    my $attackbox = $unit->ranks() > 6 ? 'Attack9BoxTabber' : 'AttackBoxTabber';
    foreach my $weap ($unit->weapons()) {
-      print $F $first ? "\n<tabber>\n" : "|-|\n";
+      print $F $first ? "==Attacks==\n<tabber>\n" : "|-|\n";
       $first = 0;
       print $F $weap->name(), "=\n";
       print $F "{{WeaponBoxTabber\n";
@@ -184,14 +188,15 @@ sub unit_weapons {
       }
       print $F "}}\n";
    }
-   print $F "</tabber>\n" unless $first;
+   print $F "</tabber>\n\n" unless $first;
 }
 
 sub unit_ranks {
    my ($F, $unit) = @_;
    my @ranks = $unit->ranks() or return;
    my @ranks1 = @ranks[0 .. $#ranks-1];
-   print $F "\n{{", (@ranks > 6 ? 'UnitRanks9Box' : 'UnitRanksBox') ,"\n";
+   print $F "==Statistics==\n{{",
+      (@ranks > 6 ? 'UnitRanks9Box' : 'UnitRanksBox') ,"\n";
    print_ranks($F, 'sp', undef, map { BN->commify($_->sp()) } @ranks1);
    print_ranks($F, 'hp', map { $_->hp() } @ranks);
    print_ranks_opt($F, 'armor', map { $_->armor() } @ranks);
@@ -248,7 +253,7 @@ sub unit_ranks {
       print_line($F, 'prerankreq' . ++$n, $_) foreach @reqs;
    }
 
-   print $F "}}\n";
+   print $F "}}\n\n";
 }
 
 sub damage_mod_ranks {
@@ -302,22 +307,28 @@ my %build_map = (
 
 sub unit_cost {
    my ($F, $unit) = @_;
+   my $build = $unit->build_cost();
+   my $heal = $unit->heal_cost();
+   return unless $build || $heal;
+   print $F "==Cost==\n";
 
-   if (my $cost = $unit->build_cost()) {
-      print $F "\n{{BuildCost\n";
+   if ($build) {
+      print $F "{{BuildCost\n";
       if (my $build = $unit->building()) {
          print_line($F, 'building', $build_map{$build} || $build);
       }
-      print_line($F, $_, $cost->{$_}) foreach BN->sort_amount(keys %$cost);
+      print_line($F, $_, $build->{$_}) foreach BN->sort_amount(keys %$build);
       print $F "}}\n";
    }
 
-   if (my $cost = $unit->heal_cost()) {
+   if ($heal) {
       print $F "{{HealCost\n";
       print_line($F, 'building', $unit->heal_building());
-      print_line($F, $_, $cost->{$_}) foreach BN->sort_amount(keys %$cost);
+      print_line($F, $_, $heal->{$_}) foreach BN->sort_amount(keys %$heal);
       print $F "}}\n";
    }
+
+   print $F "\n";
 }
 
 sub print_line {
