@@ -57,6 +57,49 @@ sub wikilink {
    return "[[$page#$mis->{_name}|$text]]";
 }
 
+my %old_missions;
+$old_missions{$_} = 1 foreach qw(
+   p01_BK2RR_010_RaidersBattle2
+   p01_BK2RR_020_BuildPillbox
+   p01_BK2RR_030_TrainGrenadier
+   p01_BK2RR_040_ReturnRecoilRidge
+   p01_BK2RR_050_BattleRecoilRidge
+   p01_BK2RR_051_HeroesReturn1
+   p01_BK2RR_052_HeroesReturn2
+   p01_BK2RR_053_HeroesReturn3
+   p01_BK2RR_060_HelpAdventurer
+   p01_BK2RR_061_SandboxOpen
+   p01_BUILD_040_CollectSupplyDrops
+   p01_BUILD_070_BuildBootCamp
+   p01_BUILD_090_BuildShelter
+   p01_BUILD_100_TeachCamera
+   p01_BUILD_110_RaiderEncounters
+   p01_BUILD_130_BuildStoneQuarry
+   p01_BUILD_140_BuildResourceDepot
+   p01_BUILD_150_CollectTaxes
+   p01_BUILD_280_BuildBunker2
+   p01_BUILD_290_BuildBunker2
+   p01_BUILD_510_BuildHospital
+   p01_FARMS_010_BuildFarm1
+   p01_HOSP_010_QueueSomething
+   p01_INTRO_040_BuildShelter
+   p01_NEWINTRO_140_BuildHospital
+   p01_NEWINTRO_143_StartAdvHospital
+   p01_RTANK_010_RaiderScouts
+   p01_RTANK_060_BuildToolShop
+   p01_RTANK_070_MakeTools
+   p01_UPBLD_010_BuildingUpgradeLvl1
+   p01_UPBLD_010_BuildingUpgradeLvl1_LateGame
+   p01_UPBLD_020_BuildingUpgradeLvl2
+   p01_UPBLD_020_BuildingUpgradeLvl2_LateGame
+   p01_ZOEY1_010_BuildHovel
+);
+
+sub old {
+   my ($mis) = @_;
+   return $old_missions{$mis->{_tag}};
+}
+
 sub level {
    my ($mis) = @_;
    return $mis->{_level} if exists $mis->{_level};
@@ -66,6 +109,7 @@ sub level {
 
 sub prereqs {
    my ($mis) = @_;
+   return if $old_missions{$mis->{_tag}};
    my $rules = $mis->{startRules} or return;
    my @prereqs;
    foreach my $key (sort keys %$rules) {
@@ -173,6 +217,59 @@ sub encounters {
    }
    return unless $mis->{z_encounters};
    return map { BN::Encounter->get($_) } @{$mis->{z_encounters}};
+}
+
+sub min_prereqs {
+   my ($mis) = @_;
+   return @{$mis->{z_min_prereqs}} if $mis->{z_min_prereqs};
+   my %prereqs;
+   $prereqs{$mis->{_tag}} = 1;
+   $mis->{zz_full_prereqs} = \%prereqs;
+   my @filtered;
+   $mis->{z_min_prereqs} = \@filtered;
+
+   my @prereqs;
+   foreach my $prereq ($mis->prereqs(), $mis->completion()->prereqs()) {
+      my $t = $prereq->{_t} or next;
+      next if $prereq->{inverse};
+      my $preid;
+      if ($t eq 'CompleteMissionPrereqConfig') {
+         $preid = $prereq->{missionId};
+         next if $old_missions{$preid};
+      }
+      elsif ($t eq 'CompleteAnyMissionPrereqConfig'
+         || $t eq 'ActiveMissionPrereqConfig')
+      {
+         my $ids = $prereq->{missionIds} or next;
+         foreach my $testid (@$ids) {
+            next if $old_missions{$testid};
+            die "too many ids for $mis->{_tag}" if $preid;
+            $preid = $testid;
+         }
+      }
+      next unless $preid;
+      my $m = BN::Mission->get($preid) or next;
+      $m->min_prereqs();
+      my $p = $m->{zz_full_prereqs};
+      while (my ($k,$v) = each %$p) {
+         $prereqs{$k} = 1;
+      }
+      push @prereqs, { id=>$preid, full=>$p };
+   }
+
+   CHECK: foreach my $prereq (@prereqs) {
+      my $preid = $prereq->{id};
+      foreach my $other (@prereqs) {
+         next if $other->{id} eq $preid || $other->{mark};
+         if ($other->{full}{$preid}) {
+            $prereq->{mark} = 1;
+            next CHECK;
+         }
+      }
+      push @filtered, $preid;
+   }
+
+   return @filtered;
 }
 
 sub completion {

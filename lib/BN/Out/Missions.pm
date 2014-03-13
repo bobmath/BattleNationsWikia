@@ -4,50 +4,11 @@ use warnings;
 use BN::Out;
 use Data::Dump qw( dump );
 
-my %old_missions;
-$old_missions{$_} = 1 foreach qw(
-   p01_BK2RR_010_RaidersBattle2
-   p01_BK2RR_020_BuildPillbox
-   p01_BK2RR_030_TrainGrenadier
-   p01_BK2RR_040_ReturnRecoilRidge
-   p01_BK2RR_050_BattleRecoilRidge
-   p01_BK2RR_051_HeroesReturn1
-   p01_BK2RR_052_HeroesReturn2
-   p01_BK2RR_053_HeroesReturn3
-   p01_BK2RR_060_HelpAdventurer
-   p01_BK2RR_061_SandboxOpen
-   p01_BUILD_040_CollectSupplyDrops
-   p01_BUILD_070_BuildBootCamp
-   p01_BUILD_090_BuildShelter
-   p01_BUILD_100_TeachCamera
-   p01_BUILD_110_RaiderEncounters
-   p01_BUILD_130_BuildStoneQuarry
-   p01_BUILD_140_BuildResourceDepot
-   p01_BUILD_150_CollectTaxes
-   p01_BUILD_280_BuildBunker2
-   p01_BUILD_290_BuildBunker2
-   p01_BUILD_510_BuildHospital
-   p01_FARMS_010_BuildFarm1
-   p01_HOSP_010_QueueSomething
-   p01_INTRO_040_BuildShelter
-   p01_NEWINTRO_140_BuildHospital
-   p01_NEWINTRO_143_StartAdvHospital
-   p01_RTANK_010_RaiderScouts
-   p01_RTANK_060_BuildToolShop
-   p01_RTANK_070_MakeTools
-   p01_UPBLD_010_BuildingUpgradeLvl1
-   p01_UPBLD_010_BuildingUpgradeLvl1_LateGame
-   p01_UPBLD_020_BuildingUpgradeLvl2
-   p01_UPBLD_020_BuildingUpgradeLvl2_LateGame
-   p01_ZOEY1_010_BuildHovel
-);
-
 my $curr_page;
 
 sub write {
    my @groups;
    foreach my $mis (BN::Mission->all()) {
-      next if $old_missions{$mis->tag()};
       my $level = $mis->level() or next;
       my $grp = int(($mis->level() - 1) / 10);
       push @{$groups[$grp]}, $mis;
@@ -82,7 +43,7 @@ sub sort_group {
    foreach my $id (sort keys %blocks) {
       my $block = $blocks{$id} or die;
       my $mis = $block->{missions}[0];
-      foreach my $prereq (prereqs($mis)) {
+      foreach my $prereq ($mis->min_prereqs()) {
          my $refblk = $blocks{$prereq} or next;
          $refblk->{after}{$mis->tag()} = 1;
          $block->{before}{$prereq} = 1;
@@ -162,7 +123,7 @@ sub print_mission {
    my @prereqs;
    my $level = $mis->level();
    push @prereqs, "[[Levels#$level|Level $level]]";
-   foreach my $prereq (prereqs($mis)) {
+   foreach my $prereq ($mis->min_prereqs()) {
       push @prereqs, mission_link(BN::Mission->get($prereq));
    }
    print $F "Prereqs: ", join(', ', @prereqs), "\n" if @prereqs;
@@ -212,65 +173,10 @@ sub print_followups {
 
 sub mission_link {
    my ($mis) = @_;
-   my $num = int(($mis->level() - 1) / 10);
+   my $num = $mis->level() ? int(($mis->level() - 1) / 10) : -1;
    my $page = ($num == $curr_page) ? '' : BN::Mission->page($num*10+1);
    my $name = $mis->name();
    return "[[$page#$name|$name]]";
-}
-
-my (%full_prereqs, %min_prereqs);
-sub prereqs {
-   my ($mis) = @_;
-   my $misid = $mis->tag();
-   return @{$min_prereqs{$misid}} if $min_prereqs{$misid};
-   my %prereqs;
-   $prereqs{$misid} = 1;
-   $full_prereqs{$misid} = \%prereqs;
-   my @filtered;
-   $min_prereqs{$misid} = \@filtered;
-
-   my @prereqs;
-   foreach my $prereq ($mis->prereqs(), $mis->completion()->prereqs()) {
-      my $t = $prereq->{_t} or next;
-      next if $prereq->{inverse};
-      my $preid;
-      if ($t eq 'CompleteMissionPrereqConfig') {
-         $preid = $prereq->{missionId};
-         next if $old_missions{$preid};
-      }
-      elsif ($t eq 'CompleteAnyMissionPrereqConfig'
-         || $t eq 'ActiveMissionPrereqConfig')
-      {
-         my $ids = $prereq->{missionIds} or next;
-         foreach my $testid (@$ids) {
-            next if $old_missions{$testid};
-            die "too many ids for $misid" if $preid;
-            $preid = $testid;
-         }
-      }
-      next unless $preid;
-      my $m = BN::Mission->get($preid) or next;
-      prereqs($m);
-      my $p = $full_prereqs{$preid};
-      while (my ($k,$v) = each %$p) {
-         $prereqs{$k} = 1;
-      }
-      push @prereqs, { id=>$preid, full=>$p };
-   }
-
-   CHECK: foreach my $prereq (@prereqs) {
-      my $preid = $prereq->{id};
-      foreach my $other (@prereqs) {
-         next if $other->{id} eq $preid || $other->{mark};
-         if ($other->{full}{$preid}) {
-            $prereq->{mark} = 1;
-            next CHECK;
-         }
-      }
-      push @filtered, $preid;
-   }
-
-   return @filtered;
 }
 
 my %places = (
