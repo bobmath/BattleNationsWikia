@@ -41,7 +41,7 @@ sub scrub {
    elsif ($ref eq 'ARRAY') {
       scrub($_) foreach @{$_[0]};
    }
-   elsif ($ref eq 'JSON::PP::Boolean') {
+   elsif ($ref eq 'JSON::PP::Boolean' || $ref eq 'JSON::XS::Boolean') {
       $_[0] = ${$_[0]};
    }
 }
