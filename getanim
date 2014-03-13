@@ -23,6 +23,7 @@ my %bgmap = (
    rebel   => '#cccccc',
    empire  => '#eb8100',
    player  => '#eb8100',
+   wiki    => '#f2f2f2',
 );
 $background = $bgmap{$background} || $background;
 
