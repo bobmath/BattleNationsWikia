@@ -72,7 +72,7 @@ sub add_prereq {
    }
    elsif ($t eq 'CompleteAnyMissionPrereqConfig') {
       $type = 'Mission::Completion';
-      $ids = $prereq->{missionIds};
+      $ids = remove_old_missions($prereq->{missionIds});
    }
    elsif ($t eq 'ActiveMissionPrereqConfig') {
       $type = 'Mission';
@@ -109,6 +109,18 @@ sub add_prereq {
    }
    push @{$obj->{z_prereqs}}, { type=>"BN::$type", ids=>[$id] } if $id;
    push @{$obj->{z_prereqs}}, { type=>"BN::$type", ids=>[@$ids] } if $ids;
+}
+
+sub remove_old_missions {
+   my ($ids) = @_;
+   return unless $ids;
+   my @ids;
+   foreach my $id (@$ids) {
+      my $mis = BN::Mission->get($id) or next;
+      push @ids, $id unless $mis->old();
+   }
+   return unless @ids;
+   return \@ids;
 }
 
 1 # end BN::Prereqs
