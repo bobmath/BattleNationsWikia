@@ -209,7 +209,14 @@ sub crit {
          push @crit, "$val% vs. $targname";
       }
    }
-   push @crit, 'No rank bonus' if $maxbonus && !$mult;
+   if ($maxbonus) {
+      if (!$mult) {
+         push @crit, 'No rank bonus';
+      }
+      elsif ($mult != 1) {
+         push @crit, sprintf('%.0f%% rank bonus', $mult*100);
+      }
+   }
    return unless @crit;
    return join('<br>', @crit);
 }
