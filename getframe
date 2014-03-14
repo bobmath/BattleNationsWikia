@@ -7,7 +7,7 @@ use Cairo;
 use Getopt::Std qw( getopts );
 
 my %opts;
-getopts('n:s:v', \%opts);
+getopts('n:s:', \%opts);
 my $size = $opts{s} || 100;
 my $num = $opts{n} || 0;
 
@@ -26,8 +26,9 @@ my $c = Cairo::Context->create($surface);
 
 $c->translate($size/2, $size/2);
 
+my @scale;
 foreach my $quad ($anim->frame($num, $size, 1, $num)) {
-   print sqrt(abs($quad->{det})), "\n" if $opts{v};
+   push @scale, sqrt(abs($quad->{det}));
    $c->save();
    $c->transform(Cairo::Matrix->init(@{$quad->{mat}}));
    $c->set_source_surface($src, 0, 0);
@@ -39,6 +40,9 @@ foreach my $quad ($anim->frame($num, $size, 1, $num)) {
    $c->fill();
    $c->restore();
 }
+
+@scale = sort { $a <=> $b } @scale;
+printf "Scale: %.2fx\n", $scale[@scale/2];
 
 $surface->write_to_png("$name-temp.png");
 system("pngcrush -new -brute -q $name-temp.png $name.png") == 0 or die;

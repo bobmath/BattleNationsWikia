@@ -8,7 +8,7 @@ use Getopt::Std qw( getopts );
 use POSIX qw( ceil );
 
 my %opts;
-getopts('b:cd:ks:tv', \%opts);
+getopts('b:cd:ks:t', \%opts);
 my $size = $opts{s} || 100;
 die unless $size > 0;
 my $background = $opts{b} || 'white';
@@ -46,13 +46,13 @@ my $c = Cairo::Context->create($surface);
 
 my $x = 0;
 my $y = 0;
-my @frames;
+my (@frames, @scale);
 foreach my $num (@seq) {
    push @frames, "frame_${y}_${x}.ppm";
    $c->save();
    $c->translate(($x + 0.5) * $size, ($y + 0.5) * $size);
    foreach my $quad ($anim->frame($num, $size, 1)) {
-      print sqrt(abs($quad->{det})), "\n" if $opts{v};
+      push @scale, sqrt(abs($quad->{det}));
       $c->save();
       $c->transform(Cairo::Matrix->init(@{$quad->{mat}}));
       $c->set_source_surface($source, 0, 0);
@@ -83,6 +83,9 @@ my $crop = $opts{c} ? '--crop-transparency' : '';
 my $dispose = $opts{t} ? '--disposal=previous' : '';
 system("gifsicle --optimize --loop --delay=$delay $dispose"
    . " $crop @gifs > $name.gif") == 0 or die;
+
+@scale = sort { $a <=> $b } @scale;
+printf "Scale: %.2fx\n", $scale[@scale/2];
 
 unless ($opts{k}) {
    while ($y < $grid) {
