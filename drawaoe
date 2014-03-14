@@ -118,7 +118,7 @@ sub draw_grid {
       my ($x, $y) = $c->user_to_device(0, $unitpos);
       $c->restore();
       $c->save();
-      draw_icon($c, $x, $y, $plot);
+      draw_icon($c, $x, $y, $plot, $unit);
    }
 
    $c->restore();
@@ -151,9 +151,11 @@ sub find_icon {
 }
 
 sub draw_icon {
-   my ($c, $x, $y, $plot) = @_;
-   my $size = $plot->{xscale} * ($opts{u} || 1.6);
-   my $pos = $plot->{yscale} * ($opts{y} || 1.6);
+   my ($c, $x, $y, $plot, $unit) = @_;
+   my $size = $plot->{xscale} * (1 + $unit->size() / 6);
+   $size *= $opts{u} if $opts{u};
+   my $pos = $plot->{yscale} * 1.5;
+   $pos *= $opts{y} if $opts{y};
    if (my $anim = $plot->{anim}) {
       my $wid = $anim->bmp_width();
       my $hgt = $anim->bmp_height();
@@ -247,6 +249,8 @@ sub calc_size {
    if (defined($unitpos) && find_icon($unit, $plot, $flip)) {
       $yhi += 2;
       $unitpos = $yhi if $unitpos > $yhi;
+      $plot->{unitpos} = $unitpos;
+      $unitpos += ($unit->size() - 3) / 10;
       my ($x, $y);
       if ($flip) {
          $unitpos = -$unitpos;
@@ -261,7 +265,6 @@ sub calc_size {
       $right = $x if $x > $right;
       $top = $y if $y < $top;
       $bottom = $y if $y > $bottom;
-      $plot->{unitpos} = $unitpos;
    }
 
    my $width = $right - $left + 2;
