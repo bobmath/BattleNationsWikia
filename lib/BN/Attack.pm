@@ -44,6 +44,7 @@ BN->simple_accessor('globalcooldown', 'globalCooldown');
 BN->simple_accessor('preptime', 'chargeTime');
 BN->simple_accessor('target_area', 'targetArea');
 BN->simple_accessor('damage_area', 'damageArea');
+BN->simple_accessor('min_range', 'minRange');
 BN->simple_accessor('max_range', 'maxRange');
 
 BN->accessor(range => sub {
@@ -287,6 +288,25 @@ sub onemod {
    for my $i ($rank-1 .. $#vals) {
       $mods->{$tag . ($i+1)} = $vals[$i] if $vals[$i] != 5*$i;
    }
+}
+
+my $damage_animation;
+BN->accessor(damage_animation_config => sub {
+   my ($att) = @_;
+   $damage_animation ||= BN::File->json('DamageAnimConfig.json');
+   return $damage_animation->{$att->{damageAnimationType}};
+});
+
+sub damage_animation {
+   my ($att) = @_;
+   my $dmg = $att->damage_animation_config() or return;
+   return $dmg->{front};
+}
+
+sub back_damage_animation {
+   my ($att) = @_;
+   my $dmg = $att->damage_animation_config() or return;
+   return $dmg->{back};
 }
 
 1 # end BN::Attack
