@@ -101,6 +101,11 @@ sub read_unpack {
    return unpack $pat, $buf;
 }
 
+sub num_frames {
+   my ($anim) = @_;
+   return scalar @{$anim->{frames}};
+}
+
 sub frame {
    my ($anim, $num, $size, $center, $boxframe) = @_;
    my $frame = $anim->{frames}[$num || 0] or return;
