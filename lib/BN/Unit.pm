@@ -409,4 +409,18 @@ sub enemy_levels {
    }
 }
 
+my $battle_config;
+BN->accessor(deploy_limit => sub {
+   my ($unit) = @_;
+   $battle_config ||= BN::File->json('BattleConfig.json');
+   my $tags = $unit->{tags} or return;
+   my $limit;
+   foreach my $tag (@$tags) {
+      my $info = $battle_config->{settings}{unitTagMetaData}{$tag} or next;
+      my $tag_limit = $info->{deployLimit} or next;
+      $limit = $tag_limit if !defined($limit) || $limit > $tag_limit;
+   }
+   return $limit;
+});
+
 1 # end BN::Unit

@@ -106,6 +106,9 @@ sub unit_profile {
       }
       damage_mods($F, 'base', $rank->damage_mods());
    }
+   if (my $limit = $unit->deploy_limit()) {
+      push @notes, "Deployment limit: $limit";
+   }
 
    profile_line($F, 'notes', join('<br>', @notes)) if @notes;
    profile_line($F, 'game file name', $unit->tag());
