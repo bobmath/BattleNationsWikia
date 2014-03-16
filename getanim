@@ -30,7 +30,7 @@ $background = $bgmap{$background} || $background;
 
 die unless @ARGV == 1;
 my $name = $ARGV[0];
-my $anim = BN::Animation->get($name) or die;
+my $anim = BN::Animation->get($name) or die "Can't find animation $name\n";
 
 my $wid = $anim->bmp_width();
 my $hgt = $anim->bmp_height();
