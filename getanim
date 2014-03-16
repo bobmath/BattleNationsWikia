@@ -48,8 +48,9 @@ my $c = Cairo::Context->create($surface);
 my $x = 0;
 my $y = 0;
 my (@frames, @scale);
+my $frame_fmt = $grid >= 10 ? 'frame_%02d_%02d.ppm' : 'frame_%d_%d.ppm';
 foreach my $num (@seq) {
-   push @frames, "frame_${y}_${x}.ppm";
+   push @frames, sprintf($frame_fmt, $y, $x);
    $c->save();
    $c->translate(($x + 0.5) * $size, ($y + 0.5) * $size);
    foreach my $quad ($anim->frame($num, $size, 1)) {
@@ -90,7 +91,7 @@ printf "Scale: %.2fx\n", $scale[@scale/2];
 
 unless ($opts{k}) {
    while ($y < $grid) {
-      push @frames, "frame_${y}_${x}.ppm";
+      push @frames, sprintf($frame_fmt, $y, $x);
       if (++$x >= $grid) { $x = 0; $y++; }
    }
    unlink @frames, @gifs;
