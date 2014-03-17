@@ -36,8 +36,9 @@ my $anim = BN::Animation->get($name) or die "Can't find animation $name\n";
 my $wid = $anim->bmp_width();
 my $hgt = $anim->bmp_height();
 my $stride = Cairo::Format::stride_for_width('argb32', $wid);
+my $bitmap = $anim->bitmap('cairo', $stride);
 my $source = Cairo::ImageSurface->create_for_data(
-   $anim->bitmap('cairo', $stride), 'argb32', $wid, $hgt, $stride);
+   $bitmap, 'argb32', $wid, $hgt, $stride);
 
 my @seq = $anim->sequence();
 my $grid = ceil(sqrt(@seq));

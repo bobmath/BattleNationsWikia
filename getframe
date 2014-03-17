@@ -18,8 +18,9 @@ my $anim = BN::Animation->get($name) or die "Can't find animation $name\n";
 my $wid = $anim->bmp_width();
 my $hgt = $anim->bmp_height();
 my $stride = Cairo::Format::stride_for_width('argb32', $wid);
-my $src = Cairo::ImageSurface->create_for_data(
-   $anim->bitmap('cairo', $stride), 'argb32', $wid, $hgt, $stride);
+my $bitmap = $anim->bitmap('cairo', $stride);
+my $source = Cairo::ImageSurface->create_for_data(
+   $bitmap, 'argb32', $wid, $hgt, $stride);
 
 my $surface = Cairo::ImageSurface->create('argb32', $size, $size);
 my $c = Cairo::Context->create($surface);
@@ -31,7 +32,7 @@ foreach my $quad ($anim->frame($num, $size, 1, $num)) {
    push @scale, sqrt(abs($quad->{det}));
    $c->save();
    $c->transform(Cairo::Matrix->init(@{$quad->{mat}}));
-   $c->set_source_surface($src, 0, 0);
+   $c->set_source_surface($source, 0, 0);
    $c->move_to($quad->{x0}, $quad->{y0});
    $c->line_to($quad->{x1}, $quad->{y1});
    $c->line_to($quad->{x2}, $quad->{y2});
