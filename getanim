@@ -15,16 +15,17 @@ my $background = $opts{b} || 'wiki';
 my $delay = $opts{d} || 5;
 
 my %bgmap = (
-   critter => '#ddccaa',
-   empire  => '#eb8100',
-   fr      => '#eb8100',
-   inf     => '#000000',
-   player  => '#eb8100',
-   raider  => '#bb9966',
-   rebel   => '#cccccc',
-   sky     => '#87cefa',
-   sw      => '#cccccc',
-   wiki    => '#f2f2f2',
+   critter  => '#ddccaa',
+   dirt     => '#c19a6b',
+   empire   => '#eb8100',
+   fr       => '#eb8100',
+   inf      => '#000000',
+   player   => '#eb8100',
+   raider   => '#bb9966',
+   rebel    => '#cccccc',
+   sky      => '#87cefa',
+   sw       => '#cccccc',
+   wiki     => '#f2f2f2',
 );
 $background = $bgmap{$background} || $background;
 
