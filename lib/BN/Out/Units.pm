@@ -545,13 +545,7 @@ sub old_attacks {
          if (is_aoe($attack->target_area())
             || is_aoe($attack->damage_area()))
          {
-            my $file = $unit->shortname();
-            if ($unit->side() eq 'Hostile' && $unit->level()) {
-               $file .= '_' if $file =~ /\d$/;
-               $file .= $unit->level();
-            }
-            $file .= '_' . $attack->name();
-            $file =~ s/\W+//g;
+            my $file = $attack->filename($unit);
             print_line($F, 'image', "[[File:$file.png]]");
          }
 

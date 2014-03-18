@@ -310,4 +310,16 @@ sub back_damage_animation {
    return $dmg->{back};
 }
 
+sub filename {
+   my ($att, $unit) = @_;
+   my $file = $unit->shortname();
+   if ($unit->side() eq 'Hostile' && $unit->level()) {
+      $file .= '_' if $file =~ /\d$/;
+      $file .= $unit->level();
+   }
+   $file .= '_' . $att->name();
+   $file =~ s/\W+//g;
+   return $file;
+}
+
 1 # end BN::Attack

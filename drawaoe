@@ -49,13 +49,7 @@ sub draw_attack {
       $height = $plot->{height} if $plot->{height} > $height;
    }
 
-   my $file = $unit->shortname();
-   if ($unit->side() eq 'Hostile' && $unit->level()) {
-      $file .= '_' if $file =~ /\d$/;
-      $file .= $unit->level();
-   }
-   $file .= '_' . $attack->name();
-   $file =~ s/\W+//g;
+   my $file = $attack->filename($unit);
    my $temp = $file . '-temp.png';
    $file .= '.png';
    print "$file  $width x $height\n";
