@@ -130,8 +130,9 @@ sub frame {
       $yoff = ($box[3] + $box[2]) / 2;
    }
 
-   my $xscale = $anim->bmp_width() / 0x7fff;
-   my $yscale = $anim->bmp_height() / 0x7fff;
+   my $bitmap = $anim->bitmap();
+   my $xscale = $bitmap->width() / 0x7fff;
+   my $yscale = $bitmap->height() / 0x7fff;
 
    my @quads;
    for (my $i = 0; $i < @$frame; $i += 6) {
@@ -197,28 +198,87 @@ sub box {
    return ($xmin, $xmax, $ymin, $ymax);
 }
 
-BN->multi_accessor('bmp_width', 'bmp_height' => sub {
-   my ($anim) = @_;
-   my $F = BN::File->read($anim->{_pack} . '_0.z2raw', ':raw');
-   my ($ver, $wid, $hgt, $bits) = read_unpack($F, 16, 'V*');
-   close $F;
-   die 'Bad bitmap version' if $ver > 1;
-   die 'Bad bitmap depth' unless $bits == 4 || $bits == 8;
-   return ($wid, $hgt);
-});
-
 sub bitmap {
-   my ($anim, $format, $stride) = @_;
-   my $F = BN::File->read($anim->{_pack} . '_0.z2raw', ':raw');
-   my ($ver, $wid, $hgt, $bits) = read_unpack($F, 16, 'V*');
+   my ($anim) = @_;
+   return BN::Animation::Bitmap->get($anim->{_pack});
+}
+
+package BN::Animation::Bitmap;
+
+my %bitmaps;
+sub get {
+   my ($class, $key) = @_;
+   return unless $key;
+   return $bitmaps{$key} ||= bless { _pack=>$key }, $class;
+}
+
+sub width {
+   my ($bmp) = @_;
+   $bmp->read_header() unless exists $bmp->{_width};
+   return $bmp->{_width};
+}
+
+sub height {
+   my ($bmp) = @_;
+   $bmp->read_header() unless exists $bmp->{_height};
+   return $bmp->{_height};
+}
+
+sub read_header {
+   my ($bmp) = @_;
+   my $F = BN::File->read($bmp->{_pack} . '_0.z2raw', ':raw');
+   my ($ver, $wid, $hgt, $bits) =
+      BN::Animation::read_unpack($F, 16, 'V*');
    die 'Bad bitmap version' if $ver > 1;
    die 'Bad bitmap depth' unless $bits == 4 || $bits == 8;
+   $bmp->{_version} = $ver;
+   $bmp->{_width} = $wid;
+   $bmp->{_height} = $hgt;
+   $bmp->{_bits} = $bits;
+   return $F;
+}
+
+sub write_pam {
+   my ($bmp, $file) = @_;
+   my $data = $bmp->bitmap_data('rgba');
+   open my $F, '>:raw', $file or die "Can't write $file: $!\n";
+   print $F "P7\nWIDTH $bmp->{_width}\nHEIGHT $bmp->{_height}\n",
+      "DEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n";
+   print $F $data;
+   close $F;
+}
+
+sub cairo_surface {
+   my ($bmp) = @_;
+   return $bmp->{cairo_surf} if $bmp->{cairo_surf};
+   $bmp->{cairo_data} = $bmp->bitmap_data('cairo');
+   return $bmp->{cairo_surf} = Cairo::ImageSurface->create_for_data(
+      $bmp->{cairo_data}, 'argb32', $bmp->{_width}, $bmp->{_height},
+      $bmp->{_stride});
+}
+
+sub free {
+   my ($bmp) = @_;
+   $bmp->{cairo_surf} = undef;
+   $bmp->{cairo_data} = undef;
+}
+
+sub bitmap_data {
+   my ($bmp, $format) = @_;
+   my $F = $bmp->read_header();
+   my $wid = $bmp->{_width};
+   my $hgt = $bmp->{_height};
+   my $bits = $bmp->{_bits};
+   my $pad = '';
    $format ||= 'rgba';
-   $stride ||= $wid * 4;
-   my $pad = "\0" x ($wid * 4 - $stride);
+   if ($format eq 'cairo') {
+      require Cairo;
+      $bmp->{_stride} = Cairo::Format::stride_for_width('argb32', $wid);
+      $pad = "\0" x ($wid * 4 - $bmp->{_stride});
+   }
 
    my $dat = '';
-   if ($ver == 0) {
+   if ($bmp->{_version} == 0) {
       for my $y (1 .. $hgt) {
          for my $x (1 .. $wid) {
             $dat .= read_pix($F, $bits, $format);
@@ -227,7 +287,7 @@ sub bitmap {
       }
    }
    else {
-      my ($len, $pal_size) = read_unpack($F, 8, 'V*');
+      my ($len, $pal_size) = BN::Animation::read_unpack($F, 8, 'V*');
       die 'Bad palette size' if $pal_size < 1 || $pal_size > 0x100;
       my @pal;
       push @pal, read_pix($F, $bits, $format) for 1 .. $pal_size;
@@ -235,7 +295,7 @@ sub bitmap {
       my $y = 0;
       while ($y < $hgt) {
          my $c = getc($F);
-         die 'hit EOF' unless defined($c);
+         die 'Hit EOF' unless defined($c);
          $c = ord($c);
          my $num = ($c >> 1) + 1;
          if ($c & 1) {
@@ -261,25 +321,29 @@ sub bitmap {
 sub read_pal_pix {
    my ($F, $pal) = @_;
    my $c = getc($F);
-   die 'hit EOF' unless defined($c);
+   die 'Hit EOF' unless defined($c);
    $c = ord($c);
-   die 'bad pixel' if $c >= @$pal;
+   die 'Bad pixel' if $c >= @$pal;
    return $pal->[$c];
 }
 
 sub read_pix {
    my ($F, $bits, $format) = @_;
-   my ($r, $g, $b, $a);
-
+   my ($r, $g, $b, $a, $buf);
    if ($bits == 4) {
-      my $p = read_unpack($F, 2, 'v');
+      my $count = read $F, $buf, 2 or die "Read error: $!";
+      die 'Hit EOF' unless $count == 2;
+      my $p = unpack('v', $buf);
       $r = (($p >> 12) & 0xf) * 0x11;
       $g = (($p >> 8) & 0xf) * 0x11;
       $b = (($p >> 4) & 0xf) * 0x11;
       $a = ($p & 0xf) * 0x11;
    }
    else {
-      ($r, $g, $b, $a) = read_unpack($F, 4, 'C*');
+      my $count = read $F, $buf, 4 or die "Read error: $!";
+      die 'Hit EOF' unless $count == 4;
+      return $buf unless $format eq 'cairo';
+      ($r, $g, $b, $a) = unpack 'C*', $buf;
    }
 
    if ($format eq 'cairo') {
@@ -294,4 +358,4 @@ sub read_pix {
    return chr($r) . chr($g) . chr($b) . chr($a);
 }
 
-1 # end BN::Animation
+1 # end BN::Animation::Bitmap
