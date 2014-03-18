@@ -13,15 +13,14 @@ sub build_index {
    }
 }
 
+my %animations;
 sub get {
    my ($class, $key) = @_;
    return unless $key;
+   return $animations{$key} if $animations{$key};
    build_index() unless %index;
-   my @anims = $class->read_pack($index{$key});
-   foreach my $anim (@anims) {
-      return $anim if $anim->{_tag} eq $key;
-   }
-   return;
+   $class->read_pack($index{$key});
+   return $animations{$key};
 }
 
 sub read_pack {
@@ -45,6 +44,7 @@ sub read_anim {
    my ($tag, $num_points) = read_unpack($F, 0x104, 'Z256x2v');
    die 'Invalid animation name' if $tag =~ /\W/;
    $anim->{_tag} = $tag;
+   $animations{$tag} = $anim;
 
    my $point_size;
    if ($ver == 4) {
@@ -59,6 +59,9 @@ sub read_anim {
       elsif ($flags == 1)     { $point_size = 12 }
       elsif ($flags == 0x101) { $point_size = 24 }
       else { die 'Unknown animation flags' }
+   }
+   else {
+      die 'Unknown data size';
    }
 
    my @points;
