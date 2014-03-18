@@ -14,6 +14,8 @@ sub new {
 
 BN->simple_accessor('tag');
 BN->simple_accessor('name');
+BN->simple_accessor('attack_animation', 'frontattackAnimation');
+BN->simple_accessor('back_attack_animation', 'backattackAnimation');
 
 BN->multi_accessor('ammo', 'reload', sub {
    my ($weap) = @_;
