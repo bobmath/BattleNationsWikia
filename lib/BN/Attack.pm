@@ -203,7 +203,7 @@ sub crit {
    my $crit = int(($att->{criticalHitPercent} || 0) + ($bonus || 0) * $mult
       + ($att->{base_critPercent} || 0) * ($att->{critFromWeapon} // 1));
    my @crit;
-   push @crit, $crit . '%' if $crit != 5;
+   push @crit, $crit . '%' if $crit != 5 || $maxbonus;
    if (my $mods = $att->{criticalBonuses}) {
       foreach my $targ (sort keys %$mods) {
          my $val = $crit + $mods->{$targ};
