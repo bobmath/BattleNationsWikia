@@ -25,6 +25,7 @@ my %bgmap = (
    rebel    => '#cccccc',
    sky      => '#87cefa',
    sw       => '#cccccc',
+   white    => '#ffffff',
    wiki     => '#f2f2f2',
 );
 $background = $bgmap{$background} || $background;
