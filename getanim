@@ -5,7 +5,7 @@ use lib 'lib';
 use BN;
 use Cairo;
 use Getopt::Std qw( getopts );
-use POSIX qw( ceil );
+use Image::Magick;
 
 my %opts;
 getopts('b:cd:ks:t', \%opts);
@@ -28,56 +28,58 @@ my %bgmap = (
    white    => '#ffffff',
    wiki     => '#f2f2f2',
 );
-$background = $bgmap{$background} || $background;
+my @background = get_rgb($bgmap{$background} || $background);
 
 die unless @ARGV == 1;
 my $name = $ARGV[0];
 my $anim = BN::Animation->get($name) or die "Can't find animation $name\n";
-my $source = $anim->bitmap()->cairo_surface();
 my @seq = $anim->sequence();
-my $grid = ceil(sqrt(@seq));
-my $dim = $size * $grid;
 
-my $surface = Cairo::ImageSurface->create('argb32', $dim, $dim);
-my $c = Cairo::Context->create($surface);
-
-my $x = 0;
-my $y = 0;
 my (@frames, @scale);
-my $frame_fmt = $grid >= 10 ? 'frame_%02d_%02d.ppm' : 'frame_%d_%d.ppm';
-foreach my $num (@seq) {
-   push @frames, sprintf($frame_fmt, $y, $x);
-   $c->save();
-   $c->translate(($x + 0.5) * $size, ($y + 0.5) * $size);
-   push @scale, $anim->render($c, $num, $size, 1);
-   $c->restore();
-   if (++$x >= $grid) { $x = 0; $y++; }
+foreach my $n (0 .. $#seq) {
+   my $surface = Cairo::ImageSurface->create('argb32', $size, $size);
+   my $c = Cairo::Context->create($surface);
+
+   unless ($opts{t}) {
+      $c->set_source_rgb(@background);
+      $c->rectangle(0, 0, $size, $size);
+      $c->fill();
+   }
+
+   $c->translate($size/2, $size/2);
+   push @scale, $anim->render($c, $seq[$n], $size, 1);
+   my $file = sprintf 'frame%03d.png', $n;
+   $surface->write_to_png($file);
+   push @frames, $file;
 }
 
-$surface->write_to_png("$name.png");
-system("pngtopam -mix -background=$background $name.png | pnmquant -nofs 256"
-   . " | pamdice -width=$size -height=$size -outstem=frame") == 0 or die;
+my $magick = Image::Magick->new();
+$magick->Read(@frames);
+$magick->Quantize(colors => 256, dither => 'False', global => 'True');
+$magick->Write("$name.gif");
 
-my $transparent = $opts{t} ? "-transparent=$background" : '';
-my (@gifs, $gif_num);
-foreach my $frame (@frames) {
-   my $gif = sprintf 'frame%02d.gif', ++$gif_num;
-   push @gifs, $gif;
-   system("pamtogif $transparent $frame > $gif") == 0 or die;
-}
 my $crop = $opts{c} ? '--crop-transparency' : '';
 my $dispose = $opts{t} ? '--disposal=previous' : '';
 system("gifsicle --optimize --loop --delay=$delay $dispose"
-   . " $crop @gifs > $name.gif") == 0 or die;
+   . " $crop --batch $name.gif") == 0 or die;
 
 @scale = sort { $a <=> $b } @scale;
 printf "Scale: %.2fx\n", $scale[@scale/2];
 
-unless ($opts{k}) {
-   while ($y < $grid) {
-      push @frames, sprintf($frame_fmt, $y, $x);
-      if (++$x >= $grid) { $x = 0; $y++; }
+unlink @frames unless $opts{k};
+
+BEGIN {
+   my $xdig = '[0-9a-fA-F]';
+   my $xdig2 = $xdig . '{2}';
+   sub get_rgb {
+      my ($color) = @_;
+      if ($color =~ /^#($xdig)($xdig)($xdig)$/o) {
+         return (hex($1)*0x11, hex($2)*0x11, hex($3)*0x11);
+      }
+      elsif ($color =~ /^#($xdig2)($xdig2)($xdig2)$/o) {
+         return (hex($1), hex($2), hex($3));
+      }
+      die 'Invalid color code';
    }
-   unlink @frames, @gifs;
 }
 
