@@ -151,7 +151,6 @@ sub draw_icon {
    my $pos = $plot->{yscale} * 1.5;
    $pos *= $opts{y} if $opts{y};
    if (my $anim = $plot->{anim}) {
-      my $source = $anim->bitmap()->cairo_surface();
       $c->translate($x, $y + $pos);
       my $num = $opts{n} || 0;
       $anim->render($c, $num, $size, 0, $num);
