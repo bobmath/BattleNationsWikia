@@ -49,19 +49,7 @@ foreach my $num (@seq) {
    push @frames, sprintf($frame_fmt, $y, $x);
    $c->save();
    $c->translate(($x + 0.5) * $size, ($y + 0.5) * $size);
-   foreach my $quad ($anim->frame($num, $size, 1)) {
-      push @scale, sqrt(abs($quad->{det}));
-      $c->save();
-      $c->transform(Cairo::Matrix->init(@{$quad->{mat}}));
-      $c->set_source_surface($source, 0, 0);
-      $c->move_to($quad->{x0}, $quad->{y0});
-      $c->line_to($quad->{x1}, $quad->{y1});
-      $c->line_to($quad->{x2}, $quad->{y2});
-      $c->line_to($quad->{x3}, $quad->{y3});
-      $c->close_path();
-      $c->fill();
-      $c->restore();
-   }
+   push @scale, $anim->render($c, $num, $size, 1);
    $c->restore();
    if (++$x >= $grid) { $x = 0; $y++; }
 }

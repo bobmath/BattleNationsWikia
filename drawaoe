@@ -154,18 +154,7 @@ sub draw_icon {
       my $source = $anim->bitmap()->cairo_surface();
       $c->translate($x, $y + $pos);
       my $num = $opts{n} || 0;
-      foreach my $quad ($anim->frame($num, $size, 0, $num)) {
-         $c->save();
-         $c->transform(Cairo::Matrix->init(@{$quad->{mat}}));
-         $c->set_source_surface($source, 0, 0);
-         $c->move_to($quad->{x0}, $quad->{y0});
-         $c->line_to($quad->{x1}, $quad->{y1});
-         $c->line_to($quad->{x2}, $quad->{y2});
-         $c->line_to($quad->{x3}, $quad->{y3});
-         $c->close_path();
-         $c->fill();
-         $c->restore();
-      }
+      $anim->render($c, $num, $size, 0, $num);
    }
    elsif (my $file = $plot->{icon}) {
       my $icon = Cairo::ImageSurface->create_from_png($file);

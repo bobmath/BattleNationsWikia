@@ -109,6 +109,27 @@ sub num_frames {
    return scalar @{$anim->{frames}};
 }
 
+sub render {
+   my ($anim, $ctx, @args) = @_;
+   my @scale;
+   my $source = $anim->bitmap()->cairo_surface();
+   foreach my $quad ($anim->frame(@args)) {
+      push @scale, sqrt(abs($quad->{det}));
+      $ctx->save();
+      $ctx->transform(Cairo::Matrix->init(@{$quad->{mat}}));
+      $ctx->set_source_surface($source, 0, 0);
+      $ctx->move_to($quad->{x0}, $quad->{y0});
+      $ctx->line_to($quad->{x1}, $quad->{y1});
+      $ctx->line_to($quad->{x2}, $quad->{y2});
+      $ctx->line_to($quad->{x3}, $quad->{y3});
+      $ctx->close_path();
+      $ctx->fill();
+      $ctx->restore();
+   }
+   @scale = sort { $a <=> $b } @scale;
+   return $scale[@scale/2];
+}
+
 sub frame {
    my ($anim, $num, $size, $center, $boxframe) = @_;
    my $frame = $anim->{frames}[$num || 0] or return;
