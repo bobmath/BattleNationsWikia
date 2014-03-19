@@ -338,21 +338,33 @@ sub other_goods {
 sub shop_goods {
    my ($F, $build, $jobs) = @_;
    print $F "==Goods==\n{{ShopGoodsBox\n";
-   my @input = map { $_->input() } $build->levels();
-   my @output = map { $_->output() } $build->levels();
-   my @notes;
+
    my $n;
+   foreach my $level ($build->levels()) {
+      ++$n;
+      print_line($F, 'input'.$n, $level->input())
+         unless $level->input() == ($n + 1) * 25;
+   }
+   $n = 0;
+   foreach my $level ($build->levels()) {
+      ++$n;
+      print_line($F, 'input'.$n, $level->input())
+         unless $level->input() == ($n + 1) * 25;
+   }
+
+   my @notes;
+   $n = 0;
    for my $job (@$jobs) {
       my $g = 'good' . ++$n;
       print_line($F, $g, $job->name());
       print_line($F, $g.'image', BN::Out->icon($job->icon(), '40px'));
       if (my $cost = $job->cost()) {
          print_line($F, $g.'time', BN->format_time($cost->{time}));
-         shop_gold($F, $g, 'cost', $cost->{gold}, @input);
+         print_line($F, $g.'basecost', $cost->{gold});
       }
       if (my $rewards = $job->rewards()) {
          print_line($F, $g.'xp', $rewards->{XP});
-         shop_gold($F, $g, 'reward', $rewards->{gold}, @output);
+         print_line($F, $g.'basereward', $rewards->{gold});
       }
       if (my $level = $job->building_level()) {
          push @notes, $job->name . ' requires building level ' . $level;
@@ -360,19 +372,6 @@ sub shop_goods {
    }
    print_line($F, 'notes', join('<br>', @notes)) if @notes;
    print $F "}}\n\n";
-}
-
-my @shop_rates = ( 50, 75, 100, 125, 150, 175, 200, 225, 250, 275 );
-sub shop_gold {
-   my ($F, $g, $what, $gold, @rates) = @_;
-   return unless $gold;
-   print_line($F, $g.'base'.$what, $gold);
-   my $lvl;
-   foreach my $rate (@rates) {
-      ++$lvl;
-      next if $rate == ($shop_rates[$lvl-1] || 0);
-      print_line($F, $g.$what.$lvl, ceil($gold * $rate / 100));
-   }
 }
 
 sub mill_goods {
