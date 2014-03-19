@@ -20,6 +20,7 @@ sub get {
 BN->simple_accessor('tag');
 BN->simple_accessor('name');
 BN->simple_accessor('icon', 'icon');
+BN->simple_accessor('building_level', 'buildingLevel');
 
 BN->list_accessor(missions => sub {
    my ($job) = @_;

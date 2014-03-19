@@ -338,6 +338,7 @@ sub other_goods {
 sub shop_goods {
    my ($F, $build, $jobs) = @_;
    print $F "==Goods==\n{{ShopGoodsBox\n";
+   my @notes;
    my $n;
    for my $job (@$jobs) {
       my $g = 'good' . ++$n;
@@ -351,7 +352,11 @@ sub shop_goods {
          print_line($F, $g.'xp', $rewards->{XP});
          print_line($F, $g.'basereward', $rewards->{gold});
       }
+      if (my $level = $job->building_level()) {
+         push @notes, $job->name . ' requires building level ' . $level;
+      }
    }
+   print_line($F, 'notes', join('<br>', @notes)) if @notes;
    print $F "}}\n\n";
 }
 
