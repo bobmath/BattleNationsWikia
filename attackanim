@@ -10,7 +10,7 @@ use List::Util qw( max );
 use POSIX qw( ceil );
 
 my %opts;
-getopts('b:d:fh:kn:s:t:w:', \%opts) or die 'Invalid args';
+getopts('a:b:d:efh:ks:t:w:', \%opts) or die 'Invalid args';
 my $background = $opts{b} || 'wiki';
 my $delay = $opts{d} || 5;
 my $front = $opts{f};
@@ -36,10 +36,11 @@ my %bgmap = (
 );
 my @background = get_rgb($bgmap{$background} || $background);
 
-my $attack_num;
+my $pat;
+$pat = qr/$opts{a}/i if $opts{a};
 foreach my $weap ($unit->weapons()) {
    foreach my $attack ($weap->attacks()) {
-      draw_attack($weap, $attack) if !$number || ++$attack_num == $number;
+      draw_attack($weap, $attack) if !$pat || $attack->name() =~ /$pat/;
    }
 }
 
@@ -52,12 +53,12 @@ sub draw_attack {
 
    die unless $att->{width};
    $att->{main} = 1;
-   my $dmg_start = $weap->damage_animation_delay();
-   unshift @{$dmg->{seq}}, (undef) x $dmg_start if $dmg_start;
    my $num_frames = @{$att->{seq}};
+   my $dmg_start = $opts{e} ? $num_frames : $weap->damage_animation_delay();
+   unshift @{$dmg->{seq}}, (undef) x $dmg_start if $dmg_start;
    my $dmg_frames = @{$dmg->{seq}};
    if ($dmg_frames > $num_frames) {
-      push @{$att->{seq}}, ($att->{seq}[-1]) x ($dmg_frames - $num_frames);
+      push @{$att->{seq}}, ($att->{seq}[0]) x ($dmg_frames - $num_frames);
       $num_frames = $dmg_frames;
    }
 
@@ -102,11 +103,10 @@ sub draw_attack {
    $magick->Read(@frames);
    $magick->Quantize(colors => 256, dither => 'False', global => 'True');
    $magick->Write($file);
+   unlink @frames unless $opts{k};
 
    system("gifsicle --optimize --loop --delay=$delay --batch $file") == 0
       or die;
-
-   unlink @frames unless $opts{k};
 }
 
 sub setup_anim {
