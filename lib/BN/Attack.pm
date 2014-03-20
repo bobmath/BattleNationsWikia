@@ -46,7 +46,6 @@ BN->simple_accessor('target_area', 'targetArea');
 BN->simple_accessor('damage_area', 'damageArea');
 BN->simple_accessor('min_range', 'minRange');
 BN->simple_accessor('max_range', 'maxRange');
-BN->simple_accessor('damage_animation_delay', 'damageAnimationDelay');
 
 BN->accessor(range => sub {
    my ($att) = @_;

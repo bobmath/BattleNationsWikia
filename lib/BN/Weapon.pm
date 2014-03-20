@@ -16,6 +16,7 @@ BN->simple_accessor('tag');
 BN->simple_accessor('name');
 BN->simple_accessor('attack_animation', 'frontattackAnimation');
 BN->simple_accessor('back_attack_animation', 'backattackAnimation');
+BN->simple_accessor('damage_animation_delay', 'damageAnimationDelay');
 
 BN->multi_accessor('ammo', 'reload', sub {
    my ($weap) = @_;
