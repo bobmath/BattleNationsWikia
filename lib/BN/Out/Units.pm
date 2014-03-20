@@ -191,7 +191,7 @@ sub unit_weapons {
       }
       print $F "}}\n";
    }
-   print $F "</tabber>\n\n" unless $first;
+   print $F "</tabber>\n{{Clear}}\n\n" unless $first;
 }
 
 sub unit_ranks {
