@@ -8,7 +8,7 @@ use Getopt::Std qw( getopts );
 use Image::Magick;
 
 my %opts;
-getopts('b:cd:ks:t', \%opts);
+getopts('b:cd:ks:t', \%opts) or die;
 my $size = $opts{s} || 100;
 die unless $size > 0;
 my $background = $opts{b} || 'wiki';

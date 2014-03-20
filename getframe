@@ -7,7 +7,7 @@ use Cairo;
 use Getopt::Std qw( getopts );
 
 my %opts;
-getopts('n:s:', \%opts);
+getopts('n:s:', \%opts) or die;
 my $size = $opts{s} || 100;
 my $num = $opts{n} || 0;
 

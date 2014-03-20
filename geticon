@@ -7,7 +7,7 @@ use Getopt::Std qw( getopts );;
 use Image::Size qw( imgsize );
 
 my %opts;
-getopts('s', \%opts);
+getopts('s', \%opts) or die;
 die "usage: $0 [-s] icon_name\n" unless @ARGV == 1;
 my $max_size = $opts{s} ? 40 : 400;
 my $file = shift;
