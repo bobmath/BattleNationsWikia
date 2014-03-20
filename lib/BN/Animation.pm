@@ -126,6 +126,7 @@ sub render {
       $ctx->fill();
       $ctx->restore();
    }
+   return unless @scale;
    @scale = sort { $a <=> $b } @scale;
    return $scale[@scale/2];
 }
