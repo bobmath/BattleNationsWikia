@@ -76,7 +76,7 @@ sub add_prereq {
    }
    elsif ($t eq 'ActiveMissionPrereqConfig') {
       $type = 'Mission';
-      $ids = $prereq->{missionIds};
+      $ids = remove_old_missions($prereq->{missionIds});
    }
    elsif ($t eq 'CreateStructurePrereqConfig'
       || $t eq 'CollectStructurePrereqConfig')
