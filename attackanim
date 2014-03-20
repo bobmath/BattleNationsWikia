@@ -44,12 +44,16 @@ foreach my $weap ($unit->weapons()) {
    }
 }
 
+my %seen;
 sub draw_attack {
    my ($weap, $attack) = @_;
-   my $att = setup_anim($opts{s}, $front ?
-      $weap->attack_animation() : $weap->back_attack_animation());
-   my $dmg = setup_anim($opts{t}, $opts{t} && ($front ?
-      $attack->damage_animation() : $attack->back_damage_animation()));
+   my $att_tag = $front ?
+      $weap->attack_animation() : $weap->back_attack_animation();
+   my $dmg_tag = $opts{t} && ($front ?
+      $attack->damage_animation() : $attack->back_damage_animation()) || '';
+   return if $seen{"$att_tag $dmg_tag"}++;
+   my $att = setup_anim($opts{s}, $att_tag);
+   my $dmg = setup_anim($opts{t}, $dmg_tag);
 
    die unless $att->{width};
    $att->{main} = 1;
