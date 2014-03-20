@@ -8,7 +8,7 @@ sub build_index {
    foreach my $pack (@{$packs->{animationPacks}}) {
       my $meta = BN::File->json($pack . '_Metadata.json');
       foreach my $name (@{$meta->{animationNames}}) {
-         $index{$name} = $pack;
+         $index{lc($name)} = $pack;
       }
    }
 }
@@ -19,8 +19,8 @@ sub get {
    return unless $key;
    return $animations{$key} if $animations{$key};
    build_index() unless %index;
-   $class->read_pack($index{$key});
-   return $animations{$key};
+   $class->read_pack($index{lc($key)});
+   return $animations{lc($key)};
 }
 
 sub read_pack {
@@ -44,7 +44,7 @@ sub read_anim {
    my ($tag, $num_points) = read_unpack($F, 0x104, 'Z256x2v');
    die 'Invalid animation name' if $tag =~ /\W/;
    $anim->{_tag} = $tag;
-   $animations{$tag} = $anim;
+   $animations{lc($tag)} = $anim;
 
    my $point_size;
    if ($ver == 4) {
