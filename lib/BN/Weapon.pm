@@ -16,7 +16,6 @@ BN->simple_accessor('tag');
 BN->simple_accessor('name');
 BN->simple_accessor('attack_animation', 'frontattackAnimation');
 BN->simple_accessor('back_attack_animation', 'backattackAnimation');
-BN->simple_accessor('damage_animation_delay', 'damageAnimationDelay');
 
 BN->multi_accessor('ammo', 'reload', sub {
    my ($weap) = @_;
@@ -30,5 +29,11 @@ BN->list_accessor('attacks', sub {
    my $abilities = $weap->{abilities} or return;
    return map { BN::Attack->get($_, $weap) } @$abilities;
 });
+
+sub damage_animation_delay {
+   my ($weap) = @_;
+   return ($weap->{damageAnimationDelay} || 0)
+      + ($weap->{firesoundFrame} || 0);
+}
 
 1 # end BN::Weapon
