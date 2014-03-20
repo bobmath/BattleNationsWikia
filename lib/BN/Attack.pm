@@ -294,8 +294,9 @@ sub onemod {
 my $damage_animation;
 BN->accessor(damage_animation_config => sub {
    my ($att) = @_;
+   my $type = $att->{damageAnimationType} or return;
    $damage_animation ||= BN::File->json('DamageAnimConfig.json');
-   return $damage_animation->{$att->{damageAnimationType}};
+   return $damage_animation->{$type};
 });
 
 sub damage_animation {
