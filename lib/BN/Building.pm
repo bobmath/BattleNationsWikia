@@ -290,9 +290,7 @@ sub bonus_stack {
    my ($build) = @_;
    my $bonus = $build->{RadialMod} or return;
    if (my $max = $bonus->{maxModStack}) {
-      my $name = $build->name();
-      $name .= 's' if $max > 1;
-      return "$max $name";
+      return $max;
    }
    if (my $cat = $bonus->{modCategory}) {
       $bonus_cats ||= BN::File->json('RadialMod.json');

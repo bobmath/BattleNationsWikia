@@ -409,17 +409,25 @@ sub enemy_levels {
    }
 }
 
+my %deploy_tags = (
+   Ignorable   => 'Ignorables',
+   Zombie      => 'Infected',
+);
 my $battle_config;
 BN->accessor(deploy_limit => sub {
    my ($unit) = @_;
    $battle_config ||= BN::File->json('BattleConfig.json');
    my $tags = $unit->{tags} or return;
-   my $limit;
+   my ($limit, $what);
    foreach my $tag (@$tags) {
       my $info = $battle_config->{settings}{unitTagMetaData}{$tag} or next;
       my $tag_limit = $info->{deployLimit} or next;
-      $limit = $tag_limit if !defined($limit) || $limit > $tag_limit;
+      if (!defined($limit) || $limit > $tag_limit) {
+         $limit = $tag_limit;
+         $what = $deploy_tags{$tag};
+      }
    }
+   $limit .= ' ' . $what if $what;
    return $limit;
 });
 
