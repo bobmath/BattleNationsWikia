@@ -10,7 +10,7 @@ use List::Util qw( max );
 use POSIX qw( ceil );
 
 my %opts;
-getopts('a:b:d:efh:ks:t:w:', \%opts) or die 'Invalid args';
+getopts('a:b:d:efh:ks:t:w:X:x:Y:y:', \%opts) or die 'Invalid args';
 my $background = $opts{b} || 'wiki';
 my $delay = $opts{d} || 5;
 my $front = $opts{f};
@@ -69,11 +69,16 @@ sub draw_attack {
    my $width = $opts{w} || ceil($att->{width} + $dmg->{width}/2);
    my $height = $opts{h} || ceil($att->{height} + $dmg->{height}/2);
 
+   $att->{x} = $opts{x};
+   $att->{y} = $opts{y};
+   $dmg->{x} = $opts{X};
+   $dmg->{y} = $opts{Y};
+
    my @anims = $front ? ($dmg, $att) : ($att, $dmg);
-   $anims[0]{x} = $anims[0]{width} / 2 + 1;
-   $anims[0]{y} = $height - $anims[0]{height} / 2 - 1;
-   $anims[1]{x} = $width - $anims[1]{width} / 2 - 1;
-   $anims[1]{y} = $anims[1]{height} / 2 + 1;
+   $anims[0]{x} //= $anims[0]{width} / 2 + 1;
+   $anims[0]{y} //= $height - $anims[0]{height} / 2 - 1;
+   $anims[1]{x} //= $width - $anims[1]{width} / 2 - 1;
+   $anims[1]{y} //= $anims[1]{height} / 2 + 1;
 
    my (@frames, @scale);
    for my $num (0 .. $num_frames-1) {
