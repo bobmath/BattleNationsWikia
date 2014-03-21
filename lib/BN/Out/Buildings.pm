@@ -322,17 +322,18 @@ sub building_goods {
 
 sub other_goods {
    my ($F, $jobs) = @_;
-   print $F qq(==Goods==\n{| class="wikitable"\n);
-   print $F "|-\n! Item !! Cost !! Reward\n";
+   print $F "==Goods==\n{{GoodsBox\n";
+   my $num;
    foreach my $job (@$jobs) {
-      my $item = BN::Out->icon($job->icon(), '40px');
-      $item .= ' ' if $item;
-      $item .= $job->name();
-      my $cost = BN->format_amount($job->cost(), 0, ' &nbsp; ');
-      my $reward = BN->format_amount($job->rewards(), 0, ' &nbsp; ');
-      print $F "|-\n| $item\n| $cost\n| $reward\n";
+      my $g = 'good' . ++$num;
+      print_line($F, $g, $job->name());
+      print_line($F, $g.'image', BN::Out->icon($job->icon(), '40px'));
+      my %cost = %{$job->cost()||{}};
+      print_line($F, $g.'time', BN->format_time(delete $cost{time}));
+      print_line($F, $g.'cost', BN->format_amount(\%cost));
+      print_line($F, $g.'reward', BN->format_amount($job->rewards()));
    }
-   print $F "|}\n";
+   print $F "}}\n\n";
 }
 
 sub shop_goods {
