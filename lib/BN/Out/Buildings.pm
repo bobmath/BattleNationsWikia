@@ -328,9 +328,11 @@ sub other_goods {
       my $g = 'good' . ++$num;
       print_line($F, $g, $job->name());
       print_line($F, $g.'image', BN::Out->icon($job->icon(), '40px'));
-      my %cost = %{$job->cost()||{}};
-      print_line($F, $g.'time', BN->format_time(delete $cost{time}));
-      print_line($F, $g.'cost', BN->format_amount(\%cost));
+      if (my $cost = $job->cost()) {
+         my %cost = %$cost;
+         print_line($F, $g.'time', BN->format_time(delete $cost{time}));
+         print_line($F, $g.'cost', BN->format_amount(\%cost));
+      }
       print_line($F, $g.'reward', BN->format_amount($job->rewards()));
    }
    print $F "}}\n\n";
