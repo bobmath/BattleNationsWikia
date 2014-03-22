@@ -124,6 +124,8 @@ sub read_stat {
 
 sub new_section {
    my ($key, $stats) = @_;
+   $key =~ s/\s+$//;
+   $key =~ s/\s*\(.*\)$//;
    my $n = 1;
    my $newkey = $key;
    while ($stats->{$newkey}) {
