@@ -8,12 +8,6 @@ my $json_file = 'CoopBossEventConfig.json';
 my %old_strikes;
 $old_strikes{$_} = 1 foreach qw{
    boss0_event_raiders
-   boss2_event_raiders_QA
-   boss3_event_SW_QA
-   boss4_event_zombies_QA
-   boss5_event_SW_Animals_QA
-   boss6_event_Rebels_Airplanes_QA
-   boss7_event_SilverWolves2_QA
    coopBossEvent_integ_test_1
    coopBossEvent_integ_test_achieve
    coopBossEvent_integ_test_locked
@@ -25,7 +19,7 @@ sub all {
    my ($class) = @_;
    $strikes ||= BN::File->json($json_file);
    return map { $class->get($_) }
-      sort grep { !$old_strikes{$_} } keys %$strikes;
+      sort grep { !/_qa$/i && !$old_strikes{$_} } keys %$strikes;
 }
 
 sub get {
