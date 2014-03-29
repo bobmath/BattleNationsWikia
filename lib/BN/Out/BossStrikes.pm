@@ -11,7 +11,7 @@ sub write {
       my @tiers = $strike->tiers();
       push @tiers, $tiers[-1]->extend() for 1..2;
 
-      print $F qq({| class="wikitable standout"\n);
+      print $F qq(==Rewards==\n{| class="wikitable standout"\n);
       print $F "|-\n! Tier !! Rewards !! Points awarded",
          " !! Points to earn !! Total points\n";
       my $sum;
@@ -54,7 +54,7 @@ sub write {
 
       my @names = sort keys %names;
       my $break = 0;
-      print $F qq({| width="100%"\n|-\n);
+      print $F qq(==Enemies=={| width="100%"\n|-\n);
       foreach my $i (0 .. $#names) {
          if ($i >= $break) {
             print $F "|\n";
