@@ -9,7 +9,7 @@ sub write {
    open my $F, '>', $file or die "Can't write $file: $!";
 
    print $F qq({| class="wikitable standout"\n);
-   print $F "|-\n! Guild Level !! XP Required !! Member Limit",
+   print $F "|-\n! Guild Level !! Gold Required !! Member Limit",
       " !! XP Bonus !! SP Bonus\n";
    my $levels = $guilds->{guildLevelProperties} or die;
    foreach my $lev (sort { $a <=> $b } keys %$levels) {
