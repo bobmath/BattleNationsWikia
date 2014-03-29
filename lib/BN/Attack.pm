@@ -214,8 +214,11 @@ sub crit {
       if (!$mult) {
          push @crit, 'No rank bonus';
       }
-      elsif ($mult != 1) {
-         push @crit, sprintf('%.0f%% rank bonus', $mult*100);
+      elsif ($mult == 1) {
+         push @crit, '+ rank bonus';
+      }
+      else {
+         push @crit, sprintf('+%.0f%% of rank bonus', $mult*100);
       }
    }
    return unless @crit;
