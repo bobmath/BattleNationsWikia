@@ -82,9 +82,23 @@ $old_missions{$_} = 1 foreach qw(
    p01_BUILD_510_BuildHospital
    p01_FARMS_010_BuildFarm1
    p01_HOSP_010_QueueSomething
+   p01_INTRO_020_OpeningBattle
    p01_INTRO_040_BuildShelter
+   p01_NEWINTRO_010_Cinematic
+   p01_NEWINTRO_030_Fight
+   p01_NEWINTRO_040_BuildBarracks
+   p01_NEWINTRO_045_CutBarracksRibbon
+   p01_NEWINTRO_050_TrainTrooper
+   p01_NEWINTRO_055_MissionsAdvice
+   p01_NEWINTRO_060_BuildPillbox
+   p01_NEWINTRO_070_PillboxFight
+   p01_NEWINTRO_080_GantasFight
+   p01_NEWINTRO_120_BuildStoneQuarry
+   p01_NEWINTRO_130_BuildDepot
    p01_NEWINTRO_140_BuildHospital
    p01_NEWINTRO_143_StartAdvHospital
+   p01_NEWINTRO_SQ1_010_TrainGrenadier
+   p01_NEWINTRO_SQ1_020_GrenadierFight
    p01_RTANK_010_RaiderScouts
    p01_RTANK_060_BuildToolShop
    p01_RTANK_070_MakeTools
@@ -243,7 +257,7 @@ sub min_prereqs {
          my $ids = $prereq->{missionIds} or next;
          foreach my $testid (@$ids) {
             next if $old_missions{$testid};
-            die "too many ids for $mis->{_tag}" if $preid;
+            warn "too many ids for $mis->{_tag}" if $preid;
             $preid = $testid;
          }
       }
