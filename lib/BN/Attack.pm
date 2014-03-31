@@ -51,6 +51,7 @@ BN->accessor(range => sub {
    my ($att) = @_;
    my $min = $att->{minRange} or return;
    my $max = $att->{maxRange} or return;
+   $max += $att->{rangeBonus} if $att->{rangeBonus};
    return ($min == $max) ? $min : "$min-$max";
 });
 
