@@ -227,13 +227,19 @@ BN->list_accessor(levels => sub {
    return map { BN::BLevel->new($_, ++$n) } @$levels;
 });
 
+my %bonus_from = (
+   Agricultural   => '[[:Category:Bonus to Agriculture|Agriculture]]',
+   Houses         => '[[:Category:Bonus to Houses|Houses]]',
+   Ranches        => '[[:Category:Bonus to Ranches|Ranches]]',
+   Shops          => '[[:Category:Bonus to Shops|Shops]]',
+);
 BN->accessor(gets_bonus => sub {
    my ($build) = @_;
    return if $build->{ResourceProducer};
    my $buff = $build->{RadialModBuffable} or return;
    my $tags = $buff->{tags} or return;
    my @tags = grep { $_ ne 'all' } @$tags or return;
-   return join ', ', sort @tags;
+   return join ', ', map { $bonus_from{$_} || $_ } sort @tags;
 });
 
 BN->accessor(gives_bonus => sub {
@@ -271,11 +277,22 @@ BN->accessor(gives_bonus => sub {
    return $fmt . '</span>';
 });
 
+my %bonus_to = (
+   'Agricultural'    => '[[:Category:Agriculture|Agriculture]]',
+   'Coal Mines'      => '[[Coal Mine]]s<br>[[Adv. Coal Mine]]s',
+   'Houses'          => '[[:Category:Housing|Houses]]',
+   'Iron Mines'      => '[[Iron Mine]]s<br>[[Adv. Iron Mine]]s',
+   'Logging Camps'   => '[[Logging Camp]]s<br>[[Adv. Logging Camp]]s',
+   'Oil Pumps'       => '[[Oil Pump]]s<br>[[Adv. Oil Pump]]s',
+   'Ranches'         => '[[:Category:Ranches|Ranches]]',
+   'Shops'           => '[[:Category:Shop|Shops]]',
+   'Stone Quarries'  => '[[Stone Quarry|Stone Quarries]]<br>[[Adv. Stone Quarry|Adv. Stone Quarries]]',
+);
 BN->accessor(gives_bonus_to => sub {
    my ($build) = @_;
    my $bonus = $build->{RadialMod} or return;
    my $tags = $bonus->{tags} or return;
-   return join '<br>', sort @$tags;
+   return join '<br>', map { $bonus_to{$_} || $_ } sort @$tags;
 });
 
 sub bonus_radius {
