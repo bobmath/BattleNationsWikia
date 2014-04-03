@@ -96,6 +96,7 @@ $old_missions{$_} = 1 foreach qw(
    p01_NEWINTRO_120_BuildStoneQuarry
    p01_NEWINTRO_130_BuildDepot
    p01_NEWINTRO_140_BuildHospital
+   p01_NEWINTRO_142_StartHospital
    p01_NEWINTRO_143_StartAdvHospital
    p01_NEWINTRO_SQ1_010_TrainGrenadier
    p01_NEWINTRO_SQ1_020_GrenadierFight
