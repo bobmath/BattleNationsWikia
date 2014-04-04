@@ -7,7 +7,7 @@
 use strict;
 use warnings;
 
-opendir my $DIR, 'buildings' or die;
+opendir my $DIR, 'data/buildings' or die;
 my @files = sort grep { !/^\./ } readdir $DIR;
 closedir $DIR;
 
@@ -28,7 +28,7 @@ if (open my $F, '<', 'namemap') {
 }
 
 foreach my $file (@files) {
-   my $file1 = "buildings/$file";
+   my $file1 = "data/buildings/$file";
    my $file2;
    if ($file2 = $namemap{$file1}) {
       $file2 =~ s/['"\/]//g;

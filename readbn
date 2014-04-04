@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 # Main script. Reads game files, dumps wikitext.
-# Creates the file new.md5 with MD5 hashes of output files, and compares
-# against old.md5 if it exists. Rename new.md5 to old.md5 to set the new
+# Creates the file data/md5.txt with MD5 hashes of output files, and compares
+# against old/md5.txt if it exists. Move data/ to old/ to set the new
 # baseline for comparison, and it will tell you what has changed.
 use strict;
 use warnings;

@@ -33,6 +33,7 @@ sub filename {
       $file =~ s/^[-.]/_/;
       $file = '_' if $file eq '';
    }
+   unshift @path, 'data';
    for my $num (0 .. $#path-1) {
       my $dir = join('/', @path[0..$num]);
       mkdir $dir unless $seen_files{lc($dir)}++;
@@ -58,18 +59,19 @@ sub checksum {
    my ($class, $file) = @_;
    open my $F, '<', $file or die "Can't read $file: $!";
    unless ($MD5) {
-      open $MD5, '>', 'new.md5' or die "Can't write new.md5: $!";
+      open $MD5, '>', 'data/md5.txt' or die "Can't write md5.txt: $!";
    }
    my $md5 = Digest::MD5->new();
    $md5->addfile($F);
    close $F;
+   $file =~ s{^data/}{};
    print $MD5 $file, "\t", $md5->hexdigest(), "\n";
 }
 
 sub show_diffs {
    $MD5 = undef;
-   open my $OLD, '<', 'old.md5' or return;
-   open my $NEW, '<', 'new.md5' or return;
+   open my $OLD, '<', 'old/md5.txt' or return;
+   open my $NEW, '<', 'data/md5.txt' or return;
    my $diffs = diff([<$OLD>], [<$NEW>]);
    close $OLD;
    close $NEW;
