@@ -19,7 +19,7 @@ my %namemap;
 if (open my $MAP, '<', 'namemap') {
    while (<$MAP>) {
       /^\s*(.*?)\s*=\s*(.*?)\s*$/ or next;
-      $namemap{$1} = $2;
+      $namemap{"data/$1"} = $2;
    }
 }
 

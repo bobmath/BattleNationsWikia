@@ -23,7 +23,7 @@ $ignore{$_} = 1 for qw(
 my %namemap;
 if (open my $F, '<', 'namemap') {
    while (<$F>) {
-      $namemap{$1} = $2 if /^\s*(.*?)\s*=\s*(.*?)\s*$/;
+      $namemap{"data/$1"} = $2 if /^\s*(.*?)\s*=\s*(.*?)\s*$/;
    }
 }
 
