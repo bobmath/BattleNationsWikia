@@ -259,6 +259,10 @@ sub unit_ranks {
    print $F "}}\n\n";
 }
 
+my %damage_mod_templ = (
+   Cold => 'ColdDamage',
+);
+
 sub damage_mod_ranks {
    my ($F, $tag, @mods) = @_;
    my $first = $mods[0];
@@ -271,8 +275,13 @@ sub damage_mod_ranks {
    my @diff = sort keys %diff or return;
    my $n;
    foreach my $mod (@mods) {
-      print_line($F, $tag . ++$n, join('<br>',
-         map { '{{' . $_ . '|' . ($mod->{$_} * 100) . '%}}' } @diff));
+      my @out;
+      foreach my $diff (@diff) {
+         my $dmg = $mod->{$diff} * 100;
+         my $templ = $damage_mod_templ{$diff} || $diff;
+         push @out, "{{$templ|$dmg%}}";
+      }
+      print_line($F, $tag . ++$n, join('<br>', @out));
    }
 }
 
