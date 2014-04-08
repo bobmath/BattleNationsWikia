@@ -23,6 +23,13 @@ sub write {
       ++$curr_page;
    }
    foreach my $mis (BN::Mission->all()) {
+      if (my $objectives = $mis->{objectives}) {
+         foreach my $key (sort keys %$objectives) {
+            my $obj = $objectives->{$key} or next;
+            my $prereq = $obj->{prereq} or next;
+            $prereq->{_text} = BN::Text->get($prereq->{objectiveText});
+         }
+      }
       my $file = BN::Out->filename('missions', $mis->level(), $mis->name());
       print $file, "\n";
       open my $F, '>', $file or die "Can't write $file: $!";;
