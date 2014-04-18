@@ -69,6 +69,11 @@ BN->accessor(lof => sub {
    if (my $dir = $att->{attackDirection}) {
       $lof .= ' (Back)' if $dir eq 'back';
    }
+   if (my $target = $att->{targetArea}) {
+      if (my $type = $target->{type}) {
+         $lof .= ' (Fixed)' if $type eq 'Weapon';
+      }
+   }
    return $lof;
 });
 
