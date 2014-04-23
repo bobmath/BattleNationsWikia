@@ -384,7 +384,7 @@ sub enemy_levels {
    }
 
    foreach my $unit (BN::Unit->all()) {
-      next unless $unit->{side} eq 'Hostile';
+      next if $unit->{side} eq 'Player';
       $unit->{z_prereqs} = [] if $unit->{z_prereqs};
       $unit->{_level} = $1 if $unit->{_tag} =~ /_(\d+)$/;
       if (!$unit->{_level} || $unit->{_level} <= 1) {

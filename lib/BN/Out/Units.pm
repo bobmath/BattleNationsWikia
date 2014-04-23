@@ -12,7 +12,7 @@ sub write {
          $dir = $unit->building() || $unit->from_missions()
                || $unit->boss_strike() ? 'units' : 'locked';
       }
-      elsif ($side eq 'Hostile') {
+      else {
          if ($unit->level()) {
             my $name = $unit->name();
             if ($name =~ /^Specimen [a-h]\d+ ['"](.+)['"]$/) {
@@ -22,9 +22,6 @@ sub write {
             push @{$enemies{$name}}, $unit;
             next;
          }
-         $dir = 'other';
-      }
-      else {
          $dir = 'other';
       }
       my $file = BN::Out->filename($dir, $unit->name());
@@ -42,8 +39,9 @@ sub write {
 
    foreach my $name (sort keys %enemies) {
       my $units = $enemies{$name} or die;
-      @$units = sort {$a->level() <=> $b->level()} @$units;
-      my $file = BN::Out->filename('enemies', $name);
+      @$units = sort {$a->level() <=> $b->level()} @$units or next;
+      my $dir = $units->[0]->side() eq 'Hostile' ? 'enemies' : 'other';
+      my $file = BN::Out->filename($dir, $name);
       print $file, "\n";
       open my $F, '>', $file or die "Can't write $file: $!";
 
