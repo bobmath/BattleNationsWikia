@@ -76,6 +76,13 @@ sub wikilink {
    return ($name eq $ename) ? "[[$name]]" : "[[$ename|$name]]";
 }
 
+sub shortlink {
+   my ($unit) = @_;
+   my $ename = $unit->enemy_name();
+   my $sname = $unit->shortname();
+   return $ename eq $sname ? "[[$ename]]" : "[[$ename|$sname]]";
+}
+
 sub description {
    my ($unit) = @_;
    return BN::Text->get($unit->{desc});

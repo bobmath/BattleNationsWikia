@@ -43,6 +43,18 @@ BN->list_accessor(unit_ids => sub {
    return sort keys %units;
 });
 
+sub waves {
+   my ($enc) = @_;
+   my $units = $enc->{units} or return;
+   my %waves;
+   foreach my $unit (@$units) {
+      my $id = $unit->{unitId} or next;
+      my $wave = ($unit->{waveNumber} || 0) + 1;
+      $waves{$wave}{$id}++;
+   }
+   return \%waves;
+}
+
 my %tables;
 sub tables {
    my ($enc) = @_;

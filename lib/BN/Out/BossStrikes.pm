@@ -40,13 +40,15 @@ sub show_tiers {
 
 sub show_enemies {
    my ($F, $strike) = @_;
-   my %encounters;
+   my (%encounters, %levels);
    foreach my $encounter (@{$strike->{globalEventEncounters}}) {
-      add_encounter($encounter, \%encounters);
+      add_encounter($encounter, \%encounters, \%levels, 0);
    }
+   my $tnum;
    foreach my $tier ($strike->tiers()) {
+      ++$tnum;
       foreach my $encounter (@{$tier->{encounters}}) {
-         add_encounter($encounter, \%encounters);
+         add_encounter($encounter, \%encounters, \%levels, $tnum);
       }
    }
 
@@ -79,10 +81,54 @@ sub show_enemies {
          qq{| align="right" | $inf->{min}-$inf->{max}\n};
    }
    print $F "|}\n\n";
+
+   foreach my $levels (sort keys %levels) {
+      my $tiers = $levels{$levels} or next;
+      print $F "==Level $levels==\n";
+      my @tiers = sort {$a <=> $b} keys %$tiers;
+      while (@tiers) {
+         my $tnum = shift @tiers;
+         my $eids = $tiers->{$tnum} or next;
+         if ($tnum) {
+            my $eidstr = join ',', sort keys %$eids;
+            my $hinum = $tnum;
+            while (@tiers) {
+               my $nextnum = $tiers[0];
+               my $nextids = $tiers->{$nextnum} or last;
+               my $nextstr = join ',', sort keys %$nextids;
+               last unless $nextstr eq $eidstr;
+               $hinum = $nextnum;
+               shift @tiers;
+            }
+            if ($tnum == $hinum) { print $F "===Tier $tnum===\n" }
+            else { print $F "===Tier $tnum-$hinum===\n" }
+         }
+         my $enum;
+         foreach my $eid (sort keys %$eids) {
+            $enum++;
+            print $F "Battle $enum:\n";
+            my $enc = BN::Encounter->get($eid) or next;
+            my $waves = $enc->waves() or next;
+            foreach my $num (sort keys %$waves) {
+               my $wave = $waves->{$num} or next;
+               my %links;
+               while (my ($id, $count) = each %$wave) {
+                  my $unit = BN::Unit->get($id) or next;
+                  my $link = $unit->shortlink();
+                  $link .= ' x ' . $count if $count > 1;
+                  $links{$unit->shortname()} = $link;
+               }
+               my $links = join ', ', map { $links{$_} } sort keys %links;
+               print $F "* Wave $num: $links\n" if $links;
+            }
+         }
+      }
+   }
+   print $F "\n";
 }
 
 sub add_encounter {
-   my ($enc, $encounters) = @_;
+   my ($enc, $encounters, $levels, $tier) = @_;
    my $id = $enc->{encounterId} or return;
    my $max_level = BN::Level->max();
    my $min = $enc->{minLevel} || 1;
@@ -95,6 +141,7 @@ sub add_encounter {
    else {
       $encounters->{$id} = { min=>$min, max=>$max };
    }
+   $levels->{"$min-$max"}{$tier}{$id} = 1;
 }
 
 1 # end BN::Out::BossStrikes
