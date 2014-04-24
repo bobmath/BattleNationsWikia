@@ -377,7 +377,7 @@ sub enemy_levels {
    my %levels;
    foreach my $enc (BN::Encounter->all()) {
       my $level = $enc->level() or next;
-      foreach my $id ($enc->units()) {
+      foreach my $id ($enc->unit_ids()) {
          $levels{$id} = $level
             if !exists($levels{$id}) || $levels{$id} > $level;
       }

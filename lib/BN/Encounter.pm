@@ -32,7 +32,7 @@ BN->accessor(rewards => sub {
    return BN->flatten_amount(delete $enc->{rewards});
 });
 
-BN->list_accessor(units => sub {
+BN->list_accessor(unit_ids => sub {
    my ($enc) = @_;
    my $units = $enc->{units} or return;
    my %units;
