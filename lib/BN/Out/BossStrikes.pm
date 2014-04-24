@@ -107,20 +107,7 @@ sub show_enemies {
          foreach my $eid (sort keys %$eids) {
             $enum++;
             print $F "Battle $enum:\n";
-            my $enc = BN::Encounter->get($eid) or next;
-            my $waves = $enc->waves() or next;
-            foreach my $num (sort keys %$waves) {
-               my $wave = $waves->{$num} or next;
-               my %links;
-               while (my ($id, $count) = each %$wave) {
-                  my $unit = BN::Unit->get($id) or next;
-                  my $link = $unit->shortlink();
-                  $link .= ' x ' . $count if $count > 1;
-                  $links{$unit->shortname()} = $link;
-               }
-               my $links = join ', ', map { $links{$_} } sort keys %links;
-               print $F "* Wave $num: $links\n" if $links;
-            }
+            show_encounter($F, BN::Encounter->get($eid));
          }
       }
    }
@@ -142,6 +129,33 @@ sub add_encounter {
       $encounters->{$id} = { min=>$min, max=>$max };
    }
    $levels->{"$min-$max"}{$tier}{$id} = 1;
+}
+
+sub show_encounter {
+   my ($F, $enc) = @_;
+   return unless $enc;
+   my $waves = $enc->waves() or return;
+   my $wnum;
+   foreach my $wave (@$waves) {
+      $wnum++;
+      next unless $wave;
+      my %links;
+      foreach my $id (@$wave) {
+         my $unit = BN::Unit->get($id) or next;
+         $links{$unit->shortname()}{$unit->shortlink()}++;
+      }
+      my @links;
+      foreach my $nm (sort keys %links) {
+         my $lks = $links{$nm} or next;
+         foreach my $link (sort keys %$lks) {
+            my $num = $lks->{$link} || 1;
+            $link .= ' x ' . $num if $num > 1;
+            push @links, $link;
+         }
+      }
+      my $links = join ', ', @links;
+      print $F "* Wave $wnum: $links\n" if $links;
+   }
 }
 
 1 # end BN::Out::BossStrikes
