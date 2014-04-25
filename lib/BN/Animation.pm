@@ -45,59 +45,87 @@ sub read_anim {
    die 'Invalid animation name' if $tag =~ /\W/;
    $anim->{_tag} = $tag;
    $animations{lc($tag)} = $anim;
+   my $scale = $ver > 4 ? 1/32 : 1;
 
-   my $point_size;
-   if ($ver == 4) {
-      $point_size = 10;
-   }
-   elsif ($ver == 6) {
-      $point_size = 8;
-   }
-   elsif ($ver == 8) {
-      my $flags = read_unpack($F, 2, 'v');
-      if    ($flags == 0)     { $point_size = 8 }
-      elsif ($flags == 1)     { $point_size = 12 }
-      elsif ($flags == 0x101) { $point_size = 24 }
+   my $alen = 0;
+   if ($ver >= 8) {
+      my $flags = read_short($F);
+      if    ($flags == 0)     { $alen = 0 }
+      elsif ($flags == 1)     { $alen = 1 }
+      elsif ($flags == 0x101) { $alen = 4 }
       else { die 'Unknown animation flags' }
-   }
-   else {
-      die 'Unknown data size';
    }
 
    my @points;
    for (1 .. $num_points) {
-      my @point = read_unpack($F, $point_size, 's<*');
-      splice @point, 2, 1 if $ver == 4;
-      push @points, \@point;
+      my %point;
+      $point{x1} = read_short($F) * $scale;
+      $point{y1} = read_short($F) * $scale;
+      read_short($F) if $ver == 4;
+      $point{x2} = read_short($F);
+      $point{y2} = read_short($F);
+      my $alpha = 1;
+      for (1 .. $alen) {
+         my $a = read_float($F);
+         $alpha = $a if $a < $alpha;
+      }
+      $point{a} = $alpha;
+      push @points, \%point;
    }
    $anim->{points} = \@points;
 
-   $anim->{box} = [ read_unpack($F, 8, 's<*') ];
+   $anim->{xmin} = read_short($F) * $scale;
+   $anim->{xmax} = read_short($F) * $scale;
+   $anim->{ymin} = read_short($F) * $scale;
+   $anim->{ymax} = read_short($F) * $scale;
 
    my $num_frames = read_unpack($F, 2, 'v');
    my @frames;
    for (1 .. $num_frames) {
-      my $len = read_unpack($F, ($ver == 4 ? 2 : 3), 'v');
+      my $len = read_short($F);
+      read_byte($F) if $ver > 4;
       push @frames, [ read_unpack($F, $len*2, 'v*') ];
    }
    $anim->{frames} = \@frames;
 
-   my @sequence;
    if ($ver == 4) {
-      @sequence = 0 .. $num_frames - 1;
+      $anim->{sequence} = [ 0 .. $num_frames - 1 ];
    }
    else {
       my $len = read_unpack($F, 4, 'v');
-      @sequence = read_unpack($F, $len*2, 'v*');
+      $anim->{sequence} = [ read_unpack($F, $len*2, 'v*') ];
    }
-   $anim->{sequence} = \@sequence;
 
    return $anim;
+}
+
+sub read_byte {
+   my ($F) = @_;
+   my $c = getc($F);
+   die 'hit EOF' unless defined $c;
+   return ord($c);
+}
+
+sub read_short {
+   my ($F) = @_;
+   my $buf;
+   my $count = read($F, $buf, 2) or die 'read error';
+   die 'hit EOF' unless $count == 2;
+   return unpack 's<', $buf;
+}
+
+sub read_float {
+   my ($F) = @_;
+   my $buf;
+   my $count = read($F, $buf, 4) or die 'read error';
+   die 'hit EOF' unless $count == 4;
+   return unpack 'f<', $buf;
 }
 
 sub read_unpack {
    my ($F, $len, $pat) = @_;
    return unless $len;
+   die 'bad length' if $len < 0;
    my $buf;
    my $count = read($F, $buf, $len) or die 'read error';
    die 'hit EOF' unless $count == $len;
@@ -106,15 +134,13 @@ sub read_unpack {
 
 sub num_frames {
    my ($anim) = @_;
-   return scalar @{$anim->{frames}};
+   return scalar @{$anim->{sequence}};
 }
 
 sub render {
    my ($anim, $ctx, @args) = @_;
-   my @scale;
    my $source = $anim->bitmap()->cairo_surface();
    foreach my $quad ($anim->frame(@args)) {
-      push @scale, sqrt(abs($quad->{det}));
       $ctx->save();
       $ctx->transform(Cairo::Matrix->init(@{$quad->{mat}}));
       $ctx->set_source_surface($source, 0, 0);
@@ -123,38 +149,26 @@ sub render {
       $ctx->line_to($quad->{x2}, $quad->{y2});
       $ctx->line_to($quad->{x3}, $quad->{y3});
       $ctx->close_path();
-      $ctx->fill();
+      if ($quad->{a} < 1) {
+         $ctx->clip();
+         $ctx->paint_with_alpha($quad->{a});
+      }
+      else {
+         $ctx->fill();
+      }
       $ctx->restore();
    }
-   return unless @scale;
-   @scale = sort { $a <=> $b } @scale;
-   return $scale[@scale/2];
 }
 
 sub frame {
-   my ($anim, $num, $size, $center, $boxframe) = @_;
-   my $frame = $anim->{frames}[$num || 0] or return;
+   my ($anim, $num) = @_;
+   defined($num = $anim->{sequence}[$num || 0]) or return;
+   my $frame = $anim->{frames}[$num] or return;
    die 'Unexpected frame size' if @$frame % 6;
    my $points = $anim->{points};
-   my @box = $anim->box($boxframe);
-
-   my $scale = 1;
-   if ($size) {
-      my $wid = $box[1] - $box[0];
-      my $hgt = $box[3] - $box[2];
-      $scale = $size / ($wid >= $hgt ? $wid : $hgt);
-   }
-
-   my $xoff = 0;
-   my $yoff = 0;
-   if ($center) {
-      $xoff = ($box[0] + $box[1]) / 2;
-      $yoff = ($box[3] + $box[2]) / 2;
-   }
-
    my $bitmap = $anim->bitmap();
-   my $xscale = $bitmap->width() / 0x7fff;
-   my $yscale = $bitmap->height() / 0x7fff;
+   my $xscale = ($bitmap->width() - 1) / 0x7fff;
+   my $yscale = ($bitmap->height() - 1) / 0x7fff;
 
    my @quads;
    for (my $i = 0; $i < @$frame; $i += 6) {
@@ -165,19 +179,21 @@ sub frame {
       my $p2 = $points->[$frame->[$i+2]];
       my $p3 = $points->[$frame->[$i+5]];
       my %q;
+      $q{a} = $p0->{a} or next;
 
-      $q{x0} = $p0->[2] * $xscale;  $q{y0} = $p0->[3] * $yscale;
-      $q{x1} = $p1->[2] * $xscale;  $q{y1} = $p1->[3] * $yscale;
-      $q{x2} = $p2->[2] * $xscale;  $q{y2} = $p2->[3] * $yscale;
-      $q{x3} = $p3->[2] * $xscale;  $q{y3} = $p3->[3] * $yscale;
+      $q{x0} = $p0->{x2} * $xscale;  $q{y0} = $p0->{y2} * $yscale;
+      $q{x1} = $p1->{x2} * $xscale;  $q{y1} = $p1->{y2} * $yscale;
+      $q{x2} = $p2->{x2} * $xscale;  $q{y2} = $p2->{y2} * $yscale;
+      $q{x3} = $p3->{x2} * $xscale;  $q{y3} = $p3->{y2} * $yscale;
       my $m11 = $q{x1} - $q{x0};  my $m12 = $q{x2} - $q{x0};
       my $m21 = $q{y1} - $q{y0};  my $m22 = $q{y2} - $q{y0};
       my $d = $m11 * $m22 - $m12 * $m21;
+      die 'bad transform' if abs($d) < 1e-6;
 
-      $q{X0} = ($p0->[0]-$xoff) * $scale;  $q{Y0} = ($p0->[1]-$yoff) * $scale;
-      $q{X1} = ($p1->[0]-$xoff) * $scale;  $q{Y1} = ($p1->[1]-$yoff) * $scale;
-      $q{X2} = ($p2->[0]-$xoff) * $scale;  $q{Y2} = ($p2->[1]-$yoff) * $scale;
-      $q{X3} = ($p3->[0]-$xoff) * $scale;  $q{Y3} = ($p3->[1]-$yoff) * $scale;
+      $q{X0} = $p0->{x1};  $q{Y0} = $p0->{y1};
+      $q{X1} = $p1->{x1};  $q{Y1} = $p1->{y1};
+      $q{X2} = $p2->{x1};  $q{Y2} = $p2->{y1};
+      $q{X3} = $p3->{x1};  $q{Y3} = $p3->{y1};
       my $M11 = $q{X1} - $q{X0};  my $M12 = $q{X2} - $q{X0};
       my $M21 = $q{Y1} - $q{Y0};  my $M22 = $q{Y2} - $q{Y0};
 
@@ -188,34 +204,30 @@ sub frame {
       my $a13 = $q{X0} - $a11*$q{x0} - $a12*$q{y0};
       my $a23 = $q{Y0} - $a21*$q{x0} - $a22*$q{y0};
       $q{mat} = [ $a11, $a21, $a12, $a22, $a13, $a23 ];
-      $q{det} = $a11*$a22 - $a12*$a21;
 
       push @quads, \%q;
    }
+
    return @quads;
 }
 
-sub sequence {
-   my ($anim) = @_;
-   return @{$anim->{sequence}};
-}
-
 sub box {
-   my ($anim, $frame_num) = @_;
-   my $frame;
-   $frame = $anim->{frames}[$frame_num] if defined $frame_num;
-   return @{$anim->{box}} unless $frame;
+   my ($anim, $num) = @_;
+   return ($anim->{xmin}, $anim->{xmax}, $anim->{ymin}, $anim->{ymax})
+      unless defined $num;
+   defined($num = $anim->{sequence}[$num]) or return;
+   my $frame = $anim->{frames}[$num] or return;
    my $points = $anim->{points};
    my ($xmin, $xmax, $ymin, $ymax);
-   my $p = $points->[$frame->[0]];
-   $xmin = $xmax = $p->[0];
-   $ymin = $ymax = $p->[1];
+   my $p = $points->[$frame->[0]] or return;
+   $xmin = $xmax = $p->{x1};
+   $ymin = $ymax = $p->{y1};
    foreach my $i (1 .. $#$frame) {
       $p = $points->[$frame->[$i]];
-      $xmin = $p->[0] if $p->[0] < $xmin;
-      $xmax = $p->[0] if $p->[0] > $xmax;
-      $ymin = $p->[1] if $p->[1] < $ymin;
-      $ymax = $p->[1] if $p->[1] > $ymax;
+      $xmin = $p->{x1} if $p->{x1} < $xmin;
+      $xmax = $p->{x1} if $p->{x1} > $xmax;
+      $ymin = $p->{y1} if $p->{y1} < $ymin;
+      $ymax = $p->{y1} if $p->{y1} > $ymax;
    }
    return ($xmin, $xmax, $ymin, $ymax);
 }

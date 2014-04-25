@@ -1,0 +1,135 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use lib 'lib';
+use BN;
+use Cairo;
+use POSIX qw( ceil );
+
+my $grid_x = 100;
+my $grid_y = 50;
+my $background = 'BattleMap.png';
+my $pad = 10;
+my $scale = 0.5;
+
+my $enc_id = $ARGV[0] or die "usage: $0 enc_id\n";
+my $enc = BN::Encounter->get($enc_id) or die "Encounter not found\n";
+$background = BN::File->get($background) or die "Background not found\n";
+
+my $w = ($enc->{layoutId} || '') eq 'equal_3x3' ? 1 : 2;
+
+my (@units, @rand, %taken);
+foreach my $info (@{$enc->{units}}) {
+   next if $info->{waveNumber};
+   my $unit = BN::Unit->get($info->{unitId}) or next;
+   my $anim = BN::Animation->get($unit->animation()) or next;
+   if (defined(my $pos = $info->{gridId})) {
+      my $x = 2 - ($pos % 5);
+      my $y = int($pos / 5) + 1;
+      $taken{$y}{$x} = 1;
+      ($x, $y) = xform($x, $y);
+      push @units, { anim=>$anim, x=>$x, y=>$y };
+   }
+   else {
+      push @rand, [ $unit, $anim ];
+   }
+}
+srand(0);
+foreach my $info (@rand) {
+   my ($unit, $anim) = @$info;
+   my $pref = $unit->{preferredRow} || 1;
+   for my $y ($pref, 1..3) {
+      my $ww = $y < 3 ? $w : 1;
+      my $max = 2*$ww + 1;
+      my $row = $taken{$y} ||= { };
+      next if keys(%$row) >= $max;
+      my $x;
+      do {
+         $x = int(rand $max) - $ww;
+      } while $row->{$x};
+      $row->{$x} = 1;
+      ($x, $y) = xform($x, $y);
+      push @units, { anim=>$anim, x=>$x, y=>$y };
+      last;
+   }
+}
+@units = sort { $a->{y} <=> $b->{y} || $a->{x} <=> $b->{x} } @units;
+
+my ($xmin, $xmax, $ymin, $ymax);
+foreach my $unit (@units) {
+   my ($uxmin, $uxmax, $uymin, $uymax) = $unit->{anim}->box(0) or next;
+   $uxmin += $unit->{x};
+   $uxmax += $unit->{x};
+   $uymin += $unit->{y};
+   $uymax += $unit->{y};
+   if (defined $xmin) {
+      $xmin = $uxmin if $uxmin < $xmin;
+      $xmax = $uxmax if $uxmax > $xmax;
+      $ymin = $uymin if $uymin < $ymin;
+      $ymax = $uymax if $uymax > $ymax;
+   }
+   else {
+      $xmin = $uxmin;
+      $xmax = $uxmax;
+      $ymin = $uymin;
+      $ymax = $uymax;
+   }
+}
+die "Nothing to draw\n" unless defined $xmin;
+$xmin -= $pad;
+$xmax += $pad;
+$ymin -= $pad;
+$ymax += $pad;
+
+my $bkg = Cairo::ImageSurface->create_from_png($background) or die;
+my $bwid = $bkg->get_width()  / 2;
+my $bhgt = $bkg->get_height() / 2;
+$xmin = -$bwid if $xmin < -$bwid;
+$xmax =  $bwid if $xmax >  $bwid;
+$ymin = -$bhgt if $ymin < -$bhgt;
+$ymax =  $bhgt if $ymax >  $bhgt;
+
+my $wid = ceil(($xmax - $xmin) * $scale);
+my $hgt = ceil(($ymax - $ymin) * $scale);
+my $surface = Cairo::ImageSurface->create('rgb24', $wid, $hgt);
+my $ctx = Cairo::Context->create($surface);
+$ctx->translate(($wid - ($xmax + $xmin) * $scale) / 2,
+   ($hgt - ($ymax + $ymin) * $scale) / 2);
+$ctx->scale($scale, $scale);
+$ctx->set_source_surface($bkg, -$bwid, -$bhgt);
+$ctx->paint();
+
+$ctx->set_line_width(0.75);
+$ctx->set_source_rgb(0, 0, 0);
+$ctx->move_to(xform(-$w-1, 1));  $ctx->line_to(xform($w, 1));
+$ctx->move_to(xform(-$w-1, 2));  $ctx->line_to(xform($w, 2));
+$ctx->move_to(xform(-$w-1, 3));  $ctx->line_to(xform($w, 3));
+$ctx->move_to(xform(-2, 4));     $ctx->line_to(xform(1, 4));
+if ($w == 2) {
+   $ctx->move_to(xform(-3, 1));  $ctx->line_to(xform(-3, 3));
+   $ctx->move_to(xform(2, 1));   $ctx->line_to(xform(2, 3));
+}
+for my $x (-2 .. 1) {
+   $ctx->move_to(xform($x, 1));  $ctx->line_to(xform($x, 4));
+}
+$ctx->stroke();
+
+foreach my $unit (@units) {
+   $ctx->save();
+   $ctx->translate($unit->{x}, $unit->{y});
+   $unit->{anim}->render($ctx, 0);
+   $ctx->restore();
+}
+
+my $tempfile = $enc_id . '_temp.png';
+my $outfile = $enc_id . '.png';
+$surface->write_to_png($tempfile) or die;
+system("pngcrush -q $tempfile $outfile") == 0 or die;
+unlink $tempfile;
+
+sub xform {
+   my ($x, $y) = @_;
+   $y -= 0.25;
+   return ($grid_x * ($x + $y), $grid_y * ($x - $y + 1));
+}
+

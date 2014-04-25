@@ -14,6 +14,13 @@ else {
    die "Don't know OS $^O";
 }
 
+sub get {
+   my ($class, $file) = @_;
+   return "$new_dir/$file" if -f "$new_dir/$file";
+   return "$app_dir/$file" if -f "$app_dir/$file";
+   return;
+}
+
 sub read {
    my ($class, $file, $enc) = @_;
    $enc //= '';
