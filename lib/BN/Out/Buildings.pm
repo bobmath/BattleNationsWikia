@@ -13,7 +13,6 @@ sub write {
       open my $F, '>', $file or die "Can't write $file: $!";;
 
       building_summary($F, $build);
-      building_defense($F, $build);
       orchard_goods($F, $build);
       building_goods($F, $build);
       quest_goods($F, $build);
@@ -110,6 +109,7 @@ sub building_summary {
 
    print_line($F, 'game file name', $build->tag());
    print $F "}}\n";
+   building_defense($F, $build);
    if (my $desc = $build->description()) {
       print $F "{{IGD|$desc}}\n";
    }
@@ -120,9 +120,11 @@ sub building_defense {
    my ($F, $build) = @_;
    my $unit = BN::Unit->get($build->defense()) or return;
    print $F "{{UnitInfobox\n";
+   print_line($F, 'name', '-');
    if (my $short = $unit->shortname()) {
       print_line($F, 'shortname', $short) unless $short eq $unit->name();
    }
+   print_line($F, 'ut', $unit->type());
    print_line($F, 'blocking', $unit->blocking());
    print_line($F, 'immunities', $unit->immunities());
 
