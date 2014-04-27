@@ -13,6 +13,7 @@ sub write {
       open my $F, '>', $file or die "Can't write $file: $!";;
 
       building_summary($F, $build);
+      building_attacks($F, $build);
       orchard_goods($F, $build);
       building_goods($F, $build);
       quest_goods($F, $build);
@@ -143,7 +144,11 @@ sub building_defense {
    print_line($F, 'nocat', 'true');
    print_line($F, 'game file name', $unit->tag());
    print $F "}}\n";
+}
 
+sub building_attacks {
+   my ($F, $build) = @_;
+   my $unit = BN::Unit->get($build->defense()) or return;
    BN::Out::Units::old_attacks($F, $unit);
    print $F "\n";
 }
