@@ -21,6 +21,7 @@ $ignore{$_} = 1 for qw(
    nextname
    prev
    prevname
+   targetbox-cols
    targetbox-rows
    weaponicon
 );
