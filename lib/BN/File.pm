@@ -3,12 +3,18 @@ use strict;
 use warnings;
 use JSON::XS qw( decode_json );
 use File::Glob qw( bsd_glob GLOB_NOCASE );
+use File::HomeDir;
 
 my ($app_dir, $new_dir);
 if ($^O eq 'darwin') {
    $app_dir = '/Applications/BattleNations.app/Contents/Resources/bundle';
-   my $user_dir = (getpwuid $<)[7] or die 'User dir not found';
-   $new_dir = $user_dir . '/Library/Containers/com.z2live.battlenations-mac/Data/Library/Caches/jujulib/remoteData';
+   $new_dir = File::HomeDir->my_home() .
+      '/Library/Containers/com.z2live.battlenations-mac/Data/Library/Caches/jujulib/remoteData';
+}
+elsif ($^O =~ /^MSWin/) {
+   $app_dir = 'C:/Program Files/Steam/SteamApps/common/BattleNations/assets';
+   $new_dir = File::HomeDir->my_home() .
+      'Local Settings/Application Data/Z2/Battle Nations/cache/remoteData';
 }
 else {
    die "Don't know OS $^O";
