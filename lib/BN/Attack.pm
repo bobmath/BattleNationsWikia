@@ -209,7 +209,7 @@ sub crit {
    my $crit = int(($att->{criticalHitPercent} || 0) + ($bonus || 0) * $mult
       + ($att->{base_critPercent} || 0) * ($att->{critFromWeapon} // 1));
    my @crit;
-   push @crit, $crit . '%' if $crit != 5 || $maxbonus;
+   push @crit, $crit . '%';
    if (my $mods = $att->{criticalBonuses}) {
       foreach my $targ (sort keys %$mods) {
          my $val = $crit + $mods->{$targ};
@@ -228,7 +228,6 @@ sub crit {
          push @crit, sprintf('+%.0f%% of rank bonus', $mult*100);
       }
    }
-   return unless @crit;
    return join('<br>', @crit);
 }
 
