@@ -153,7 +153,8 @@ sub unit_weapons {
          print_line($F, 'attack' . ++$n, '');
          print $F "{{$attackbox\n";
          print_line($F, 'name', $attack->name());
-         print_line($F, 'image', $attack->filename($unit) . '_Damage.gif');
+         print_line($F, 'image',
+            '[[File:' . $attack->filename($unit) . '_Damage.gif]]');
          print_line($F, 'weaponicon', BN::Out->icon($attack->icon(), '40px'));
          $r += print_line($F, 'rank', $rank);
          $r += print_line($F, 'damagetype', $attack->dmgtype());
