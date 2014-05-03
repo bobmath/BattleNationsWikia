@@ -134,8 +134,8 @@ sub show_encounter {
    return unless $enc;
    my $waves = $enc->waves() or return;
    my $file = ucfirst($enc->tag());
-   print $F "[[File:$file.png]]<br>\n";
-   print $F "Battle $num:\n";
+   print $F "===Battle $num===\n";
+   print $F "[[File:$file.png]]\n";
    my $wnum;
    foreach my $wave (@$waves) {
       $wnum++;
