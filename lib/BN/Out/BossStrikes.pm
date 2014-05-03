@@ -105,9 +105,7 @@ sub show_enemies {
          }
          my $enum;
          foreach my $eid (sort keys %$eids) {
-            $enum++;
-            print $F "Battle $enum:\n";
-            show_encounter($F, BN::Encounter->get($eid));
+            show_encounter($F, BN::Encounter->get($eid), ++$enum);
          }
       }
    }
@@ -132,9 +130,12 @@ sub add_encounter {
 }
 
 sub show_encounter {
-   my ($F, $enc) = @_;
+   my ($F, $enc, $num) = @_;
    return unless $enc;
    my $waves = $enc->waves() or return;
+   my $file = ucfirst($enc->tag());
+   print $F "[[File:$file.png]]<br>\n";
+   print $F "Battle $num:\n";
    my $wnum;
    foreach my $wave (@$waves) {
       $wnum++;
