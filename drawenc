@@ -16,42 +16,12 @@ my $enc_id = $ARGV[0] or die "usage: $0 enc_id\n";
 my $enc = BN::Encounter->get($enc_id) or die "Encounter not found\n";
 $background = BN::File->get($background) or die "Background not found\n";
 
-my $w = ($enc->{layoutId} || '') eq 'equal_3x3' ? 1 : 2;
+my $w = $enc->layout_width();
 
-my (@units, @rand, %taken);
-foreach my $info (@{$enc->{units}}) {
-   next if $info->{waveNumber};
-   my $unit = BN::Unit->get($info->{unitId}) or next;
-   my $anim = BN::Animation->get($unit->animation()) or next;
-   if (defined(my $pos = $info->{gridId})) {
-      my $x = 2 - ($pos % 5);
-      my $y = int($pos / 5) + 1;
-      $taken{$y}{$x} = 1;
-      ($x, $y) = xform($x, $y);
-      push @units, { anim=>$anim, x=>$x, y=>$y };
-   }
-   else {
-      push @rand, [ $unit, $anim ];
-   }
-}
-srand(0);
-foreach my $info (@rand) {
-   my ($unit, $anim) = @$info;
-   my $pref = $unit->{preferredRow} || 1;
-   for my $y ($pref, 1..3) {
-      my $ww = $y < 3 ? $w : 1;
-      my $max = 2*$ww + 1;
-      my $row = $taken{$y} ||= { };
-      next if keys(%$row) >= $max;
-      my $x;
-      do {
-         $x = int(rand $max) - $ww;
-      } while $row->{$x};
-      $row->{$x} = 1;
-      ($x, $y) = xform($x, $y);
-      push @units, { anim=>$anim, x=>$x, y=>$y };
-      last;
-   }
+my @units = $enc->unit_positions();
+foreach my $u (@units) {
+   $u->{anim} = BN::Animation->get($u->{unit}->animation());
+   ($u->{x}, $u->{y}) = xform($u->{x}, $u->{y});
 }
 @units = sort { $a->{y} <=> $b->{y} || $a->{x} <=> $b->{x} } @units;
 

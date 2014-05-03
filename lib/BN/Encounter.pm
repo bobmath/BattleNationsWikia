@@ -69,4 +69,49 @@ sub tables {
    return @$tbls;
 }
 
+sub layout_width {
+   my ($enc) = @_;
+   return ($enc->{layoutId} || '') eq 'equal_3x3' ? 1 : 2;
+}
+
+sub unit_positions {
+   my ($enc, $wave) = @_;
+   my $wid = $enc->layout_width();
+   $wave ||= 1;
+   my (@units, @rand, %taken);
+   foreach my $info (@{$enc->{units}}) {
+      next unless ($info->{waveNumber} || 0) + 1 == $wave;;
+      my $unit = BN::Unit->get($info->{unitId}) or next;
+      if (defined(my $pos = $info->{gridId})) {
+         my $x = 2 - ($pos % 5);
+         my $y = int($pos / 5) + 1;
+         $taken{$y}{$x} = 1;
+         push @units, { unit=>$unit, x=>$x, y=>$y };
+      }
+      else {
+         push @rand, $unit;
+      }
+   }
+   srand(0);
+   foreach my $unit (@rand) {
+      my $pref = $unit->preferred_row() || 1;
+      for my $i (0 .. 2) {
+         my $y = $i + $pref;
+         $y -= 3 if $y > 3;
+         my $row_wid = $y < 3 ? $wid : 1;
+         my $max = 2*$row_wid + 1;
+         my $row = $taken{$y} ||= { };
+         next if keys(%$row) >= $max;
+         my $x;
+         do {
+            $x = int(rand $max) - $row_wid;
+         } while $row->{$x};
+         $row->{$x} = 1;
+         push @units, { unit=>$unit, x=>$x, y=>$y };
+         last;
+      }
+   }
+   return @units;
+}
+
 1 # end BN::Encounter

@@ -45,6 +45,7 @@ BN->simple_accessor('back_icon', 'backIcon');
 BN->simple_accessor('animation', 'frontIdleAnimation');
 BN->simple_accessor('back_animation', 'backIdleAnimation');
 BN->simple_accessor('visibility_prereq', 'visibilityPrereq');
+BN->simple_accessor('preferred_row', 'preferredRow');
 
 BN->accessor(shortname => sub {
    my ($unit) = @_;
