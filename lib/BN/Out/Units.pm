@@ -550,13 +550,8 @@ sub old_attacks {
          my $r = 1;
          print_line($F, 'affiliation', $affil);
          print_line($F, 'nocat', 'true') unless $affil;
-
-         if (is_aoe($attack->target_area())
-            || is_aoe($attack->damage_area()))
-         {
-            my $file = $attack->filename($unit);
-            print_line($F, 'image', "[[File:$file.png]]");
-         }
+         print_line($F, 'image',
+            '[[File:' . $attack->filename($unit) . '_Damage.gif]]');
 
          print_line($F, 'weaponicon', BN::Out->icon($attack->icon(), '40px'));
          $r += print_line($F, 'offense', $attack->offense($accuracy));
