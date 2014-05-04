@@ -94,7 +94,7 @@ foreach my $unit (@units) {
 my $tempfile = $enc_id . '_temp.png';
 my $outfile = $enc_id . '.png';
 $surface->write_to_png($tempfile) or die;
-system("pngcrush -q $tempfile $outfile") == 0 or die;
+system("pngcrush -new -q $tempfile $outfile") == 0 or die;
 unlink $tempfile;
 
 sub xform {

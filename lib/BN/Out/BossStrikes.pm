@@ -40,15 +40,15 @@ sub show_tiers {
 
 sub show_enemies {
    my ($F, $strike) = @_;
-   my (%encounters, %levels);
+   my %encounters;
    foreach my $encounter (@{$strike->{globalEventEncounters}}) {
-      add_encounter($encounter, \%encounters, \%levels, 0);
+      add_encounter($encounter, \%encounters, 0);
    }
    my $tnum;
    foreach my $tier ($strike->tiers()) {
       ++$tnum;
       foreach my $encounter (@{$tier->{encounters}}) {
-         add_encounter($encounter, \%encounters, \%levels, $tnum);
+         add_encounter($encounter, \%encounters, $tnum);
       }
    }
 
@@ -81,39 +81,10 @@ sub show_enemies {
          qq{| align="right" | $inf->{min}-$inf->{max}\n};
    }
    print $F "|}\n\n";
-
-   foreach my $levels (sort keys %levels) {
-      my $tiers = $levels{$levels} or next;
-      print $F "==Level $levels==\n";
-      my @tiers = sort {$a <=> $b} keys %$tiers;
-      while (@tiers) {
-         my $tnum = shift @tiers;
-         my $eids = $tiers->{$tnum} or next;
-         if ($tnum) {
-            my $eidstr = join ',', sort keys %$eids;
-            my $hinum = $tnum;
-            while (@tiers) {
-               my $nextnum = $tiers[0];
-               my $nextids = $tiers->{$nextnum} or last;
-               my $nextstr = join ',', sort keys %$nextids;
-               last unless $nextstr eq $eidstr;
-               $hinum = $nextnum;
-               shift @tiers;
-            }
-            if ($tnum == $hinum) { print $F "===Tier $tnum===\n" }
-            else { print $F "===Tier $tnum-$hinum===\n" }
-         }
-         my $enum;
-         foreach my $eid (sort keys %$eids) {
-            show_encounter($F, BN::Encounter->get($eid), ++$enum);
-         }
-      }
-   }
-   print $F "\n";
 }
 
 sub add_encounter {
-   my ($enc, $encounters, $levels, $tier) = @_;
+   my ($enc, $encounters, $tier) = @_;
    my $id = $enc->{encounterId} or return;
    my $max_level = BN::Level->max();
    my $min = $enc->{minLevel} || 1;
@@ -125,37 +96,6 @@ sub add_encounter {
    }
    else {
       $encounters->{$id} = { min=>$min, max=>$max };
-   }
-   $levels->{"$min-$max"}{$tier}{$id} = 1;
-}
-
-sub show_encounter {
-   my ($F, $enc, $num) = @_;
-   return unless $enc;
-   my $waves = $enc->waves() or return;
-   my $file = ucfirst($enc->tag());
-   print $F "===Battle $num===\n";
-   print $F "[[File:$file.png]]\n";
-   my $wnum;
-   foreach my $wave (@$waves) {
-      $wnum++;
-      next unless $wave;
-      my %links;
-      foreach my $id (@$wave) {
-         my $unit = BN::Unit->get($id) or next;
-         $links{$unit->shortname()}{$unit->shortlink()}++;
-      }
-      my @links;
-      foreach my $nm (sort keys %links) {
-         my $lks = $links{$nm} or next;
-         foreach my $link (sort keys %$lks) {
-            my $num = $lks->{$link} || 1;
-            $link .= ' x ' . $num if $num > 1;
-            push @links, $link;
-         }
-      }
-      my $links = join ', ', @links;
-      print $F "* Wave $wnum: $links\n" if $links;
    }
 }
 

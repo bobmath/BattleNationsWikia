@@ -1,0 +1,196 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use lib 'lib';
+use BN;
+use Cairo;
+use POSIX qw( ceil );
+
+my $grid_x = 100;
+my $grid_y = 50;
+my $background = 'BattleMap.png';
+my $pad = 10;
+my $scale = 0.5;
+
+die "Usage: $0 boss_id\n" unless @ARGV == 1;
+my $strike = BN::BossStrike->get($ARGV[0]) or die "Boss strike not found\n";
+$background = BN::File->get($background) or die "Background not found\n";
+
+my %levels;
+foreach my $encounter (@{$strike->{globalEventEncounters}}) {
+   add_encounter($encounter, \%levels, 0);
+}
+my $tnum;
+foreach my $tier ($strike->tiers()) {
+   ++$tnum;
+   foreach my $encounter (@{$tier->{encounters}}) {
+      add_encounter($encounter, \%levels, $tnum);
+   }
+}
+
+foreach my $levels (sort keys %levels) {
+   my $tiers = $levels{$levels} or next;
+   my $file = 'Level_' . $levels . '_battles';
+   print "$file\n";
+   open my $F, '>', $file or die "Can't write $file: $!";
+   my @tiers = sort {$a <=> $b} keys %$tiers;
+   while (@tiers) {
+      my $tnum = shift @tiers;
+      my $eids = $tiers->{$tnum} or next;
+      if ($tnum) {
+         my $eidstr = join ',', sort keys %$eids;
+         my $hinum = $tnum;
+         while (@tiers) {
+            my $nextnum = $tiers[0];
+            my $nextids = $tiers->{$nextnum} or last;
+            my $nextstr = join ',', sort keys %$nextids;
+            last unless $nextstr eq $eidstr;
+            $hinum = $nextnum;
+            shift @tiers;
+         }
+         if ($tnum == $hinum) { print $F "==Tier $tnum==\n" }
+         else { print $F "==Tier $tnum-$hinum==\n" }
+      }
+      my $enum;
+      foreach my $eid (sort keys %$eids) {
+         show_encounter($F, BN::Encounter->get($eid), ++$enum);
+         draw_encounter($eid);
+      }
+   }
+}
+
+my %seen;
+sub draw_encounter {
+   my ($enc_id) = @_;
+   return if $seen{$enc_id}++;
+   my $enc = BN::Encounter->get($enc_id) or return;
+   print "$enc_id\n";
+
+   my $w = $enc->layout_width();
+
+   my @units = $enc->unit_positions();
+   foreach my $u (@units) {
+      $u->{anim} = BN::Animation->get($u->{unit}->animation());
+      ($u->{x}, $u->{y}) = xform($u->{x}, $u->{y});
+   }
+   @units = sort { $a->{y} <=> $b->{y} || $a->{x} <=> $b->{x} } @units;
+
+   my ($xmin, $xmax, $ymin, $ymax);
+   foreach my $unit (@units) {
+      my ($uxmin, $uxmax, $uymin, $uymax) = $unit->{anim}->box(0) or next;
+      $uxmin += $unit->{x};
+      $uxmax += $unit->{x};
+      $uymin += $unit->{y};
+      $uymax += $unit->{y};
+      if (defined $xmin) {
+         $xmin = $uxmin if $uxmin < $xmin;
+         $xmax = $uxmax if $uxmax > $xmax;
+         $ymin = $uymin if $uymin < $ymin;
+         $ymax = $uymax if $uymax > $ymax;
+      }
+      else {
+         $xmin = $uxmin;
+         $xmax = $uxmax;
+         $ymin = $uymin;
+         $ymax = $uymax;
+      }
+   }
+   die "Nothing to draw\n" unless defined $xmin;
+   $xmin -= $pad;
+   $xmax += $pad;
+   $ymin -= $pad;
+   $ymax += $pad;
+
+   my $bkg = Cairo::ImageSurface->create_from_png($background) or die;
+   my $bwid = $bkg->get_width()  / 2;
+   my $bhgt = $bkg->get_height() / 2;
+   $xmin = -$bwid if $xmin < -$bwid;
+   $xmax =  $bwid if $xmax >  $bwid;
+   $ymin = -$bhgt if $ymin < -$bhgt;
+   $ymax =  $bhgt if $ymax >  $bhgt;
+
+   my $wid = ceil(($xmax - $xmin) * $scale);
+   my $hgt = ceil(($ymax - $ymin) * $scale);
+   my $surface = Cairo::ImageSurface->create('rgb24', $wid, $hgt);
+   my $ctx = Cairo::Context->create($surface);
+   $ctx->translate(($wid - ($xmax + $xmin) * $scale) / 2,
+      ($hgt - ($ymax + $ymin) * $scale) / 2);
+   $ctx->scale($scale, $scale);
+   $ctx->set_source_surface($bkg, -$bwid, -$bhgt);
+   $ctx->paint();
+
+   $ctx->set_line_width(0.75);
+   $ctx->set_source_rgb(0, 0, 0);
+   $ctx->move_to(xform(-$w-1, 1));  $ctx->line_to(xform($w, 1));
+   $ctx->move_to(xform(-$w-1, 2));  $ctx->line_to(xform($w, 2));
+   $ctx->move_to(xform(-$w-1, 3));  $ctx->line_to(xform($w, 3));
+   $ctx->move_to(xform(-2, 4));     $ctx->line_to(xform(1, 4));
+   if ($w == 2) {
+      $ctx->move_to(xform(-3, 1));  $ctx->line_to(xform(-3, 3));
+      $ctx->move_to(xform(2, 1));   $ctx->line_to(xform(2, 3));
+   }
+   for my $x (-2 .. 1) {
+      $ctx->move_to(xform($x, 1));  $ctx->line_to(xform($x, 4));
+   }
+   $ctx->stroke();
+
+   foreach my $unit (@units) {
+      $ctx->save();
+      $ctx->translate($unit->{x}, $unit->{y});
+      $unit->{anim}->render($ctx, 0);
+      $ctx->restore();
+   }
+
+   my $tempfile = $enc_id . '_temp.png';
+   my $outfile = $enc_id . '.png';
+   $surface->write_to_png($tempfile) or die;
+   system("pngcrush -new -q $tempfile $outfile") == 0 or die;
+   unlink $tempfile;
+}
+
+sub add_encounter {
+   my ($enc, $levels, $tier) = @_;
+   my $id = $enc->{encounterId} or return;
+   my $max_level = BN::Level->max();
+   my $min = $enc->{minLevel} || 1;
+   my $max = $enc->{maxLevel} || $max_level;
+   $max = $max_level if $max > $max_level;
+   $levels->{"$min-$max"}{$tier}{$id} = 1;
+}
+
+sub show_encounter {
+   my ($F, $enc, $num) = @_;
+   return unless $enc;
+   my $waves = $enc->waves() or return;
+   my $file = ucfirst($enc->tag());
+   print $F "===Battle $num===\n";
+   print $F "[[File:$file.png]]\n";
+   my $wnum;
+   foreach my $wave (@$waves) {
+      $wnum++;
+      next unless $wave;
+      my %links;
+      foreach my $id (@$wave) {
+         my $unit = BN::Unit->get($id) or next;
+         $links{$unit->shortname()}{$unit->shortlink()}++;
+      }
+      my @links;
+      foreach my $nm (sort keys %links) {
+         my $lks = $links{$nm} or next;
+         foreach my $link (sort keys %$lks) {
+            my $num = $lks->{$link} || 1;
+            $link .= ' x ' . $num if $num > 1;
+            push @links, $link;
+         }
+      }
+      my $links = join ', ', @links;
+      print $F "* Wave $wnum: $links\n" if $links;
+   }
+}
+
+sub xform {
+   my ($x, $y) = @_;
+   $y -= 0.25;
+   return ($grid_x * ($x + $y), $grid_y * ($x - $y + 1));
+}
+
