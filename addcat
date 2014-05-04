@@ -1,0 +1,92 @@
+#!/usr/bin/env perl
+# Add a category to a bunch of pages
+use strict;
+use warnings;
+use Getopt::Std qw( getopts );
+use JSON::XS qw( decode_json );
+use LWP::UserAgent ( );
+use Term::ReadKey qw( ReadMode );
+
+my $api_url = 'http://battlenations.wikia.com/api.php';
+my $ua = LWP::UserAgent->new(cookie_jar => {});
+
+my %opts;
+getopts('c:', \%opts) or die 'bad opts';
+my $cat = $opts{c} or die 'cat required';
+$cat = "\n[[Category:$cat]]";
+die "Usage: $0 -c cat pages..." unless @ARGV;
+
+login();
+foreach my $page (@ARGV) {
+   $page =~ s/_/ /g;
+   print "$page\n";
+   sleep 10;
+   my $token = get_token($page);
+   append($page, $cat, 'add category', $token);
+}
+
+sub login {
+   local $| = 1;
+   print "Username: ";
+   chomp(my $user = <STDIN>);
+   die "Aborted\n" unless $user;
+   ReadMode(noecho  => \*STDIN);
+   print "Password: ";
+   chomp(my $pass = <STDIN>);
+   ReadMode(restore => \*STDIN);
+   print "\n";
+   die "Aborted\n" unless $pass;
+   my @args = (
+      format => 'json',
+      action => 'login',
+      lgname => $user,
+      lgpassword => $pass,
+   );
+   my $resp = $ua->post($api_url, \@args);
+   die 'login failed' unless $resp->is_success();
+   my $dat = decode_json($resp->content()) or die;
+   if ($dat->{login}{result} eq 'NeedToken') {
+      push @args, lgtoken => $dat->{login}{token};
+      $resp = $ua->post($api_url, \@args);
+      die 'login failed' unless $resp->is_success();
+      $dat = decode_json($resp->content()) or die;
+   }
+   die "Login failed\n" unless $dat->{login}{result} eq 'Success';
+}
+
+sub get_token {
+   my ($page) = @_;
+   my $resp = $ua->post($api_url, [
+      format => 'json',
+      action => 'query',
+      prop => 'info',
+      intoken => 'edit',
+      titles => $page // 'Nopage',
+   ]);
+   die unless $resp->is_success();
+   my $dat = decode_json($resp->content()) or die;
+   $dat = $dat->{query} or die;
+   $dat = $dat->{pages} or die;
+   die unless keys(%$dat) == 1;
+   ($dat) = values(%$dat);
+   $dat = $dat->{edittoken} or die;
+   die unless length($dat) > 4;
+   return $dat;
+}
+
+sub append {
+   my ($page, $text, $summary, $token) = @_;
+   return unless $page && $text;
+   my $resp = $ua->post($api_url, [
+      format => 'json',
+      action => 'edit',
+      title => $page,
+      appendtext => $text,
+      summary => $summary // '',
+      token => $token,
+   ]);
+   die unless $resp->is_success();
+   my $dat = decode_json($resp->content()) or die;
+   die unless $dat->{edit}{result} eq 'Success';
+}
+
