@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+# Draw images for a boss strike.
 use strict;
 use warnings;
 use lib 'lib';
@@ -12,7 +13,7 @@ my $background = 'BattleMap.png';
 my $pad = 10;
 my $scale = 0.5;
 
-die "Usage: $0 boss_id\n" unless @ARGV == 1;
+die "Usage: $0 strike_id\n" unless @ARGV == 1;
 my $strike = BN::BossStrike->get($ARGV[0]) or die "Boss strike not found\n";
 $background = BN::File->get($background) or die "Background not found\n";
 
