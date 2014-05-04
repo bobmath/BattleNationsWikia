@@ -12,13 +12,13 @@ my $api_url = 'http://battlenations.wikia.com/api.php';
 my $ua = LWP::UserAgent->new(cookie_jar => {});
 
 my %args;
-getopts('t:', \%args) or die "Bad args\n";
+getopts('rt:', \%args) or die "Bad args\n";
 die "Usage: $0 files\n" unless @ARGV;
 
 login();
 my $token = get_token();
 foreach my $file (@ARGV) {
-   upload($file, $args{t});
+   upload($file, $args{t}, $args{r});
 }
 
 sub login {
@@ -68,7 +68,7 @@ sub get_token {
 }
 
 sub upload {
-   my ($file, $text) = @_;
+   my ($file, $text, $rm) = @_;
    print $file, "\n";
    die 'file not found' unless -f $file;
    sleep 10;
@@ -92,5 +92,6 @@ sub upload {
       }
    }
    die 'upload failed' unless $dat->{upload}{result} eq 'Success';
+   unlink $file if $rm;
 }
 
