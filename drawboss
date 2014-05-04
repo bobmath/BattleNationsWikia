@@ -57,6 +57,7 @@ foreach my $levels (sort keys %levels) {
          draw_encounter($eid);
       }
    }
+   print $F "[[Category:Boss Strike]]\n";
 }
 
 my %seen;
