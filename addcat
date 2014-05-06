@@ -11,18 +11,19 @@ my $api_url = 'http://battlenations.wikia.com/api.php';
 my $ua = LWP::UserAgent->new(cookie_jar => {});
 
 my %opts;
-getopts('c:', \%opts) or die 'bad opts';
+getopts('c:t:', \%opts) or die 'bad opts';
 my $cat = $opts{c} or die 'cat required';
-$cat = "\n[[Category:$cat]]";
+$cat = "[[Category:$cat]]";
+my $time = $opts{t} || 10;
+$time = 1 if $time < 1;
 die "Usage: $0 -c cat pages..." unless @ARGV;
 
 login();
 foreach my $page (@ARGV) {
    $page =~ s/_/ /g;
    print "$page\n";
-   sleep 10;
-   my $token = get_token($page);
-   append($page, $cat, 'add category', $token);
+   sleep $time;
+   append($page, $cat, 'add category');
 }
 
 sub login {
@@ -54,12 +55,16 @@ sub login {
    die "Login failed\n" unless $dat->{login}{result} eq 'Success';
 }
 
-sub get_token {
-   my ($page) = @_;
+sub append {
+   my ($page, $text, $summary) = @_;
+   return unless $page && $text;
+
    my $resp = $ua->post($api_url, [
       format => 'json',
       action => 'query',
-      prop => 'info',
+      prop => 'info|revisions',
+      rvprop => 'content',
+      rvlimit => 1,
       intoken => 'edit',
       titles => $page // 'Nopage',
    ]);
@@ -69,24 +74,39 @@ sub get_token {
    $dat = $dat->{pages} or die;
    die unless keys(%$dat) == 1;
    ($dat) = values(%$dat);
-   $dat = $dat->{edittoken} or die;
-   die unless length($dat) > 4;
-   return $dat;
-}
+   if (exists $dat->{missing}) {
+      print "Missing\n";
+      return;
+   }
+   if (hascat($dat->{revisions}, $text)) {
+      print "Skipped\n";
+      return;
+   }
+   my $token = $dat->{edittoken} or die;
+   die unless length($token) > 4;
 
-sub append {
-   my ($page, $text, $summary, $token) = @_;
-   return unless $page && $text;
-   my $resp = $ua->post($api_url, [
+   $resp = $ua->post($api_url, [
       format => 'json',
       action => 'edit',
       title => $page,
-      appendtext => $text,
+      nocreate => '',
+      appendtext => "\n" . $text,
       summary => $summary // '',
       token => $token,
    ]);
    die unless $resp->is_success();
-   my $dat = decode_json($resp->content()) or die;
-   die unless $dat->{edit}{result} eq 'Success';
+   $dat = decode_json($resp->content()) or die;
+   unless ($dat->{edit}{result} eq 'Success') {
+      print $resp->content();
+      die 'append failed';
+   }
+}
+
+sub hascat {
+   my ($revs, $text) = @_;
+   return unless $revs;
+   my $rev = $revs->[0] or return;
+   my $content = $rev->{'*'} or return;
+   return index($content, $text) >= 0;
 }
 
