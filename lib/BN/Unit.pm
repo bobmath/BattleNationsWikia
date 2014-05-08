@@ -156,11 +156,13 @@ BN->list_accessor(weapons => sub {
 });
 
 my %immune = (
-   Cold     => '{{ColdEnvironment}} Environmental Cold',
-   Fire     => '{{FireDOT}} Fire',
-   Frozen   => '{{Freeze}} Freeze',
-   Poison   => '{{PoisonDOT}} Poison',
-   Stun     => '{{Stun}} Stun',
+   Cold        => '{{ColdEnvironment}} Environmental Cold',
+   Fire        => '{{FireDOT}} Fire',
+   Flammable   => '{{Flammable}} Flammable',
+   Frozen      => '{{Freeze}} Freeze',
+   Poison      => '{{PoisonDOT}} Poison',
+   Shatter     => '{{Shatter}} Shatter',
+   Stun        => '{{Stun}} Stun',
 );
 
 BN->accessor(immunities => sub {

@@ -126,8 +126,8 @@ sub {
       elsif ($tag =~ /^frozen_(\d+)_turn$/) {
          push @effects, "{{Freeze|chance=$val|duration=$1}}";
       }
-      elsif ($tag =~ /^stun_(\d+)_turn$/) {
-         push @effects, "{{Stun|chance=$val|duration=$1}}";
+      elsif ($tag =~ /^(flammable|shatter|stun)_(\d+)_turn$/) {
+         push @effects, "{{\u$1|chance=$val|duration=$2}}";
       }
       else {
          push @effects, "$tag=$val";
