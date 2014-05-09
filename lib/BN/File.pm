@@ -12,7 +12,9 @@ if ($^O eq 'darwin') {
       '/Library/Containers/com.z2live.battlenations-mac/Data/Library/Caches/jujulib/remoteData';
 }
 elsif ($^O =~ /^MSWin/) {
-   $app_dir = 'C:/Program Files/Steam/SteamApps/common/BattleNations/assets';
+   my $steam_dir = 'Steam/SteamApps/common/BattleNations/assets'
+   $app_dir = "C:/Program Files/$steam_dir";
+   $app_dir = "C:/Program Files (x86)/$steam_dir" unless -e $app_dir;
    $new_dir = File::HomeDir->my_home() .
       'Local Settings/Application Data/Z2/Battle Nations/cache/remoteData';
 }
