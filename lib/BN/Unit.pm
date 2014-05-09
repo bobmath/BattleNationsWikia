@@ -168,8 +168,8 @@ my %immune = (
 BN->accessor(immunities => sub {
    my ($unit) = @_;
    my $immune = $unit->{statusEffectImmunities} or return;
-   my @immune = map { $immune{$_} || $_ } @$immune or return;
-   return join('<br>', sort @immune);
+   my @immune = map { $immune{$_} || $_ } sort @$immune or return;
+   return join('<br>', @immune);
 });
 
 BN->list_accessor(ranks => sub {
