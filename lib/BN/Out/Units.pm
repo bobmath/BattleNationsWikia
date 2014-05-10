@@ -19,6 +19,9 @@ sub write {
                $name = $1;
                $name =~ s/^(?:Proto-|Advanced|Archetype)\s*//;
             }
+            elsif ($unit->tag() =~ /^sw_.*_5$/) {
+               $name =~ s/^Wolf /Ghetto /;
+            }
             push @{$enemies{$name}}, $unit;
             next;
          }
