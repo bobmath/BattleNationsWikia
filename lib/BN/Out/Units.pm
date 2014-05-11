@@ -430,7 +430,11 @@ sub enemy_profile {
 
    profile_line($F, 'notes', join('<br>', @notes)) if @notes;
    profile_line($F, 'game file name', join(', ', @tags));
-   print $F "}}\n==Overview==\n\n"
+   print $F "}}\n";
+   if (my $desc = $unit->description()) {
+      print $F "{{IGD|$desc}}\n";
+   }
+   print $F "==Overview==\n\n"
 }
 
 sub enemy_defense {
