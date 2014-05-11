@@ -52,6 +52,17 @@ BN->accessor(range => sub {
    my $min = $att->{minRange} or return;
    my $max = $att->{maxRange} or return;
    $max += $att->{rangeBonus} if $att->{rangeBonus};
+   if (my $area = $att->{targetArea}) {
+      if ($area->{type} eq 'Weapon') {
+         my $amax = 1;
+         foreach my $sq (@{$area->{data}}) {
+            my $pos = $sq->{pos} or next;
+            my $y = -$pos->{y};
+            $amax = $y if $y > $amax;
+         }
+         $max = $amax if $amax < $max;
+      }
+   }
    return ($min == $max) ? $min : "$min-$max";
 });
 
