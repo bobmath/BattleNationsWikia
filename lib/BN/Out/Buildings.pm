@@ -150,7 +150,7 @@ sub building_attacks {
    my ($F, $build) = @_;
    my $unit = BN::Unit->get($build->defense()) or return;
    BN::Out::Units::old_attacks($F, $unit);
-   print $F "\n";
+   print $F "{{Clear}}\n";
 }
 
 sub building_levels {

@@ -511,14 +511,21 @@ sub format_defense {
 sub enemy_attacks {
    my ($F, $units, $affil) = @_;
    print $F "==Attacks==\n";
-   foreach my $unit (@$units) {
-      if (@$units > 1) {
-         my $level = $unit->level();
-         print $F "===Level $level attacks===\n";
-      }
-      old_attacks($F, $unit, $affil);
+   if (@$units == 1) {
+      old_attacks($F, $units->[0], $affil);
    }
-   print $F "\n";
+   else {
+      my $aff = $affil || 'attack';
+      print $F qq{<div class="tabber" id="$aff">\n};
+      foreach my $unit (@$units) {
+         my $level = $unit->level();
+         print $F qq{<div class="tabbertab" title="Level $level" id="$aff">\n};
+         old_attacks($F, $unit, $affil);
+         print $F qq{</div>\n};
+      }
+      print $F qq{</div>\n};
+   }
+   print $F "{{Clear}}\n";
 }
 
 sub old_attacks {
@@ -576,10 +583,10 @@ sub old_attacks {
          print $F "}}</div>\n";
       }
 
-      print $F "</div>\n}}</div>\n";
+      print $F "</div>}}</div>\n";
    }
 
-   print $F "</div>\n{{Clear}}\n";
+   print $F "</div>\n";
 }
 
 sub is_aoe {
