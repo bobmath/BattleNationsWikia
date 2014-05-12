@@ -58,7 +58,7 @@ foreach my $levels (sort keys %levels) {
          draw_encounter($eid);
       }
    }
-   print $F "[[Category:Boss Strike]]\n";
+   print $F "[[Category:Boss Strike Battles]]\n";
 }
 
 my %seen;
