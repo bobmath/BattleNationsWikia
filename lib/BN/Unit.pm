@@ -404,6 +404,7 @@ sub enemy_levels {
    }
 
    my %override = (
+      air_spiderwasp_striker           => 45,
       fr_guy_chainsaw_ignorable        => undef,
       fr_guy_dynamite_ignorable        => undef,
       fr_guy_hunter_ignorable          => undef,
