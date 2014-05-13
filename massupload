@@ -91,7 +91,10 @@ sub upload {
          print $key, ": ", $warn->{$key}, "\n";
       }
    }
-   die 'upload failed' unless $dat->{upload}{result} eq 'Success';
+   if ($dat->{upload}{result} ne 'Success') {
+      print $resp->content();
+      die 'upload failed';
+   }
    unlink $file if $rm;
 }
 
