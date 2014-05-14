@@ -61,6 +61,10 @@ foreach my $levels (sort keys %levels) {
    print $F "[[Category:Boss Strike Battles]]\n";
 }
 
+foreach my $levels (sort keys %levels) {
+   print "*[[/Level $levels battles|Level $levels]]\n";
+}
+
 my %seen;
 sub draw_encounter {
    my ($enc_id) = @_;
