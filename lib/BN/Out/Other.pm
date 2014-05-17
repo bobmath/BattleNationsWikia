@@ -6,6 +6,7 @@ use Data::Dump qw( dump );
 sub write {
    write_hints();
    write_boosts();
+   write_effects();
 }
 
 sub write_hints {
@@ -30,6 +31,17 @@ sub write_boosts {
    my $file = BN::Out->filename('info', 'Boosts');
    open my $F, '>', $file or die "Can't write $file: $!\n";
    print $F dump($boosts);
+   close $F;
+   BN::Out->checksum($file);
+}
+
+sub write_effects {
+   my $families = BN::File->json('StatusEffectFamiliesConfig.json');
+   my $effects = BN::File->json('StatusEffectsConfig.json');
+   my $file = BN::Out->filename('info', 'Status Effects');
+   open my $F, '>', $file or die "Can't write $file: $!\n";
+   print $F dump($families), "\n";
+   print $F dump($effects), "\n";
    close $F;
    BN::Out->checksum($file);
 }
