@@ -85,7 +85,7 @@ sub upload {
          file => [$file, $dest],
       ],
    );
-   die unless $resp->is_success();
+   die 'failed: ' . $resp->status_line() unless $resp->is_success();
    my $dat = decode_json($resp->content()) or die;
    if (my $warn = $dat->{upload}{warnings}) {
       foreach my $key (sort keys %$warn) {
