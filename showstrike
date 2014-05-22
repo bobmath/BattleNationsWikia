@@ -1,0 +1,177 @@
+#!/usr/bin/env perl
+# Build boss strike battles pages
+use strict;
+use warnings;
+use lib 'lib';
+use BN;
+use Cairo;
+use POSIX qw( ceil );
+
+my $grid_x = 100;
+my $grid_y = 50;
+my $scale = 0.75;
+my $center_x = 234;
+my $center_y = 292;
+my $bg_wid = 540;
+my $bg_hgt = 375;
+
+my %icon_map;
+if (open my $MAP, '<', 'iconmap') {
+   while (<$MAP>) {
+      /^(\w+)=(.+)/ or next;
+      $icon_map{$1} = $2;
+   }
+}
+
+die "Usage: $0 strike_id\n" unless @ARGV == 1;
+my $strike = BN::BossStrike->get($ARGV[0]) or die "Boss strike not found\n";
+
+my %levels;
+foreach my $encounter (@{$strike->{globalEventEncounters}}) {
+   add_encounter($encounter, \%levels, 0);
+}
+my $tnum;
+foreach my $tier ($strike->tiers()) {
+   ++$tnum;
+   foreach my $encounter (@{$tier->{encounters}}) {
+      add_encounter($encounter, \%levels, $tnum);
+   }
+}
+
+foreach my $levels (sort keys %levels) {
+   next unless $levels =~ /65/;
+   my $tiers = $levels{$levels} or next;
+   my $file = 'Level_' . $levels . '_battles';
+   print "$file\n";
+   open my $F, '>', $file or die "Can't write $file: $!";
+   my @tiers = sort {$a <=> $b} keys %$tiers;
+   while (@tiers) {
+      my $tnum = shift @tiers;
+      my $eids = $tiers->{$tnum} or next;
+      if ($tnum) {
+         my $eidstr = join ',', sort keys %$eids;
+         my $hinum = $tnum;
+         while (@tiers) {
+            my $nextnum = $tiers[0];
+            my $nextids = $tiers->{$nextnum} or last;
+            my $nextstr = join ',', sort keys %$nextids;
+            last unless $nextstr eq $eidstr;
+            $hinum = $nextnum;
+            shift @tiers;
+         }
+         if ($tnum == $hinum) { print $F "==Tier $tnum==\n" }
+         else { print $F "==Tier $tnum-$hinum==\n" }
+      }
+      my $enum;
+      foreach my $eid (sort keys %$eids) {
+         show_encounter($F, BN::Encounter->get($eid), ++$enum);
+      }
+   }
+   print $F "[[Category:Boss Strike Battles]]\n";
+}
+
+foreach my $levels (sort keys %levels) {
+   print "*[[/Level $levels battles|Level $levels]]\n";
+}
+
+sub add_encounter {
+   my ($enc, $levels, $tier) = @_;
+   my $id = $enc->{encounterId} or return;
+   my $max_level = BN::Level->max();
+   my $min = $enc->{minLevel} || 1;
+   my $max = $enc->{maxLevel} || $max_level;
+   $max = $max_level if $max > $max_level;
+   $levels->{"$min-$max"}{$tier}{$id} = 1;
+}
+
+sub show_encounter {
+   my ($F, $enc, $num) = @_;
+   my $waves = $enc->waves() or return;
+   print $F "===Battle $num===\n";
+   print $F "<tabber>\n";
+
+   for my $wave (1 .. @$waves) {
+      my @units = $enc->unit_positions($wave) or next;
+      foreach my $u (@units) {
+         $u->{X} = $grid_x * $scale * ($u->{x} + $u->{y} - 1) + $center_x;
+         $u->{Y} = $grid_y * $scale * ($u->{x} - $u->{y} + 1) + $center_y;
+      }
+      @units = sort { $a->{Y} <=> $b->{Y} || $a->{X} <=> $b->{X} } @units;
+
+      print $F "|-|\n" if $wave > 1;
+      print $F "Wave $wave=\n";
+      print $F qq{<div style="position:relative; width:${bg_wid}px; },
+         qq{height:${bg_hgt}px">\n},
+         qq{<div style="position:absolute;left:0px;top:0px">},
+         qq{[[File:BattleMapEnemy.png|link=]]</div>\n};
+
+      foreach my $u (@units) {
+         my $tag = $u->{unit}->animation();
+         my $anim = BN::Animation->get($tag) or next;
+         my $img = $icon_map{$tag} ||= build_icon($anim, $tag);
+         my $link = $u->{unit}->enemy_name();
+         my @box = $anim->box(0) or next;
+         my $wid = ceil(($box[1] - $box[0]) * $scale) + 2;
+         my $hgt = ceil(($box[3] - $box[2]) * $scale) + 2;
+         my $x = int($u->{X} + $box[0]*$scale + 0.5);
+         my $y = int($u->{Y} + $box[2]*$scale + 0.5);
+         print $F qq{<div style="position:absolute;left:${x}px;top:${y}px">},
+            qq{[[File:\u$img|${wid}px|link=$link]]</div>\n};
+      }
+
+      print $F "</div>\n";
+   }
+
+   print $F "</tabber>\n{{Clear}}\n";
+
+   my $wnum;
+   foreach my $wave (@$waves) {
+      $wnum++;
+      next unless $wave;
+      my %links;
+      foreach my $id (@$wave) {
+         my $unit = BN::Unit->get($id) or next;
+         $links{$unit->shortname()}{$unit->shortlink()}++;
+      }
+      my @links;
+      foreach my $nm (sort keys %links) {
+         my $lks = $links{$nm} or next;
+         foreach my $link (sort keys %$lks) {
+            my $num = $lks->{$link} || 1;
+            $link .= ' x ' . $num if $num > 1;
+            push @links, $link;
+         }
+      }
+      my $links = join ', ', @links;
+      print $F "* Wave $wnum: $links\n" if $links;
+   }
+}
+
+sub build_icon {
+   my ($anim, $tag) = @_;
+   my @box = $anim->box(0) or next;
+   my $w = $box[1] - $box[0];
+   my $h = $box[3] - $box[2];
+   my $wid = ceil($w) + 2;
+   my $hgt = ceil($h) + 2;
+   my $img = ucfirst($tag);
+   $img =~ s/_idle$//i;
+   $img .= '.png';
+   print $img, "\n";
+
+   my $surface = Cairo::ImageSurface->create('argb32', $wid, $hgt);
+   my $ctx = Cairo::Context->create($surface);
+   $ctx->translate(($wid - $w) / 2 - $box[0], ($hgt - $h) / 2 - $box[2]);
+   $anim->render($ctx, 0);
+
+   my $tmp = "$img.tmp";
+   $surface->write_to_png($tmp) or die;
+   system("pngcrush -new -q $tmp $img") == 0 or die;
+   unlink $tmp;
+
+   if (open my $MAP, '>>', 'iconmap') {
+      print $MAP "$tag=$img\n";
+   }
+   return $img;
+}
+
