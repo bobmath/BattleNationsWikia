@@ -38,19 +38,16 @@ foreach my $tier ($strike->tiers()) {
    }
 }
 
+my %level_tiers;
 foreach my $levels (sort keys %levels) {
-   next unless $levels =~ /65/;
    my $tiers = $levels{$levels} or next;
-   my $file = 'Level_' . $levels . '_battles';
-   print "$file\n";
-   open my $F, '>', $file or die "Can't write $file: $!";
    my @tiers = sort {$a <=> $b} keys %$tiers;
    while (@tiers) {
       my $tnum = shift @tiers;
       my $eids = $tiers->{$tnum} or next;
+      my $hinum = $tnum;
       if ($tnum) {
          my $eidstr = join ',', sort keys %$eids;
-         my $hinum = $tnum;
          while (@tiers) {
             my $nextnum = $tiers[0];
             my $nextids = $tiers->{$nextnum} or last;
@@ -59,19 +56,39 @@ foreach my $levels (sort keys %levels) {
             $hinum = $nextnum;
             shift @tiers;
          }
-         if ($tnum == $hinum) { print $F "==Tier $tnum==\n" }
-         else { print $F "==Tier $tnum-$hinum==\n" }
       }
+      else {
+         $tnum = 1;
+         $hinum = 10;
+      }
+      if ($tnum == $hinum) { $level_tiers{$levels}{$tnum} = $eids }
+      else { $level_tiers{$levels}{"$tnum-$hinum"} = $eids }
+   }
+}
+
+foreach my $levels (sort keys %level_tiers) {
+   my $tiers = $level_tiers{$levels} or next;
+   foreach my $tnum (sort keys %$tiers) {
+      my $file = "Level_${levels}_tier_${tnum}_battles";
+      print "$file\n";
+      open my $F, '>', $file or die "Can't write $file: $!";
+      print $F $strike->name(), " level $levels tier $tnum battles\n";
+      my $eids = $tiers->{$tnum} or next;
       my $enum;
       foreach my $eid (sort keys %$eids) {
          show_encounter($F, BN::Encounter->get($eid), ++$enum);
       }
+      print $F "[[Category:Boss Strike Battles]]\n";
    }
-   print $F "[[Category:Boss Strike Battles]]\n";
 }
 
-foreach my $levels (sort keys %levels) {
-   print "*[[/Level $levels battles|Level $levels]]\n";
+foreach my $levels (sort keys %level_tiers) {
+   my $tiers = $level_tiers{$levels} or next;
+   my @links;
+   foreach my $tnum (sort keys %$tiers) {
+      push @links, "[[/Level $levels tier $tnum battles|tier $tnum]]";
+   }
+   print "*Level $levels ", join(', ', @links), "\n";
 }
 
 sub add_encounter {
@@ -87,7 +104,7 @@ sub add_encounter {
 sub show_encounter {
    my ($F, $enc, $num) = @_;
    my $waves = $enc->waves() or return;
-   print $F "===Battle $num===\n";
+   print $F "==Battle $num==\n";
    print $F "<tabber>\n";
 
    for my $wave (1 .. @$waves) {
