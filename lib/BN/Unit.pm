@@ -21,6 +21,9 @@ sub get {
       $unit->{_tag} = $key;
       my $name = BN::Text->get($unit->{name}) || $key;
       $name =~ s/^Speciment/Specimen/;
+      if ($name eq 'Ancient Construct' && $key =~ /_\d+$/) {
+         $name = 'Ancient Construct (Boss Strike)';
+      }
       $unit->{_name} = $name;
    }
    return $unit;
