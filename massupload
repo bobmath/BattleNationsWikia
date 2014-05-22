@@ -2,6 +2,7 @@
 # Upload a bunch of image files
 use strict;
 use warnings;
+use Data::Dump qw( dump );
 use File::Basename qw( basename );
 use Getopt::Std qw( getopts );
 use JSON::XS qw( decode_json );
@@ -88,7 +89,7 @@ sub upload {
    my $dat = decode_json($resp->content()) or die;
    if (my $warn = $dat->{upload}{warnings}) {
       foreach my $key (sort keys %$warn) {
-         print $key, ": ", $warn->{$key}, "\n";
+         print $key, ": ", dump($warn->{$key}), "\n";
       }
    }
    if ($dat->{upload}{result} ne 'Success') {
