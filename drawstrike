@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use lib 'lib';
 use BN;
+use Data::Dump qw( dump );
+use Digest::MD5 qw( md5_hex );
 use Cairo;
 use POSIX qw( ceil );
 
@@ -54,8 +56,8 @@ foreach my $levels (sort keys %levels) {
       }
       my $enum;
       foreach my $eid (sort keys %$eids) {
-         show_encounter($F, BN::Encounter->get($eid), ++$enum);
-         draw_encounter($eid);
+         my $img = draw_encounter($eid);
+         show_encounter($F, BN::Encounter->get($eid), ++$enum, $img);
       }
    }
    print $F "[[Category:Boss Strike Battles]]\n";
@@ -65,12 +67,12 @@ foreach my $levels (sort keys %levels) {
    print "*[[/Level $levels battles|Level $levels]]\n";
 }
 
-my %seen;
+my (%seen_ids, %seen_md5);
 sub draw_encounter {
    my ($enc_id) = @_;
-   return if $seen{$enc_id}++;
-   my $enc = BN::Encounter->get($enc_id) or return;
+   return $seen_ids{$enc_id} if $seen_ids{$enc_id};
    print "$enc_id\n";
+   my $enc = BN::Encounter->get($enc_id) or return;
 
    my $w = $enc->layout_width();
 
@@ -152,6 +154,22 @@ sub draw_encounter {
    $surface->write_to_png($tempfile) or die;
    system("pngcrush -new -q $tempfile $outfile") == 0 or die;
    unlink $tempfile;
+
+   my $md5 = md5_file($outfile);
+   if ($seen_md5{$md5}) {
+      unlink $outfile;
+      return $seen_md5{$md5};
+   }
+
+   return $seen_md5{$md5} = $seen_ids{$enc_id} = $enc_id;
+}
+
+sub md5_file {
+   my ($file) = @_;
+   my $md5 = Digest::MD5->new();
+   open my $F, '<', $file or die "Can't read $file: $!\n";
+   $md5->addfile($F);
+   return $md5->hexdigest();
 }
 
 sub add_encounter {
@@ -165,12 +183,11 @@ sub add_encounter {
 }
 
 sub show_encounter {
-   my ($F, $enc, $num) = @_;
+   my ($F, $enc, $num, $img) = @_;
    return unless $enc;
    my $waves = $enc->waves() or return;
-   my $file = ucfirst($enc->tag());
    print $F "===Battle $num===\n";
-   print $F "[[File:$file.png]]\n";
+   print $F "[[File:\u$img.png]]\n";
    my $wnum;
    foreach my $wave (@$waves) {
       $wnum++;
