@@ -13,6 +13,7 @@ sub simple_accessor {
 
 sub accessor {
    my ($class, $name, $sub) = @_;
+   die 'name required' if @_ < 2;
    my $uname = '_' . $name;
    my $sym = caller() . '::' . $name;
    no strict 'refs';
