@@ -504,7 +504,8 @@ sub format_defense {
    my @mods;
    foreach my $key (@$keys) {
       my $val = $mods->{$key} * 100;
-      push @mods, "{{$key|$val%}}";
+      my $lbl = $key eq 'Cold' ? 'ColdDamage' : $key;
+      push @mods, "{{$lbl|$val%}}";
    }
    return join '<br>', @mods;
 }
