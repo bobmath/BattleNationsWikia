@@ -5,15 +5,16 @@ use Data::Dump qw( dump );
 
 sub write {
    write_hints();
-   write_boosts();
-   write_effects();
+   write_text();
+   write_json('Boosts', 'RewardMultiplierOffers.json');
+   write_json('Status Effects',
+      'StatusEffectFamiliesConfig.json', 'StatusEffectsConfig.json');
 }
 
 sub write_hints {
    my $hints = BN::File->json('My_Land_Hint.json');
    my $file = BN::Out->filename('info', 'Loading Screen Statements');
    open my $F, '>', $file or die "Can't write $file: $!\n";
-
    foreach my $hint (@$hints) {
       my $text = $hint->{text} or next;
       foreach my $line (@$text) {
@@ -21,27 +22,26 @@ sub write_hints {
          print $F "'''''$words'''''\n\n";
       }
    }
-
    close $F;
    BN::Out->checksum($file);
 }
 
-sub write_boosts {
-   my $boosts = BN::File->json('RewardMultiplierOffers.json');
-   my $file = BN::Out->filename('info', 'Boosts');
+sub write_text {
+   my $file = BN::Out->filename('info', 'Text');
    open my $F, '>', $file or die "Can't write $file: $!\n";
-   print $F dump($boosts);
+   print $F dump(BN::Text::get_all()), "\n";
    close $F;
    BN::Out->checksum($file);
 }
 
-sub write_effects {
-   my $families = BN::File->json('StatusEffectFamiliesConfig.json');
-   my $effects = BN::File->json('StatusEffectsConfig.json');
-   my $file = BN::Out->filename('info', 'Status Effects');
+sub write_json {
+   my ($out, @in) = @_;
+   my $file = BN::Out->filename('info', $out);
    open my $F, '>', $file or die "Can't write $file: $!\n";
-   print $F dump($families), "\n";
-   print $F dump($effects), "\n";
+   foreach my $in (@in) {
+      my $json = BN::File->json($in);
+      print $F dump($json), "\n";
+   }
    close $F;
    BN::Out->checksum($file);
 }
