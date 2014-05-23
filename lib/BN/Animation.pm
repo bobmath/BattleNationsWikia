@@ -23,6 +23,8 @@ sub get {
    return $animations{lc($key)};
 }
 
+BN->simple_accessor('tag');
+
 sub read_pack {
    my ($class, $pack) = @_;
    return unless $pack;
@@ -224,6 +226,7 @@ sub box {
    $ymin = $ymax = $p->{y1};
    foreach my $i (1 .. $#$frame) {
       $p = $points->[$frame->[$i]];
+      next if $p->{a} <= 0.5 / 255;
       $xmin = $p->{x1} if $p->{x1} < $xmin;
       $xmax = $p->{x1} if $p->{x1} > $xmax;
       $ymin = $p->{y1} if $p->{y1} < $ymin;

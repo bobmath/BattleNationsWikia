@@ -125,7 +125,7 @@ sub show_encounter {
       foreach my $u (@units) {
          my $tag = $u->{unit}->animation();
          my $anim = BN::Animation->get($tag) or next;
-         my $img = $icon_map{$tag} ||= build_icon($anim, $tag);
+         my $img = $icon_map{$tag} ||= build_icon($anim);
          my $link = $u->{unit}->enemy_name();
          my @box = $anim->box(0) or next;
          my $wid = ceil(($box[1] - $box[0]) * $scale) + 2;
@@ -165,7 +165,8 @@ sub show_encounter {
 }
 
 sub build_icon {
-   my ($anim, $tag) = @_;
+   my ($anim) = @_;
+   my $tag = $anim->tag();
    my @box = $anim->box(0) or next;
    my $w = $box[1] - $box[0];
    my $h = $box[3] - $box[2];
