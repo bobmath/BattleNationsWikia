@@ -10,8 +10,8 @@ use POSIX qw( ceil );
 my $grid_x = 100;
 my $grid_y = 50;
 my $scale = 0.75;
-my $center_x = 234;
-my $center_y = 292;
+my $center_x = 159;
+my $center_y = 330;
 my $bg_wid = 540;
 my $bg_hgt = 375;
 
@@ -110,14 +110,14 @@ sub show_encounter {
    for my $wave (1 .. @$waves) {
       my @units = $enc->unit_positions($wave) or next;
       foreach my $u (@units) {
-         $u->{X} = $grid_x * $scale * ($u->{x} + $u->{y} - 1) + $center_x;
-         $u->{Y} = $grid_y * $scale * ($u->{x} - $u->{y} + 1) + $center_y;
+         $u->{X} = $grid_x * $scale * ($u->{x} + $u->{y}) + $center_x;
+         $u->{Y} = $grid_y * $scale * ($u->{x} - $u->{y}) + $center_y;
       }
       @units = sort { $a->{Y} <=> $b->{Y} || $a->{X} <=> $b->{X} } @units;
 
       print $F "|-|\n" if $wave > 1;
       print $F "Wave $wave=\n";
-      print $F qq{<div style="position:relative; width:${bg_wid}px; },
+      print $F qq{<div style="position:relative;width:${bg_wid}px;},
          qq{height:${bg_hgt}px">\n},
          qq{<div style="position:absolute;left:0px;top:0px">},
          qq{[[File:BattleMapEnemy.png|link=]]</div>\n};
@@ -183,7 +183,7 @@ sub build_icon {
 
    my $tmp = "$img.tmp";
    $surface->write_to_png($tmp) or die;
-   system("pngcrush -new -q $tmp $img") == 0 or die;
+   system("pngcrush -new -q -brute $tmp $img") == 0 or die;
    unlink $tmp;
 
    if (open my $MAP, '>>', 'iconmap') {
