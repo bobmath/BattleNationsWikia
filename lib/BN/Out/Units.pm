@@ -196,6 +196,7 @@ sub unit_weapons {
 
 sub unit_ranks {
    my ($F, $unit) = @_;
+   my @notes;
    my @ranks = $unit->ranks() or return;
    my @ranks1 = @ranks[0 .. $#ranks-1];
    print $F "==Statistics==\n{{",
@@ -256,6 +257,11 @@ sub unit_ranks {
       print_line($F, 'prerankreq' . ++$n, $_) foreach @reqs;
    }
 
+   if (@ranks > 6 && @ranks < 9) {
+      push @notes, "This unit's maximum rank is " . @ranks;
+   }
+
+   print_line($F, 'notes', join('<br>', @notes)) if @notes;
    print $F "}}\n\n";
 }
 
