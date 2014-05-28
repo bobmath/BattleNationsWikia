@@ -446,4 +446,39 @@ BN->accessor(deploy_limit => sub {
    return $limit;
 });
 
+sub build_trans {
+   my $json = BN::File->json('TransformationTables.json');
+   foreach my $unit (BN::Unit->all()) {
+      $unit->{_trans_to} ||= undef;
+      $unit->{_trans_from} ||= undef;
+      my $transform = $unit->{transformationTable} or next;
+      foreach my $type (sort keys %$transform) {
+         my $table = $json->{$transform->{$type}} or next;
+         my $weight = 0;
+         foreach my $row (@$table) {
+            $weight += $row->{weight};
+         }
+         next unless $weight;
+         foreach my $row (@$table) {
+            my $targ = BN::Unit->get($row->{unitType}) or next;
+            my $prob = $row->{weight} / $weight or next;
+            $unit->{_trans_to}{$targ->tag()} += $prob;
+            $targ->{_trans_from}{$unit->tag()} += $prob;
+         }
+      }
+   }
+}
+
+sub trans_from {
+   my ($unit) = @_;
+   build_trans() unless exists $unit->{_trans_from};
+   return $unit->{_trans_from};
+}
+
+sub trans_to {
+   my ($unit) = @_;
+   build_trans() unless exists $unit->{_trans_to};
+   return $unit->{_trans_to};
+}
+
 1 # end BN::Unit

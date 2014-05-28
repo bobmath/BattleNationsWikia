@@ -4,22 +4,24 @@ use warnings;
 use Digest::MD5 ();
 use Algorithm::Diff qw( diff );
 use BN;
-use BN::Out::Buildings;
-use BN::Out::Missions;
-use BN::Out::Units;
 use BN::Out::BossStrikes;
-use BN::Out::Levels;
+use BN::Out::Buildings;
 use BN::Out::Guilds;
+use BN::Out::Levels;
+use BN::Out::Missions;
 use BN::Out::Other;
+use BN::Out::Transformations;
+use BN::Out::Units;
 
 sub write {
-   BN::Out::Units->write();
-   BN::Out::Buildings->write();
-   BN::Out::Missions->write();
    BN::Out::BossStrikes->write();
-   BN::Out::Levels->write();
+   BN::Out::Buildings->write();
    BN::Out::Guilds->write();
+   BN::Out::Levels->write();
+   BN::Out::Missions->write();
    BN::Out::Other->write();
+   BN::Out::Transformations->write();
+   BN::Out::Units->write();
 }
 
 my %seen_files;
