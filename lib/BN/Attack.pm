@@ -347,7 +347,7 @@ BN->accessor(cooldown => sub {
    my $ammo = $att->{ammo} or return $cooldown;
    my $used = $att->{ammoRequired} or return $cooldown;
    my $reload = $att->{reloadTime} or return $cooldown;
-   return $ammo == $used && $reload > $cooldown ? undef : $cooldown;
+   return $ammo == $used && $reload >= $cooldown ? undef : $cooldown;
 });
 
 1 # end BN::Attack
