@@ -177,10 +177,16 @@ BN->accessor(cost => sub {
       delete($construct->{buildTime}));
 });
 
+my $reward_tables;
 BN->accessor(assist_reward => sub {
    my ($build) = @_;
    my $assist = $build->{Assistance} or return;
-   return BN->flatten_amount(delete($assist->{rewards}));
+   my $rewards = delete $assist->{rewards} or return;
+   if (my $table = BN::Reward->get($assist->{rewardTable})) {
+      delete $table->{merits};
+      $rewards->{table} = $table if %$table;
+   }
+   return BN->flatten_amount($rewards);
 });
 
 BN->accessor(max_assists => sub {

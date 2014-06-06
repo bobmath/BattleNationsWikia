@@ -72,8 +72,9 @@ use BN::BossStrike;
 use BN::Tier;
 use BN::Encounter;
 use BN::Animation;
+use BN::Reward;
 
-my %resource_map = (
+our %resource_map = (
    currency => 'nanopods',
    gear     => 'gears',
    heart    => 'merits',
