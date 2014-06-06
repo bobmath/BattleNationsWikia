@@ -543,11 +543,11 @@ sub enemy_attacks {
       old_attacks($F, $units->[0], $affil);
    }
    else {
-      my $aff = $affil || 'attack';
-      print $F qq{<div class="tabber" id="$aff">\n};
+      print $F qq{<div class="tabber" id="$affil">\n};
       foreach my $unit (@$units) {
          my $level = $unit->level();
-         print $F qq{<div class="tabbertab" title="Level $level" id="$aff">\n};
+         print $F qq{<div class="tabbertab" title="Level $level" },
+            qq{id="$affil">\n};
          old_attacks($F, $unit, $affil);
          print $F qq{</div>\n};
       }
@@ -566,28 +566,29 @@ sub old_attacks {
       $accuracy = $rank->accuracy() || 0;
       $crit = $rank->crit() || 0;
    }
-   my $id = 'id="' . ($affil || 'attack') . '"';
+   my $nocat = $affil ? undef : 'true';
+   $affil ||= 'neutral';
 
-   print $F qq{<div class="tabber" $id>\n};
+   print $F qq{<div class="tabber" id="$affil">\n};
    foreach my $weap ($unit->weapons()) {
       my $name = $weap->name();
-      print $F qq{<div class="tabbertab" title="$name" $id>\n};
+      print $F qq{<div class="tabbertab" title="$name" id="$affil">\n};
       print $F "{{WeaponBox\n";
       print_line($F, 'game file name', $weap->tag());
       print_line($F, 'affiliation', $affil);
       print_line($F, 'ammo', $weap->ammo());
       print_line($F, 'reload', $weap->reload());
       print_line($F, 'attacks', '');
-      print $F qq{<div class="tabber" $id>\n};
+      print $F qq{<div class="tabber" id="$affil">\n};
 
       my @attacks = $weap->attacks();
       foreach my $attack (@attacks) {
          $name = $attack->name();
-         print $F qq{<div class="tabbertab" title="$name" $id>\n};
+         print $F qq{<div class="tabbertab" title="$name" id="$affil">\n};
          print $F "{{UnitAttackBox\n";
          my $r = 1;
          print_line($F, 'affiliation', $affil);
-         print_line($F, 'nocat', 'true') unless $affil;
+         print_line($F, 'nocat', $nocat);
          print_line($F, 'image',
             '[[File:' . $attack->filename($unit) . '_Damage.gif]]');
 
@@ -634,7 +635,7 @@ sub guess_affil {
    return 'sw'     if $tag =~ /sw_/;
    my $type = $unit->type() // '';
    return 'critter' if $type =~ /Critter|Spiderwasp/;
-   return;
+   return 'neutral';
 }
 
 1 # end BN::Out::Units
