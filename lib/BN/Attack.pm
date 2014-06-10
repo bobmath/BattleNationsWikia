@@ -109,6 +109,9 @@ BN->accessor(notes => sub {
    if (my $min = $att->{minHPPercent}) {
       push @notes, "Cannot lower HP below $min%";
    }
+   if ($att->{capture}) {
+      push @notes, 'Can apprehend civilians';
+   }
    return unless @notes;
    return join('<br>', @notes);
 });
