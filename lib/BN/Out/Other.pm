@@ -9,6 +9,7 @@ sub write {
    write_json('Boosts', 'RewardMultiplierOffers.json');
    write_json('Status Effects',
       'StatusEffectFamiliesConfig.json', 'StatusEffectsConfig.json');
+   write_json('Economy', 'Economy.json');
 }
 
 sub write_hints {
