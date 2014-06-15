@@ -66,4 +66,9 @@ BN->accessor(level_req => sub {
    return $level;
 });
 
+BN->accessor(level_up_rewards => sub {
+   my ($rank) = @_;
+   return BN->flatten_amount(delete $rank->{levelUpRewards});
+});
+
 1 # end BN::Rank
