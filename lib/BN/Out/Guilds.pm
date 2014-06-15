@@ -9,15 +9,20 @@ sub write {
    open my $F, '>', $file or die "Can't write $file: $!";
 
    print $F qq({| class="wikitable standout"\n);
-   print $F "|-\n! Guild Level !! Gold Required !! Member Limit",
-      " !! XP Bonus !! SP Bonus\n";
+   print $F "|-\n! Guild Level !! {{Gold}} Gold Required !! ",
+      "{{Gold}} Total Gold !! ",
+      "[[File:BN_icon_friendsGuilds.png|20px]] Member Limit !! ",
+      "{{XP}} XP Bonus !! {{SP}} SP Bonus\n";
    my $levels = $guilds->{guildLevelProperties} or die;
+   my $prev_gold = 0;
    foreach my $lev (sort { $a <=> $b } keys %$levels) {
       my $level = $levels->{$lev} or die;
-      my $xp = BN->commify($level->{xpRequirement});
+      my $gold = $level->{xpRequirement};
       print $F qq(|- align="center"\n! $lev\n);
-      print $F "| $xp || $level->{memberCap} || $level->{xpBoost}% ",
-         "|| $level->{spBoost}%\n";
+      print $F "| ", BN->commify($gold - $prev_gold), " || ",
+         BN->commify($gold), " || $level->{memberCap} || ",
+         "$level->{xpBoost}% || $level->{spBoost}%\n";
+      $prev_gold = $gold;
    }
    print $F "|}\n\n";
 
