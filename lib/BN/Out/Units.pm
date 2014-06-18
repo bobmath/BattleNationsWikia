@@ -464,6 +464,10 @@ sub enemy_defense {
    my ($F, $units) = @_;
    my ($aprev, $prev, $iprev, %adiff, %diff, $idiff);
    CHECK: foreach my $unit (@$units) {
+      my $immune = $unit->immunities() || '';
+      $idiff = 1 if defined($iprev) && $iprev ne $immune;
+      $iprev = $immune;
+
       my ($rank) = $unit->ranks() or next;
       my $def = $rank->damage_mods();
       if ($prev) {
@@ -481,10 +485,6 @@ sub enemy_defense {
          }
       }
       $aprev = $def;
-
-      my $immune = $unit->immunities() || '';
-      $idiff = 1 if defined($iprev) && $iprev ne $immune;
-      $iprev = $immune;
    }
    return unless %diff || %adiff || $idiff;
 
