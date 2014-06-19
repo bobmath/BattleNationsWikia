@@ -65,7 +65,10 @@ $old_missions{$_} = 1 foreach qw(
    p01_BK2RR_040_ReturnRecoilRidge
    p01_BK2RR_050_BattleRecoilRidge
    p01_BK2RR_060_HelpAdventurer
+   p01_BUILD_020_BuildSupplyDepot
    p01_BUILD_040_CollectSupplyDrops
+   p01_BUILD_050_BuildShelter
+   p01_BUILD_060_RaiderAttack1
    p01_BUILD_070_BuildBootCamp
    p01_BUILD_090_BuildShelter
    p01_BUILD_100_TeachCamera
@@ -80,6 +83,9 @@ $old_missions{$_} = 1 foreach qw(
    p01_HOSP_010_QueueSomething
    p01_INTRO_020_OpeningBattle
    p01_INTRO_040_BuildShelter
+   p01_INTRO_050_PlantArtichoke
+   p01_INTRO_060_CollectCrop
+   p01_INTRO_070_CollectTax
    p01_NEWINTRO_010_Cinematic
    p01_NEWINTRO_030_Fight
    p01_NEWINTRO_040_BuildBarracks
@@ -101,6 +107,7 @@ $old_missions{$_} = 1 foreach qw(
    p01_UPBLD_010_BuildingUpgradeLvl1_LateGame
    p01_UPBLD_020_BuildingUpgradeLvl2
    p01_UPBLD_020_BuildingUpgradeLvl2_LateGame
+   p01_VALENTINE_001_WaitingTag
    p01_ZOEY1_010_BuildHovel
 );
 
