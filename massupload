@@ -48,7 +48,8 @@ sub login {
       die 'login failed' unless $resp->is_success();
       $dat = decode_json($resp->content()) or die;
    }
-   die "Login failed\n" unless $dat->{login}{result} eq 'Success';
+   die "Login failed: " . dump($dat)
+      unless $dat->{login}{result} eq 'Success';
 }
 
 sub get_token {
