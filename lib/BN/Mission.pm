@@ -54,7 +54,10 @@ sub wikilink {
    my ($mis, $text) = @_;
    my $page = $mis->page($mis->level());
    $text //= $mis->{_name};
-   return "[[$page#$mis->{_name}|$text]]";
+   my $link = "[[$page#$mis->{_name}";
+   $link .= '|' . $text if length($text);
+   $link .= ']]';
+   return $link;
 }
 
 my %old_missions;
