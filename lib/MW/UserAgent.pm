@@ -2,6 +2,7 @@ package MW::UserAgent;
 use strict;
 use warnings;
 use Carp qw( croak );
+use Data::Dump qw( dump );
 use JSON::XS qw( decode_json );
 use LWP::UserAgent;
 use URI;
@@ -53,7 +54,8 @@ sub login {
          '-a', $user_pass[0], '-s', $self->{host};
    }
 
-   croak 'Login failed' unless $result eq 'Success';
+   croak "Login failed: $result" . dump($dat)
+      unless $result eq 'Success';
 
    if ($OSX_SECURITY && $user_pass[2] eq 'prompt') {
       system $OSX_SECURITY, 'add-internet-password',
@@ -104,6 +106,80 @@ sub get_line {
    $line =~ s/^\s+//;
    return unless length($line);
    return $line;
+}
+
+sub get_info {
+   my ($self, $page, @opts) = @_;
+   croak 'Page required' unless defined $page;
+   my %opts;
+   $opts{$_} = 1 foreach @opts;
+   my @args = (
+      format => 'json',
+      action => 'query',
+      titles => $page,
+   );
+   if (delete $opts{text}) {
+      push @args, (
+         prop => 'info|revisions',
+         rvprop => 'content',
+         rvlimit => 1,
+      );
+   }
+   else {
+      push @args, prop => 'info';
+   }
+   push @args, intoken => 'edit' if delete $opts{edit};
+   croak 'Unknown options: ' . join(', ', sort keys %opts) if %opts;
+   my $resp = $self->{ua}->post($self->{uri}, \@args);
+   croak 'API call failed' unless $resp->is_success();
+   my $dat = decode_json($resp->content()) or croak 'API JSON error';
+   $dat = $dat->{query} or return;
+   $dat = $dat->{pages} or return;
+   return unless keys(%$dat) == 1;
+   ($dat) = values(%$dat);
+   if (my $revs = $dat->{revisions}) {
+      if (my $rev = $revs->[-1]) {
+         ($dat->{_text}) = values(%$rev) if keys(%$rev) == 1;
+      }
+   }
+   return $dat;
+}
+
+sub edit {
+   my ($self, $page, $text, $summary, $token, @opts) = @_;
+   croak 'Page required' unless defined $page;
+   croak 'Text required' unless defined $text;
+   croak 'Token required' unless defined $token;
+   my %opts;
+   $opts{$_} = 1 foreach @opts;
+   my @args = (
+      format => 'json',
+      action => 'edit',
+      title => $page,
+      token => $token,
+   );
+   push @args, summary => $summary if defined $summary;
+   if (delete $opts{append}) {
+      push @args, appendtext => $text;
+   }
+   elsif (delete $opts{prepend}) {
+      push @args, prependtext => $text;
+   }
+   else {
+      push @args, text => $text;
+   }
+   if (delete $opts{nocreate}) {
+      push @args, nocreate => '';
+   }
+   elsif (delete $opts{createonly}) {
+      push @args, createonly => '';
+   }
+   croak 'Unknown options: ' . join(', ', sort keys %opts) if %opts;
+   my $resp = $self->{ua}->post($self->{uri}, \@args);
+   croak 'API edit call failed' unless $resp->is_success();
+   my $dat = decode_json($resp->content()) or croak 'API JSON error';
+   my $result = $dat->{edit}{result} // '';
+   croak "Edit failed: $result " . dump($dat) unless $result eq 'Success';
 }
 
 1 # end MW::UserAgent
