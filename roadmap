@@ -1,0 +1,216 @@
+#!/usr/bin/env perl
+# Experimental script to build mission roadmap images
+use strict;
+use warnings;
+use lib 'lib';
+use BN;
+use XML::Element;
+use Encode qw( encode );
+
+my (%all_missions, %pages);
+foreach my $mis (sort { $a->level() <=> $b->level() } 
+   grep { $_->level() } BN::Mission->all())
+{
+   next if $mis->old() || $mis->{persistenceRules};
+   my $lo = int(($mis->level() - 1) / 10) * 10 + 1;
+   my %prev;
+   $prev{$_} = 1 foreach $mis->min_prereqs();
+   my $block = $pages{$lo}{$mis->tag()} = $all_missions{$mis->tag()} = {
+      prev => \%prev,
+      next => { },
+      name => $mis->name(),
+      level => $mis->level(),
+      id => $mis->tag(),
+      hidden => $mis->hidden(),
+      row => 0,
+      color => '#000000',
+      bgcolor => '#ebb676', # '#aabf89',
+   };
+   $block->{link} = wikilink($block);
+}
+
+foreach my $block (sort block_compare values %all_missions) {
+   foreach my $prev_id (sort keys %{$block->{prev}}) {
+      my $prev_block = $all_missions{$prev_id} or next;
+      if ($prev_block->{name} eq $block->{name}) {
+         $prev_block->{hidden} = 1;
+      }
+   }
+}
+
+foreach my $block (sort block_compare values %all_missions) {
+   order_block($block);
+}
+
+foreach my $block (sort block_compare values %all_missions) {
+   foreach my $prev_id (sort keys %{$block->{prev}}) {
+      my $prev_block = $all_missions{$prev_id} or next;
+      $prev_block->{next}{$block->{id}} = 1;
+   }
+}
+
+foreach my $lo (sort { $a <=> $b } keys %pages) {
+   show_page($lo, $pages{$lo});
+}
+
+sub show_page {
+   my ($lo, $page) = @_;
+
+   my $width = 165;
+   my $height = 15;
+   my $spacing = 15;
+   my $yoff = 11;
+   my $text_style =
+      'font-family:Arial;font-size:10px;text-align:center;text-anchor:middle';
+
+   foreach my $block (sort block_compare values %$page) {
+      foreach my $prev_id (sort keys %{$block->{prev}}) {
+         next if $page->{$prev_id};
+         my $orig = $all_missions{$prev_id} or next;
+         my $prev_block = $page->{$prev_id} = { %$orig,
+            bgcolor => '#bfbfbf',
+            color => '#3f3f3f',
+            #level => 0,
+            real_level => $orig->{level},
+            row => 0,
+         };
+         $prev_block->{name} .= " ($prev_block->{real_level})";
+      }
+   }
+
+   foreach my $block (sort block_compare values %$page) {
+      next if $block->{real_level};
+      foreach my $next_id (sort keys %{$block->{next}}) {
+         next if $page->{$next_id};
+         my $orig = $all_missions{$next_id} or next;
+         my $next_block = $page->{$next_id} = { %$orig,
+            bgcolor => '#bfbfbf',
+            color => '#3f3f3f',
+            #level => 999,
+            real_level => $orig->{level},
+            row => 0,
+         };
+         $next_block->{name} .= " ($next_block->{real_level})";
+      }
+   }
+
+   my $tree = XML::Element->new('svg',
+      'xmlns' => 'http://www.w3.org/2000/svg',
+      'xmlns:xlink' => 'http://www.w3.org/1999/xlink',
+      'xmlns:inkscape' => 'http://www.inkscape.org/namespaces/inkscape',
+   );
+
+   my $id_num;
+   my $prev_lvl = 0;
+   my $prev_row = 0;
+   my $x = 40;
+   my $xmax = $x;
+   my $y = $spacing;
+   my (%curr_row, %prev_row);
+   foreach my $block (sort block_compare values %$page) {
+      next if $block->{hidden};
+      if ($prev_lvl != $block->{level} || $prev_row != $block->{row}) {
+         $x = 40;
+         $y += $height + $spacing if %curr_row;
+         @prev_row{values(%curr_row)} = keys(%curr_row);
+         %curr_row = ();
+         if ($prev_lvl != $block->{level}) {
+            my $txt = XML::Element->new('text', x=>20, y=>$y+$yoff,
+               style=>"$text_style;fill:#000000");
+            $txt->push_content($block->{level});
+            $tree->push_content($txt);
+         }
+         $prev_lvl = $block->{level};
+         $prev_row = $block->{row};
+      }
+
+      my $x1 = $x;
+      foreach my $prev_id (sort keys %{$block->{prev}}) {
+         my $x2 = $prev_row{$prev_id};
+         if ($x2 && !$curr_row{$x2}) {
+            $x1 = $x2;
+            last;
+         }
+      }
+
+      my $id = 'g' . ++$id_num;
+      $block->{xid} = $id;
+      my $grp = XML::Element->new('g', 'id' => $id,
+         'inkscape:connector-avoid' => 'true');
+      my $rect = XML::Element->new('rect', x=>$x1, y=>$y,
+         width=>$width, height=>$height,
+         style=>"fill:$block->{bgcolor};stroke:$block->{color}");
+      my $link = XML::Element->new('a',
+         'xlink:href' => $block->{link},
+         'xlink:show' => 'new');
+      my $txt = XML::Element->new('text', x=>$x1+$width/2, y=>$y+$yoff,
+         style=>"$text_style;fill:$block->{color}");
+      $txt->push_content($block->{name});
+      $link->push_content($txt);
+      $grp->push_content($rect, $link);
+      $tree->push_content($grp);
+      $curr_row{$x1} = $block->{id};
+      $x += $width + $spacing while $curr_row{$x};
+      $xmax = $x if $x > $xmax;
+
+      foreach my $prev_id (sort keys %{$block->{prev}}) {
+         my $prev_block = $page->{$prev_id} or next;
+         next if $prev_block->{real_level} && $block->{real_level};
+         my $prev_xid = $prev_block->{xid} or next;
+         my $conn = XML::Element->new('path',
+            'inkscape:connector-type'=>'polyline',
+            'inkscape:connection-start'=>"#$prev_xid",
+            'inkscape:connection-start-point'=>'d4',
+            'inkscape:connection-end'=>"#$id",
+            'inkscape:connection-end-point'=>'d4',
+            'style'=>'fill:none;stroke:#000000');
+         $tree->push_content($conn);
+      }
+   }
+
+   $tree->attr(width => $xmax);
+   $tree->attr(height => $y + $height + $spacing);
+
+   open my $F, '>:utf8', "map/Level_${lo}-${hi}_missions.svg" or die;
+   print $F qq[<?xml version="1.0" encoding="UTF-8"?>\n], $tree->as_XML();
+}
+
+sub order_block {
+   my ($block) = @_;
+   return if $block->{seen};
+   $block->{seen} = 1;
+   my $prev = $block->{prev};
+   foreach my $id (sort keys %$prev) {
+      my $prev_block = $all_missions{$id} or next;
+      order_block($prev_block);
+      if ($prev_block->{hidden}) {
+         foreach my $prev_id (sort keys %{$prev_block->{prev}}) {
+            $prev->{$prev_id} = 1;
+         }
+         delete $prev->{$id};
+      }
+   }
+   foreach my $id (sort keys %$prev) {
+      my $prev_block = $all_missions{$id} or next;
+      $block->{row} = $prev_block->{row} + 1
+         if $block->{level} == $prev_block->{level}
+         && $block->{row} <= $prev_block->{row};
+   }
+}
+
+sub block_compare {
+   $a->{level} <=> $b->{level} || $a->{row} <=> $b->{row}
+   || $a->{name} cmp $b->{name} || $a->{id} cmp $b->{id};
+}
+
+sub wikilink {
+   my ($block) = @_;
+   my $lev = $block->{real_level} || $block->{level};
+   my $lo = int(($lev - 1) / 10) * 10 + 1;
+   my $hi = $lo + 9;
+   my $name = encode('utf-8', $block->{name});
+   $name =~ s/\s/_/g;
+   $name =~ s/([^-.:\w])/sprintf '.%02X', ord($1)/eg;
+   return "http://battlenations.wikia.com/Level_${lo}-${hi}_missions#$name";
+}
+
