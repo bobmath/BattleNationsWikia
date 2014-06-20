@@ -10,6 +10,8 @@ sub write {
    write_json('Status Effects',
       'StatusEffectFamiliesConfig.json', 'StatusEffectsConfig.json');
    write_json('Economy', 'Economy.json');
+   write_json('Manifest', 'z2manifest.json', 'onDemandOtaManifest.json',
+      'onDemandOtaFilenamesByTag.json', 'onDemandOtaTagsByFilename.json');
 }
 
 sub write_hints {
