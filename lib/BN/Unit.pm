@@ -74,10 +74,11 @@ BN->accessor(enemy_name => sub {
 });
 
 sub wikilink {
-   my ($unit) = @_;
+   my ($unit, $text) = @_;
    my $ename = $unit->enemy_name();
-   my $name = $unit->{_name};
-   return ($name eq $ename) ? "[[$name]]" : "[[$ename|$name]]";
+   $text //= $unit->{_name};
+   return (length($text) == 0 || $text eq $ename) ? "[[$ename]]"
+      : "[[$ename|$text]]";
 }
 
 sub shortlink {
