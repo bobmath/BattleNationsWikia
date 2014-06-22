@@ -335,7 +335,7 @@ sub back_damage_animation {
 sub filename {
    my ($att, $unit) = @_;
    my $file = $unit->shortname();
-   if ($unit->side() eq 'Hostile' && $unit->level()) {
+   if ($unit->side() ne 'Player' && $unit->level()) {
       $file .= '_' if $file =~ /\d$/;
       $file .= $unit->level();
    }
