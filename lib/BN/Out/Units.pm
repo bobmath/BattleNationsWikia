@@ -6,24 +6,17 @@ use Data::Dump qw( dump );
 sub write {
    my %enemies;
    foreach my $unit (BN::Unit->all()) {
-      my $side = $unit->side() // '';
-      my $dir;
-      if ($side eq 'Player') {
-         $dir = $unit->building() || $unit->from_missions()
-               || $unit->boss_strike() ? 'units' : 'locked';
-      }
-      else {
-         if ($unit->level()) {
-            my $name = $unit->name();
-            if ($name =~ /^Specimen [a-h]\d+ ['"](.+)['"]$/) {
-               $name = $1;
-               $name =~ s/^(?:Proto-|Advanced|Archetype)\s*//;
-            }
-            push @{$enemies{$name}}, $unit;
-            next;
+      if ($unit->side() ne 'Player') {
+         my $name = $unit->name();
+         if ($name =~ /^Specimen [a-h]\d+ ['"](.+)['"]$/) {
+            $name = $1;
+            $name =~ s/^(?:Proto-|Advanced|Archetype)\s*//;
          }
-         $dir = 'other';
+         push @{$enemies{$name}}, $unit;
+         next;
       }
+      my $dir = $unit->building() || $unit->from_missions()
+         || $unit->boss_strike() ? 'units' : 'locked';
       my $file = BN::Out->filename($dir, $unit->name());
       print $file, "\n";
       open my $F, '>', $file or die "Can't write $file: $!";;
@@ -40,7 +33,7 @@ sub write {
 
    foreach my $name (sort keys %enemies) {
       my $units = $enemies{$name} or die;
-      @$units = sort {$a->level() <=> $b->level()} @$units or next;
+      @$units = sort {($a->level()||0) <=> ($b->level()||0)} @$units or next;
       my $dir = $units->[0]->side() eq 'Hostile' ? 'enemies' : 'other';
       my $file = BN::Out->filename($dir, $name);
       print $file, "\n";
@@ -490,7 +483,7 @@ sub enemy_defense {
 
    print $F "==Damage mods==\n";
    print $F qq({| class="wikitable"\n|-\n);
-   print $F '! Defense', map({ ' !! ' . $_->level() } @$units), "\n";
+   print $F '! Defense', map({ ' !! ' . ($_->level()||0) } @$units), "\n";
 
    if (%adiff) {
       print $F "|-\n! Armor\n";
@@ -545,7 +538,7 @@ sub enemy_attacks {
    else {
       print $F qq{<div class="tabber" id="$affil">\n};
       foreach my $unit (@$units) {
-         my $level = $unit->level();
+         my $level = $unit->level() || 0;
          print $F qq{<div class="tabbertab" title="Level $level" },
             qq{id="$affil">\n};
          old_attacks($F, $unit, $affil);
