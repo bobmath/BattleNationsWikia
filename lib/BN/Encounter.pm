@@ -34,14 +34,24 @@ BN->accessor(rewards => sub {
 
 BN->list_accessor(unit_ids => sub {
    my ($enc) = @_;
-   my $units = $enc->{units} or return;
+   return _unit_ids($enc->{units});
+});
+
+BN->list_accessor(player_unit_ids => sub {
+   my ($enc) = @_;
+   return _unit_ids($enc->{playerUnits});
+});
+
+sub _unit_ids {
+   my ($units) = @_;
+   return unless $units;
    my %units;
    foreach my $unit (@$units) {
       my $id = $unit->{unitId} or next;
       $units{$id} = 1;
    }
    return sort keys %units;
-});
+}
 
 sub waves {
    my ($enc) = @_;

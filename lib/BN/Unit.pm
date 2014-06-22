@@ -392,7 +392,7 @@ sub enemy_levels {
    my %levels;
    foreach my $enc (BN::Encounter->all()) {
       my $level = $enc->level() or next;
-      foreach my $id ($enc->unit_ids()) {
+      foreach my $id ($enc->unit_ids(), $enc->player_unit_ids()) {
          $levels{$id} = $level
             if !exists($levels{$id}) || $levels{$id} > $level;
       }
@@ -414,6 +414,9 @@ sub enemy_levels {
       fr_guy_hunter_ignorable          => undef,
       fr_guy_pyro_ignorable            => undef,
       fr_guy_shotgun_ignorable         => undef,
+      hero_cast_morgan                 => 15,
+      hero_cast_morgan_buff            => undef,
+      hero_cast_morgan_duels           => undef,
       hero_raider_warlord              => 30,
       hero_raider_warlord_ignorable    => undef,
       hero_raider_warlord_passive      => undef,

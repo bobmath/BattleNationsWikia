@@ -12,6 +12,7 @@ sub write {
             $name = $1;
             $name =~ s/^(?:Proto-|Advanced|Archetype)\s*//;
          }
+         $name .= ' unused' unless $unit->level();
          push @{$enemies{$name}}, $unit;
          next;
       }
@@ -628,6 +629,7 @@ sub guess_affil {
    return 'sw'     if $tag =~ /sw_/;
    my $type = $unit->type() // '';
    return 'critter' if $type =~ /Critter|Spiderwasp/;
+   return 'player' if $unit->side() eq 'Hero';
    return 'neutral';
 }
 
