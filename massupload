@@ -2,101 +2,25 @@
 # Upload a bunch of image files
 use strict;
 use warnings;
+use lib 'lib';
+use MW::UserAgent;
 use Data::Dump qw( dump );
 use File::Basename qw( basename );
 use Getopt::Std qw( getopts );
-use JSON::XS qw( decode_json );
-use LWP::UserAgent ( );
-use Term::ReadKey qw( ReadMode );
-
-my $api_url = 'http://battlenations.wikia.com/api.php';
-my $ua = LWP::UserAgent->new(cookie_jar => {});
 
 my %args;
 getopts('rt:', \%args) or die "Bad args\n";
 die "Usage: $0 files\n" unless @ARGV;
 
-login();
-my $token = get_token();
+my $ua = MW::UserAgent->new('http://battlenations.wikia.com/api.php');
+$ua->login();
+my $info = $ua->get_info('Upload', 'edit');
+my $token = $info->{edittoken} or die 'no token returned';
+
 foreach my $file (@ARGV) {
-   upload($file, $args{t}, $args{r});
-}
-
-sub login {
-   local $| = 1;
-   print "Username: ";
-   chomp(my $user = <STDIN>);
-   die "Aborted\n" unless $user;
-   ReadMode(noecho  => \*STDIN);
-   print "Password: ";
-   chomp(my $pass = <STDIN>);
-   ReadMode(restore => \*STDIN);
-   print "\n";
-   die "Aborted\n" unless $pass;
-   my @args = (
-      format => 'json',
-      action => 'login',
-      lgname => $user,
-      lgpassword => $pass,
-   );
-   my $resp = $ua->post($api_url, \@args);
-   die 'login failed' unless $resp->is_success();
-   my $dat = decode_json($resp->content()) or die;
-   if ($dat->{login}{result} eq 'NeedToken') {
-      push @args, lgtoken => $dat->{login}{token};
-      $resp = $ua->post($api_url, \@args);
-      die 'login failed' unless $resp->is_success();
-      $dat = decode_json($resp->content()) or die;
-   }
-   die "Login failed: " . dump($dat)
-      unless $dat->{login}{result} eq 'Success';
-}
-
-sub get_token {
-   my $resp = $ua->post($api_url, [
-      format => 'json',
-      action => 'query',
-      prop => 'info',
-      intoken => 'edit',
-      titles => 'Upload',
-   ]);
-   die unless $resp->is_success();
-   my $dat = decode_json($resp->content()) or die;
-   $dat = $dat->{query} or die;
-   $dat = $dat->{pages} or die;
-   $dat = $dat->{-1} or die;
-   $dat = $dat->{edittoken} or die;
-   return $dat;
-}
-
-sub upload {
-   my ($file, $text, $rm) = @_;
    print $file, "\n";
-   die 'file not found' unless -f $file;
-   sleep 10;
-   my $dest = ucfirst(basename($file)) or die;
-   my $resp = $ua->post($api_url,
-      Content_Type => 'form-data',
-      Content => [
-         format => 'json',
-         action => 'upload',
-         token => $token,
-         filename => $dest,
-         text => $text // '',
-         file => [$file, $dest],
-      ],
-   );
-   die 'failed: ' . $resp->status_line() unless $resp->is_success();
-   my $dat = decode_json($resp->content()) or die;
-   if (my $warn = $dat->{upload}{warnings}) {
-      foreach my $key (sort keys %$warn) {
-         print $key, ": ", dump($warn->{$key}), "\n";
-      }
-   }
-   if ($dat->{upload}{result} ne 'Success') {
-      print $resp->content();
-      die 'upload failed';
-   }
-   unlink $file if $rm;
+   $ua->upload($file, $token, text => $args{t});
+   unlink $file if $args{r};
+   sleep 5;
 }
 

@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Carp qw( croak );
 use Data::Dump qw( dump );
+use File::Basename qw( basename );
 use JSON::XS qw( decode_json );
 use LWP::UserAgent;
 use URI;
@@ -180,6 +181,50 @@ sub edit {
    my $dat = decode_json($resp->content()) or croak 'API JSON error';
    my $result = $dat->{edit}{result} // '';
    croak "Edit failed: $result " . dump($dat) unless $result eq 'Success';
+}
+
+sub upload {
+   my ($self, $file, $token, @opts) = @_;
+   croak 'File required' unless defined $file;
+   croak 'Token required' unless defined $token;
+   croak 'File not found' unless -f $file;
+
+   my $dest = ucfirst(basename($file));
+   my $text;
+   while (@opts) {
+      my $opt = shift @opts;
+      if ($opt eq 'dest') {
+         $dest = shift(@opts) || $dest;
+      }
+      elsif ($opt eq 'text') {
+         $text = shift(@opts);
+      }
+      else {
+         croak "Unknown option: $opt";
+      }
+   }
+
+   my @args = (
+       format   => 'json',
+       action   => 'upload',
+       token    => $token,
+       filename => $dest,
+       file     => [$file, $dest],
+   );
+   push @args, text => $text if defined $text;
+
+   my $resp = $self->{ua}->post($self->{uri},
+      Content_Type => 'form-data', Content => \@args);
+   croak 'API call failed' unless $resp->is_success();
+   my $dat = decode_json($resp->content());
+   if (my $warn = $dat->{upload}{warnings}) {
+      foreach my $key (sort keys %$warn) {
+         warn $key, ": ", dump($warn->{$key}), "\n";
+      }
+   }
+   if ($dat->{upload}{result} ne 'Success') {
+      croak 'Upload failed' . dump($dat);
+   }
 }
 
 1 # end MW::UserAgent
