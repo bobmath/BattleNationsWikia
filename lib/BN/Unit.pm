@@ -424,6 +424,9 @@ sub enemy_levels {
       raptor_zombie_enemy_40           => undef,
       s_raider_sniper_tutorial         => 3,
       veh_raider_mammoth_armored       => 25,
+      boss_goliath_tank_main           => 71,
+      boss_goliath_tank_leftside       => 71,
+      boss_goliath_tank_rightside      => 71,
    );
    while (my ($key, $val) = each %override) {
       my $unit = BN::Unit->get($key) or next;

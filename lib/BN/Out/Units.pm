@@ -12,6 +12,12 @@ sub write {
             $name = $1;
             $name =~ s/^(?:Proto-|Advanced|Archetype)\s*//;
          }
+         elsif ($unit->tag() =~ /^boss_goliath_tank_leftside/) {
+            $name .= ' (Left)';
+         }
+         elsif ($unit->tag() =~ /^boss_goliath_tank_rightside/) {
+            $name .= ' (Right)';
+         }
          $name .= ' unused' unless $unit->level();
          push @{$enemies{$name}}, $unit;
          next;
