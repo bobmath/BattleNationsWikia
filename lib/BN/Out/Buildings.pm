@@ -396,6 +396,7 @@ sub mill_goods {
    foreach my $job (@$jobs) {
       my $g = 'good' . ++$n;
       print_line($F, $g, $job->name());
+      print_line($F, $g.'image', BN::Out->icon($job->icon(), '40px'));
       if (my $cost = $job->cost()) {
          print_line($F, $g.'time', BN->format_time($cost->{time}));
          my $i;
