@@ -131,7 +131,7 @@ my %resource_order = do {
       gears    widgets
       skulls   powder
       teeth    necklaces
-      chem
+      chem     plasma
       merits   stars
    };
 };
