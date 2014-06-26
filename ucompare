@@ -35,24 +35,9 @@ my %templates = (
    unitranksbox      => 'unitranks',
 );
 
-my %namemap;
-if (open my $F, '<', 'namemap') {
-   while (<$F>) {
-      $namemap{"data/$1"} = $2 if /^\s*(.*?)\s*=\s*(.*?)\s*$/;
-   }
-}
-
 foreach my $file (@files) {
    my $file1 = "data/units/$file";
-   my $file2;
-   if ($file2 = $namemap{$file1}) {
-      $file2 =~ s/['"\/]//g;
-      $file2 =~ s/\s+/_/g;
-      $file2 = "wiki/$file2";
-   }
-   else {
-      $file2 = "wiki/$file";
-   }
+   my $file2 = "wiki/$file";
    my $stat1 = read_stat($file1) or next;
    my $stat2 = read_stat($file2) or next;
    print "\n", $file, "\n";

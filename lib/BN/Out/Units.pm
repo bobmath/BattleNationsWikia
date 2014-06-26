@@ -7,24 +7,13 @@ sub write {
    my %enemies;
    foreach my $unit (BN::Unit->all()) {
       if ($unit->side() ne 'Player') {
-         my $name = $unit->name();
-         if ($name =~ /^Specimen [a-h]\d+ ['"](.+)['"]$/) {
-            $name = $1;
-            $name =~ s/^(?:Proto-|Advanced|Archetype)\s*//;
-         }
-         elsif ($unit->tag() =~ /^boss_goliath_tank_leftside/) {
-            $name .= ' (Left)';
-         }
-         elsif ($unit->tag() =~ /^boss_goliath_tank_rightside/) {
-            $name .= ' (Right)';
-         }
-         $name .= ' unused' unless $unit->level();
+         my $name = $unit->wiki_page();
          push @{$enemies{$name}}, $unit;
          next;
       }
       my $dir = $unit->building() || $unit->from_missions()
          || $unit->boss_strike() ? 'units' : 'locked';
-      my $file = BN::Out->filename($dir, $unit->name());
+      my $file = BN::Out->filename($dir, $unit->wiki_page());
       print $file, "\n";
       open my $F, '>', $file or die "Can't write $file: $!";;
 
@@ -45,17 +34,9 @@ sub write {
       my $file = BN::Out->filename($dir, $name);
       print $file, "\n";
       open my $F, '>', $file or die "Can't write $file: $!";
-
-      my $unit = $units->[0];
-      my $affil = guess_affil($unit);
-      if ($name eq $unit->name()) {
-         $name = $unit->enemy_name();
-      }
-      else {
-         $name .= ' (enemy)';
-      }
       print $F $name, "\n";
 
+      my $affil = guess_affil($units->[0]);
       enemy_profile($F, $units, $affil);
       enemy_defense($F, $units);
       enemy_attacks($F, $units, $affil);

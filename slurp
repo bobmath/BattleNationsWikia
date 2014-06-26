@@ -15,22 +15,12 @@ if (@ARGV) {
    exit;
 }
 
-my %namemap;
-if (open my $MAP, '<', 'namemap') {
-   while (<$MAP>) {
-      /^\s*(.*?)\s*=\s*(.*?)\s*$/ or next;
-      $namemap{"data/$1"} = $2;
-   }
-}
-
 foreach my $dir (qw{ units buildings missions enemies }) {
    foreach my $file (glob "data/$dir/*") {
       next unless -f $file;
-      my $page = $namemap{$file};
-      unless ($page) {
-         open my $F, '<', $file or die "Can't read $file: $!";
-         chomp($page = <$F>);
-      }
+      open my $F, '<', $file or die "Can't read $file: $!";
+      chomp(my $page = <$F>);
+      close $F;
       get_page($page);
    }
 }

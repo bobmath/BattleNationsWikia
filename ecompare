@@ -20,20 +20,11 @@ $ignore{$_} = 1 for qw(
    weaponicon
 );
 
-my %namemap;
-if (open my $F, '<', 'namemap') {
-   while (<$F>) {
-      $namemap{"data/$1"} = $2 if /^\s*(.*?)\s*=\s*(.*?)\s*$/;
-   }
-}
-
 foreach my $file (@files) {
    my $file1 = "data/enemies/$file";
-   my $file2 = $namemap{$file1};
-   if (!$file2) {
-      open my $F, '<', $file1 or die;
-      chomp($file2 = <$F>);
-   }
+   open my $F, '<', $file1 or die;
+   chomp(my $file2 = <$F>);
+   close $F;
    $file2 =~ s/[^-.\w\s]+//g;
    $file2 =~ s/\s+/_/g;
    $file2 = "wiki/$file2";

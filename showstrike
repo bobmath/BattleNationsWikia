@@ -126,7 +126,7 @@ sub show_encounter {
          my $tag = $u->{unit}->animation();
          my $anim = BN::Animation->get($tag) or next;
          my $img = $icon_map{$tag} ||= build_icon($anim);
-         my $link = $u->{unit}->enemy_name();
+         my $link = $u->{unit}->wiki_page();
          my @box = $anim->box(0) or next;
          my $wid = ceil(($box[1] - $box[0]) * $scale) + 2;
          my $hgt = ceil(($box[3] - $box[2]) * $scale) + 2;

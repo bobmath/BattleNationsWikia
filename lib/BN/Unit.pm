@@ -11,6 +11,44 @@ sub all {
    return map { $class->get($_) } sort keys %$units;
 }
 
+my %tweaks = (
+   air_spiderwasp_striker           => { enemy_level => 45 },
+   boss_goliath_tank_leftside       => { wiki_page => 'Multi-Launch Rocket System (Left)' },
+   boss_goliath_tank_leftside_mis   => { wiki_page => 'Multi-Launch Rocket System (Left) (Mission)' },
+   boss_goliath_tank_main           => { wiki_page => 'Goliath Tank (Main)' },
+   boss_goliath_tank_main_mis       => { wiki_page => 'Goliath Tank (Main) (Mission)' },
+   boss_goliath_tank_rightside      => { wiki_page => 'Multi-Launch Rocket System (Right)' },
+   boss_goliath_tank_rightside_mis  => { wiki_page => 'Multi-Launch Rocket System (Right) (Mission)' },
+   fr_guy_chainsaw_ignorable        => { wiki_page => 'Frontier Lumberjack (ignorable)' },
+   fr_guy_dynamite_ignorable        => { wiki_page => 'Frontier Engineer (ignorable)' },
+   fr_guy_hunter_ignorable          => { wiki_page => 'Frontier Hunter (ignorable)' },
+   fr_guy_pyro_ignorable            => { wiki_page => 'Frontier Pyro (ignorable)' },
+   fr_guy_shotgun_ignorable         => { wiki_page => 'Frontier Minuteman (ignorable)' },
+   hero_cast_morgan                 => { enemy_level => 15 },
+   hero_cast_morgan_buff            => { wiki_page => 'Lt. Morgan (buffed)' },
+   hero_cast_morgan_duels           => { wiki_page => 'Lt. Morgan (duels)' },
+   hero_raider_warlord              => { enemy_level => 30 },
+   hero_raider_warlord_ignorable    => { wiki_page => 'Warlord Gantas (ignorable)' },
+   hero_raider_warlord_passive      => { wiki_page => 'Warlord Gantas (passive)' },
+   raptor_zombie_40                 => { name => "Specimen g03 'Advanced Shredder'" },
+   raptor_zombie_c                  => { name => "Specimen g03 'Advanced Shredder'" },
+   raptor_zombie_enemy_20           => { wiki_page => 'Shredder (unused)' },
+   raptor_zombie_enemy_40           => { wiki_page => 'Shredder (unused)' },
+   s_raider_dustwalker              => { wiki_page => 'Dust Walker (enemy)' },
+   s_raider_dustwalker_40           => { wiki_page => 'Dust Walker (enemy)' },
+   s_raider_firebreather            => { wiki_page => 'Firebreather (enemy)' },
+   s_raider_firebreather_40         => { wiki_page => 'Firebreather (enemy)' },
+   s_raider_sniper_tutorial         => { enemy_level => 3 },
+   sw_veh_artillery                 => { wiki_page => 'Silver Wolf Artillery' },
+   sw_veh_artillery_20              => { wiki_page => 'Silver Wolf Artillery' },
+   sw_veh_artillery_5               => { wiki_page => 'Silver Wolf Artillery' },
+   sw_veh_artillery_player          => { wiki_page => 'Wolf Artillery' },
+   veh_raider_mammoth_armored       => { enemy_level => 25 },
+   hero_ancient_robot_30            => { wiki_page => 'Ancient Construct (Boss Strike)' },
+   hero_ancient_robot_45            => { wiki_page => 'Ancient Construct (Boss Strike)' },
+   hero_ancient_robot_60            => { wiki_page => 'Ancient Construct (Boss Strike)' },
+);
+
 sub get {
    my ($class, $key) = @_;
    return unless $key;
@@ -19,12 +57,12 @@ sub get {
    if (ref($unit) eq 'HASH') {
       bless $unit, $class;
       $unit->{_tag} = $key;
-      my $name = BN::Text->get($unit->{name}) || $key;
-      $name =~ s/^Speciment/Specimen/;
-      if ($name eq 'Ancient Construct' && $key =~ /_\d+$/) {
-         $name = 'Ancient Construct (Boss Strike)';
+      $unit->{_name} = BN::Text->get($unit->{name}) || $key;
+      if (my $tweak = $tweaks{$key}) {
+         while (my ($k, $v) = each %$tweak) {
+            $unit->{'_' . $k} = $v;
+         }
       }
-      $unit->{_name} = $name;
    }
    return $unit;
 }
@@ -56,10 +94,15 @@ BN->accessor(shortname => sub {
 });
 
 my %unit_names;
-BN->accessor(enemy_name => sub {
+BN->accessor(wiki_page => sub {
    my ($unit) = @_;
    my $name = $unit->{_name};
    return $name unless ($unit->{side}||'') eq 'Hostile';
+   if ($name =~ /^Specimen [a-h]\d+ ['"](.+)['"]$/) {
+      $name = $1;
+      $name =~ s/^(?:Proto-|Advanced|Archetype)\s*//;
+      return $name . ' (enemy)';
+   }
    unless (%unit_names) {
       foreach my $u (BN::Unit->all()) {
          my $side = $u->{side} or next;
@@ -75,7 +118,7 @@ BN->accessor(enemy_name => sub {
 
 sub wikilink {
    my ($unit, $text) = @_;
-   my $ename = $unit->enemy_name();
+   my $ename = $unit->wiki_page();
    $text //= $unit->{_name};
    return (length($text) == 0 || $text eq $ename) ? "[[$ename]]"
       : "[[$ename|$text]]";
@@ -83,7 +126,7 @@ sub wikilink {
 
 sub shortlink {
    my ($unit) = @_;
-   my $ename = $unit->enemy_name();
+   my $ename = $unit->wiki_page();
    my $sname = $unit->shortname();
    return $ename eq $sname ? "[[$ename]]" : "[[$ename|$sname]]";
 }
@@ -250,10 +293,6 @@ BN->accessor(heal_building => sub {
    return;
 });
 
-BN->accessor(rewards => sub {
-   my ($unit) = @_;
-});
-
 sub level {
    my ($unit) = @_;
    return $unit->{_level} if exists $unit->{_level};
@@ -401,36 +440,14 @@ sub enemy_levels {
    foreach my $unit (BN::Unit->all()) {
       next if $unit->{side} eq 'Player';
       $unit->{z_prereqs} = [] if $unit->{z_prereqs};
+      if (exists $unit->{_enemy_level}) {
+         $unit->{_level} = $unit->{_enemy_level};
+         next;
+      }
       $unit->{_level} = $1 if $unit->{_tag} =~ /_(\d+)$/;
       if (!$unit->{_level} || $unit->{_level} <= 1) {
          $unit->{_level} = $levels{$unit->{_tag}};
       }
-   }
-
-   my %override = (
-      air_spiderwasp_striker           => 45,
-      fr_guy_chainsaw_ignorable        => undef,
-      fr_guy_dynamite_ignorable        => undef,
-      fr_guy_hunter_ignorable          => undef,
-      fr_guy_pyro_ignorable            => undef,
-      fr_guy_shotgun_ignorable         => undef,
-      hero_cast_morgan                 => 15,
-      hero_cast_morgan_buff            => undef,
-      hero_cast_morgan_duels           => undef,
-      hero_raider_warlord              => 30,
-      hero_raider_warlord_ignorable    => undef,
-      hero_raider_warlord_passive      => undef,
-      raptor_zombie_enemy_20           => undef,
-      raptor_zombie_enemy_40           => undef,
-      s_raider_sniper_tutorial         => 3,
-      veh_raider_mammoth_armored       => 25,
-      boss_goliath_tank_main           => 71,
-      boss_goliath_tank_leftside       => 71,
-      boss_goliath_tank_rightside      => 71,
-   );
-   while (my ($key, $val) = each %override) {
-      my $unit = BN::Unit->get($key) or next;
-      $unit->{_level} = $val;
    }
 }
 
