@@ -59,7 +59,7 @@ sub read_stat {
          next if $key =~ /image$/ || $ignore{$key};
          $sec->{$key} = $val;
       }
-      elsif (/^\{\{(\w+)/) {
+      elsif (/^\}*\{\{(\w+)/) {
          my $key = $1;
          next if lc($key) eq 'clear';
          my $k = $key;
