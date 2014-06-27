@@ -203,7 +203,7 @@ BN->list_accessor(weapons => sub {
 });
 
 my %immune = (
-   #Acid        => '{{AcidEnvironment}} Acid Environment',
+   Acid        => '{{Acid}} Acid',
    Cold        => '{{ColdEnvironment}} Cold Environment',
    Fire        => '{{FireDOT}} Fire',
    Flammable   => '{{Flammable}} Flammable',
