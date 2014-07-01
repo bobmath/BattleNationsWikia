@@ -1,6 +1,7 @@
 # nasty little script for converting .pvr to .png
 use strict;
 use warnings;
+use File::Basename qw( basename );
 use Image::PNG::Const qw( PNG_COLOR_TYPE_RGB_ALPHA );
 use Image::PNG::Libpng;
 
@@ -8,7 +9,7 @@ my $file = $ARGV[0] or die 'file needed';
 
 my $outfile = $ARGV[1];
 unless ($outfile) {
-   $outfile = $file;
+   $outfile = basename($file);
    $outfile =~ s/\.pvr$//i;
    $outfile .= '.png';
 }
@@ -95,9 +96,22 @@ interp(\@Br);
 interp(\@Bg);
 interp(\@Bb);
 
-#write_png('A.png', \@Aa, \@Ar, \@Ag, \@Ab);
-#write_png('B.png', \@Ba, \@Br, \@Bg, \@Bb);
-write_merged($outfile);
+#write_png('A.png', $size, $size, \@Aa, \@Ar, \@Ag, \@Ab);
+#write_png('B.png', $size, $size, \@Ba, \@Br, \@Bg, \@Bb);
+
+my (@Ca, @Cr, @Cg, @Cb);
+$#Ca = $end;
+$#Cr = $end;
+$#Cg = $end;
+$#Cb = $end;
+merge();
+write_png($outfile, $size, $size, \@Ca, \@Cr, \@Cg, \@Cb);
+
+my (@Da, @Dr, @Dg, @Db);
+tile();
+$outfile =~ s/\.png$//;
+$outfile .= '_split.png';
+write_png($outfile, 1024, 2112, \@Da, \@Dr, \@Dg, \@Db);
 
 sub interp {
    my ($im) = @_;
@@ -151,12 +165,12 @@ sub show {
 }
 
 sub write_png {
-   my ($file, $a, $r, $g, $b) = @_;
+   my ($file, $wid, $hgt, $a, $r, $g, $b) = @_;
    my $i = 0;
    my @rows;
-   for my $y (0 .. $size-1) {
+   for my $y (0 .. $hgt-1) {
       my $row = '';
-      for my $x (0 .. $size - 1) {
+      for my $x (0 .. $wid-1) {
          $row .= chr($r->[$i] + 0.5) . chr($g->[$i] + 0.5)
             . chr($b->[$i] + 0.5) . chr($a->[$i] + 0.5);
          $i++;
@@ -165,57 +179,91 @@ sub write_png {
    }
 
    my $png = Image::PNG::Libpng::create_write_struct();
-   $png->set_IHDR({ width=>$size, height=>$size, bit_depth=>8,
+   $png->set_IHDR({ width=>$wid, height=>$hgt, bit_depth=>8,
       color_type=>PNG_COLOR_TYPE_RGB_ALPHA});
    $png->set_rows(\@rows);
    $png->write_png_file($file);
 }
 
-sub write_merged {
-   my ($file) = @_;
+sub merge {
    my $i = 0;
-   my @rows;
    for my $y (0 .. $size-1) {
-      my $row = '';
       for my $x (0 .. $size-1) {
-         my ($a, $r, $g, $b);
          my $m = $M[$i];
          if ($m == 0) {
-            $a = $Aa[$i];
-            $r = $Ar[$i];
-            $g = $Ag[$i];
-            $b = $Ab[$i];
+            $Ca[$i] = $Aa[$i];
+            $Cr[$i] = $Ar[$i];
+            $Cg[$i] = $Ag[$i];
+            $Cb[$i] = $Ab[$i];
          }
          elsif ($m == 1) {
-            $a = (5/8)*$Aa[$i] + (3/8)*$Ba[$i];
-            $r = (5/8)*$Ar[$i] + (3/8)*$Br[$i];
-            $g = (5/8)*$Ag[$i] + (3/8)*$Bg[$i];
-            $b = (5/8)*$Ab[$i] + (3/8)*$Bb[$i];
+            $Ca[$i] = (5/8)*$Aa[$i] + (3/8)*$Ba[$i];
+            $Cr[$i] = (5/8)*$Ar[$i] + (3/8)*$Br[$i];
+            $Cg[$i] = (5/8)*$Ag[$i] + (3/8)*$Bg[$i];
+            $Cb[$i] = (5/8)*$Ab[$i] + (3/8)*$Bb[$i];
          }
          elsif ($m == 2) {
-            $a = (3/8)*$Aa[$i] + (5/8)*$Ba[$i];
-            $r = (3/8)*$Ar[$i] + (5/8)*$Br[$i];
-            $g = (3/8)*$Ag[$i] + (5/8)*$Bg[$i];
-            $b = (3/8)*$Ab[$i] + (5/8)*$Bb[$i];
+            $Ca[$i] = (3/8)*$Aa[$i] + (5/8)*$Ba[$i];
+            $Cr[$i] = (3/8)*$Ar[$i] + (5/8)*$Br[$i];
+            $Cg[$i] = (3/8)*$Ag[$i] + (5/8)*$Bg[$i];
+            $Cb[$i] = (3/8)*$Ab[$i] + (5/8)*$Bb[$i];
          }
          elsif ($m == 3) {
-            $a = $Ba[$i];
-            $r = $Br[$i];
-            $g = $Bg[$i];
-            $b = $Bb[$i];
+            $Ca[$i] = $Ba[$i];
+            $Cr[$i] = $Br[$i];
+            $Cg[$i] = $Bg[$i];
+            $Cb[$i] = $Bb[$i];
          }
          $i++;
-         $row .= chr($r + 0.5) . chr($g + 0.5) . chr($b + 0.5) . chr($a + 0.5);
       }
-      push @rows, $row;
    }
+}
 
-   my $png = Image::PNG::Libpng::create_write_struct();
-   $png->set_IHDR({ width=>$size, height=>$size, bit_depth=>8,
-      color_type=>PNG_COLOR_TYPE_RGB_ALPHA});
-   $png->set_rows(\@rows);
-   $png->write_png_file('temp.png');
-   system("pngcrush -new -brute -q temp.png $file") == 0 or die;
-   unlink 'temp.png';
+sub tile {
+   my $wid = 1024;
+   my $hgt = 2112;
+   @Da = (0) x ($wid * $hgt);
+   @Dr = (0) x ($wid * $hgt);
+   @Dg = (0) x ($wid * $hgt);
+   @Db = (0) x ($wid * $hgt);
+   $_ = 0 foreach @Da;
+   for my $j (0 .. 32) {
+      for my $i (0 .. 7) {
+         my $x1 = $i * 120 + 59;
+         $x1 += 60 if $j & 1;
+         my $y1 = $j * 30;
+
+         my $x2 = ($i << 7) + 64;
+         my $y2 = ($j << 6) + 3;
+
+         for my $row (0 .. 29) {
+            my $w = 2*$row + 1;
+            my $in = ($y1 + $row) * $size + $x1 - $w;
+            my $out = ($y2 + $row) * $wid + $x2 - $w;
+            for my $p (-$w .. $w) {
+               $Da[$out] = 255;
+               $Dr[$out] = $Cr[$in];
+               $Dg[$out] = $Cg[$in];
+               $Db[$out] = $Cb[$in];
+               $out++;
+               $in++;
+            }
+         }
+
+         for my $row (0 .. 29) {
+            my $w = 2 * (29 - $row);
+            my $in = ($y1 + 30 + $row) * $size + $x1 - $w;
+            my $out = ($y2 + 30 + $row) * $wid + $x2 - $w;
+            for my $p (-$w .. $w) {
+               $Da[$out] = 255;
+               $Dr[$out] = $Cr[$in];
+               $Dg[$out] = $Cg[$in];
+               $Db[$out] = $Cb[$in];
+               $out++;
+               $in++;
+            }
+         }
+      }
+   }
 }
 
