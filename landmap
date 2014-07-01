@@ -1,0 +1,69 @@
+use strict;
+use warnings;
+use lib 'lib';
+use BN;
+use Cairo;
+
+my $mapname = $ARGV[0];
+unless ($mapname) {
+   my $landlist = BN::File->json('LandList.json');
+   if (my $list = $landlist->{landList}) {
+      print 'Maps: ', join(', ', @$list), "\n";
+   }
+   die 'no map selected';
+}
+
+my $map = BN::File->json($mapname . '.json');
+my $tilefile = $map->{tileLayoutFile} or die;
+my $tileset = $map->{tileSet} or die;
+$tileset =~ s/\.pvr$//;
+my $tiles = BN::File->json($tilefile);
+$tiles = $tiles->{map} or die;
+my $layer = $tiles->{layers}[0] or die;
+my $data = $layer->{data} or die;
+my $wid = $layer->{width} or die;
+my $hgt = $layer->{height} or die;
+
+my $Xmin = $wid;
+my $Ymin = $hgt;
+my $Xmax = 0;
+my $Ymax = 0;
+my $i = 0;
+for my $y (0 .. $hgt-1) {
+   for my $x (0 .. $wid-1) {
+      next unless $data->[$i++];
+      my $X = $x - $y;
+      my $Y = $y + $y;
+      $Xmin = $X if $X < $Xmin;
+      $Xmax = $X if $X > $Xmax;
+      $Ymin = $Y if $Y < $Ymin;
+      $Ymax = $Y if $Y > $Ymax;
+   }
+}
+
+my $im_wid = ($Xmax - $Xmin + 2) * 60 + 16;
+my $im_hgt = ($Ymax - $Ymin + 2) * 30 + 8;
+
+my $surface = Cairo::ImageSurface->create('argb32', $im_wid, $im_hgt);
+my $ctx = Cairo::Context->create($surface);
+
+my $tileimg = Cairo::ImageSurface->create_from_png("../bg/${tileset}_split.png")
+   or die;
+
+$i = 0;
+for my $y (0 .. $hgt-1) {
+   for my $x (0 .. $wid-1) {
+      my $tile = $data->[$i++] or next;
+      $tile--;
+      my $tx = ($tile & 7) << 7;
+      my $ty = ($tile >> 3) << 6;
+      my $X = ($x - $y - $Xmin) * 60;
+      my $Y = ($x + $y - $Ymin) * 30;
+      $ctx->set_source_surface($tileimg, $X - $tx, $Y - $ty);
+      $ctx->rectangle($X, $Y, 124, 62);
+      $ctx->fill();
+   }
+}
+
+$surface->write_to_png($mapname . '.png');
+
