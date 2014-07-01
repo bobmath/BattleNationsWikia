@@ -1,0 +1,221 @@
+# nasty little script for converting .pvr to .png
+use strict;
+use warnings;
+use Image::PNG::Const qw( PNG_COLOR_TYPE_RGB_ALPHA );
+use Image::PNG::Libpng;
+
+my $file = $ARGV[0] or die 'file needed';
+
+my $outfile = $ARGV[1];
+unless ($outfile) {
+   $outfile = $file;
+   $outfile =~ s/\.pvr$//i;
+   $outfile .= '.png';
+}
+
+open my $IN, '<', $file or die;
+seek $IN, 52, 0;
+
+my $bits = 8;
+my $size = 4 << $bits;
+my $end = $size * $size - 1;
+my $blocks = 1 << 2*$bits;
+
+my (@Aa, @Ar, @Ag, @Ab, @Ba, @Br, @Bg, @Bb, @M);
+$#Aa = $end;
+$#Ar = $end;
+$#Ag = $end;
+$#Ab = $end;
+$#Ba = $end;
+$#Br = $end;
+$#Bg = $end;
+$#Bb = $end;
+$#M = $end;
+
+for my $i (0 .. $blocks-1) {
+   my $x = 0;
+   my $y = 0;
+   my $j = $i;
+   my $bit = 4;
+   while ($j) {
+      $y |= $bit if $j & 1;
+      $x |= $bit if $j & 2;
+      $j >>= 2;
+      $bit <<= 1;
+   }
+   $j = ($x + 2) | ($y + 2) << ($bits + 2);
+
+   my $buf;
+   read $IN, $buf, 8 or die;
+   my ($M,$A,$B) = unpack 'Vvv', $buf;
+
+   die if $A & 1;
+
+   if ($A & 0x8000) {
+      $Aa[$j] = 255;
+      $Ar[$j] = (($A >> 10) & 0x1f) * (0xff/0x1f);
+      $Ag[$j] = (($A >>  5) & 0x1f) * (0xff/0x1f);
+      $Ab[$j] = (($A >>  1) & 0x0f) * (0xff/0x0f);
+   }
+   else {
+      $Aa[$j] = (($A >> 12) & 0x7) * (0xff/0x7);
+      $Ar[$j] = (($A >>  8) & 0xf) * (0xff/0xf);
+      $Ag[$j] = (($A >>  4) & 0xf) * (0xff/0xf);
+      $Ab[$j] = (($A >>  1) & 0x7) * (0xff/0x7);
+   }
+
+   if ($B & 0x8000) {
+      $Ba[$j] = 255;
+      $Br[$j] = (($B >> 10) & 0x1f) * (0xff/0x1f);
+      $Bg[$j] = (($B >>  5) & 0x1f) * (0xff/0x1f);
+      $Bb[$j] = ( $B        & 0x1f) * (0xff/0x1f);
+   }
+   else {
+      $Ba[$j] = (($B >> 12) & 0x7) * (0xff/0x7);
+      $Br[$j] = (($B >>  8) & 0xf) * (0xff/0xf);
+      $Bg[$j] = (($B >>  4) & 0xf) * (0xff/0xf);
+      $Bb[$j] = ( $B        & 0xf) * (0xff/0xf);
+   }
+
+   for my $y2 (0 .. 3) {
+      $j = $x | ($y + $y2) << ($bits + 2);
+      for my $x2 (0 .. 3) {
+         $M[$j + $x2] = $M & 3;
+         $M >>= 2;
+      }
+   }
+}
+
+interp(\@Aa);
+interp(\@Ar);
+interp(\@Ag);
+interp(\@Ab);
+interp(\@Ba);
+interp(\@Br);
+interp(\@Bg);
+interp(\@Bb);
+
+#write_png('A.png', \@Aa, \@Ar, \@Ag, \@Ab);
+#write_png('B.png', \@Ba, \@Br, \@Bg, \@Bb);
+write_merged($outfile);
+
+sub interp {
+   my ($im) = @_;
+   my $bits2 = $bits + 2;
+   my $mask = $size - 1;
+   for (my $y = 2; $y < $size; $y += 4) {
+      my $y0 = $y << $bits2;
+      my $y1 = ($y - 1) << $bits2;
+      my $y2 = ($y - 2) << $bits2;
+      my $y3 = (($y - 3) & $mask) << $bits2;
+      my $y4 = (($y - 4) & $mask) << $bits2;
+      for (my $x = 2; $x < $size; $x += 4) {
+         my $a = $im->[$x + $y0];
+         my $b = $im->[$x + $y4];
+         $im->[$x + $y3] = ($a + 3*$b) / 4;
+         $im->[$x + $y2] = ($a + $b) / 2;
+         $im->[$x + $y1] = (3*$a + $b) / 4;
+      }
+   }
+
+   for (my $y = 0; $y < $size; $y++) {
+      my $row = $y << $bits2;
+      my $b = $im->[$size - 2 + $row];
+      for (my $x = 2; $x < $size; $x += 4) {
+         my $a = $im->[$x + $row];
+         $im->[(($x - 3) & $mask) + $row] = ($a + 3*$b) / 4;
+         $im->[$x - 2 + $row] = ($a + $b) / 2;
+         $im->[$x - 1 + $row] = (3*$a + $b) / 4;
+         $b = $a;
+      }
+   }
+}
+
+sub show {
+   my ($im) = @_;
+   die unless $#$im == $end;
+   my $i = 0;
+   for my $y (0 .. $size-1) {
+      for my $x (0 .. $size-1) {
+         my $v = $im->[$i];
+         $i++;
+         if (defined $v) {
+            printf " %02x", $v;
+         }
+         else {
+            print " ..";
+         }
+      }
+      print "\n";
+   }
+}
+
+sub write_png {
+   my ($file, $a, $r, $g, $b) = @_;
+   my $i = 0;
+   my @rows;
+   for my $y (0 .. $size-1) {
+      my $row = '';
+      for my $x (0 .. $size - 1) {
+         $row .= chr($r->[$i] + 0.5) . chr($g->[$i] + 0.5)
+            . chr($b->[$i] + 0.5) . chr($a->[$i] + 0.5);
+         $i++;
+      }
+      push @rows, $row;
+   }
+
+   my $png = Image::PNG::Libpng::create_write_struct();
+   $png->set_IHDR({ width=>$size, height=>$size, bit_depth=>8,
+      color_type=>PNG_COLOR_TYPE_RGB_ALPHA});
+   $png->set_rows(\@rows);
+   $png->write_png_file($file);
+}
+
+sub write_merged {
+   my ($file) = @_;
+   my $i = 0;
+   my @rows;
+   for my $y (0 .. $size-1) {
+      my $row = '';
+      for my $x (0 .. $size-1) {
+         my ($a, $r, $g, $b);
+         my $m = $M[$i];
+         if ($m == 0) {
+            $a = $Aa[$i];
+            $r = $Ar[$i];
+            $g = $Ag[$i];
+            $b = $Ab[$i];
+         }
+         elsif ($m == 1) {
+            $a = (5/8)*$Aa[$i] + (3/8)*$Ba[$i];
+            $r = (5/8)*$Ar[$i] + (3/8)*$Br[$i];
+            $g = (5/8)*$Ag[$i] + (3/8)*$Bg[$i];
+            $b = (5/8)*$Ab[$i] + (3/8)*$Bb[$i];
+         }
+         elsif ($m == 2) {
+            $a = (3/8)*$Aa[$i] + (5/8)*$Ba[$i];
+            $r = (3/8)*$Ar[$i] + (5/8)*$Br[$i];
+            $g = (3/8)*$Ag[$i] + (5/8)*$Bg[$i];
+            $b = (3/8)*$Ab[$i] + (5/8)*$Bb[$i];
+         }
+         elsif ($m == 3) {
+            $a = $Ba[$i];
+            $r = $Br[$i];
+            $g = $Bg[$i];
+            $b = $Bb[$i];
+         }
+         $i++;
+         $row .= chr($r + 0.5) . chr($g + 0.5) . chr($b + 0.5) . chr($a + 0.5);
+      }
+      push @rows, $row;
+   }
+
+   my $png = Image::PNG::Libpng::create_write_struct();
+   $png->set_IHDR({ width=>$size, height=>$size, bit_depth=>8,
+      color_type=>PNG_COLOR_TYPE_RGB_ALPHA});
+   $png->set_rows(\@rows);
+   $png->write_png_file('temp.png');
+   system("pngcrush -new -brute -q temp.png $file") == 0 or die;
+   unlink 'temp.png';
+}
+
