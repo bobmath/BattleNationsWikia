@@ -29,16 +29,15 @@ my $data = $layer->{data} or die;
 my $wid = $layer->{width} or die;
 my $hgt = $layer->{height} or die;
 
-my $Xmin = $wid;
-my $Ymin = $hgt;
-my $Xmax = 0;
-my $Ymax = 0;
+my ($Xmin, $Xmax, $Ymin, $Ymax);
+$Xmin = $Ymin = $wid + $hgt;
+$Xmax = $Ymax = -$Xmin;
 my $i = 0;
 for my $y (0 .. $hgt-1) {
    for my $x (0 .. $wid-1) {
       next unless $data->[$i++];
       my $X = $x - $y;
-      my $Y = $y + $y;
+      my $Y = $x + $y;
       $Xmin = $X if $X < $Xmin;
       $Xmax = $X if $X > $Xmax;
       $Ymin = $Y if $Y < $Ymin;
@@ -76,7 +75,7 @@ for my $y (0 .. $hgt-1) {
 }
 
 if (my $buildings = $map->{buildings}) {
-   my %roads;
+   my (%roads, %links);
    my $xoff = $wid/2 + 0.5;
    my $yoff = $hgt/2 - 0.5;
    foreach my $info (@$buildings) {
@@ -91,6 +90,14 @@ if (my $buildings = $map->{buildings}) {
       $info->{YY} -= 15 if $type =~ /^deco_dirtroad_/;
       if (my $road = $bld->{BNSmartRoad}) {
          $roads{"$info->{x},$info->{y}"} = $road->{baseAnimationName};
+      }
+      if (my $link = $bld->map_link()) {
+         my $map = BN::Map->get($link);
+         $links{"$info->{x},$info->{y}"} = {
+            X    => $info->{X},
+            Y    => $info->{Y},
+            name => $map->name(),
+         } if $map;
       }
    }
    foreach my $info (sort { $a->{YY} <=> $b->{YY} } @$buildings) {
@@ -108,6 +115,18 @@ if (my $buildings = $map->{buildings}) {
       $anim->render($ctx, 0);
       $ctx->restore();
    }
+   $ctx->set_font_size(32);
+   foreach my $link (sort { $a->{Y} <=> $b->{Y} } values %links) {
+      my $ext = $ctx->text_extents($link->{name});
+      $ctx->move_to($link->{X} - $ext->{width}/2 - $ext->{x_bearing},
+         $link->{Y} - $ext->{y_bearing});
+      $ctx->text_path($link->{name});
+      $ctx->set_source_rgb(0, 0, 0);
+      $ctx->set_line_width(4);
+      $ctx->stroke_preserve();
+      $ctx->set_source_rgb(1, 1, 1);
+      $ctx->fill();
+   }
 }
 
 $surface->write_to_png($mapname . '.png');
@@ -118,6 +137,7 @@ sub smart_road {
    my $y = $info->{y};
    my $wid = $road->{width} or return;
    my $base = $road->{baseAnimationName} or return;
+   $info->{flip} = 0;
    my $anim = $base . '_';
    $anim .= ($roads->{($x+$wid).','.($y)}||'') eq $base ? 'x' : 'o';
    $anim .= ($roads->{($x).','.($y+$wid)}||'') eq $base ? 'x' : 'o';
