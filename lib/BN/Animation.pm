@@ -44,6 +44,7 @@ sub read_anim {
    my $anim = { _pack=>$pack, _ver=>$ver };
    bless $anim, $class;
    my ($tag, $num_points) = read_unpack($F, 0x104, 'Z256x2v');
+   $tag =~ s/\s/_/g;
    die 'Invalid animation name' if $tag =~ /\W/;
    $anim->{_tag} = $tag;
    $animations{lc($tag)} = $anim;

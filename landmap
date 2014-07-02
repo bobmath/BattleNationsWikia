@@ -78,7 +78,10 @@ if (my $buildings = $map->{buildings}) {
    }
    foreach my $info (sort { $a->{YY} <=> $b->{YY} } @$buildings) {
       my $bld = BN::Building->get($info->{type}) or next;
-      my $anim = BN::Animation->get($bld->animation('Default')) or next;
+      my $animname = $bld->animation('Default') or next;
+      my $anim = eval { BN::Animation->get($animname) };
+      die "Can't load $animname: $@" if $@;
+      next unless $anim;
       $ctx->save();
       $ctx->translate($info->{X}, $info->{Y});
       $ctx->scale(-1, 1) if $info->{flip};
