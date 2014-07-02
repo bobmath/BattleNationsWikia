@@ -8,7 +8,7 @@ my $mapname = $ARGV[0];
 unless ($mapname) {
    my $landlist = BN::File->json('LandList.json');
    if (my $list = $landlist->{landList}) {
-      print 'Maps: ', join(', ', @$list), "\n";
+      print 'Maps: ', join(', ', sort @$list), "\n";
    }
    die 'no map selected';
 }
