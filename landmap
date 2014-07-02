@@ -47,8 +47,8 @@ my $im_hgt = ($Ymax - $Ymin + 2) * 30 + 8;
 my $surface = Cairo::ImageSurface->create('argb32', $im_wid, $im_hgt);
 my $ctx = Cairo::Context->create($surface);
 
-my $tileimg = Cairo::ImageSurface->create_from_png("../bg/${tileset}_split.png")
-   or die;
+my $tilesetfile = "../bg/${tileset}_split.png";
+my $tileimg = Cairo::ImageSurface->create_from_png($tilesetfile) or die;
 
 $i = 0;
 for my $y (0 .. $hgt-1) {
@@ -60,8 +60,30 @@ for my $y (0 .. $hgt-1) {
       my $X = ($x - $y - $Xmin) * 60;
       my $Y = ($x + $y - $Ymin) * 30;
       $ctx->set_source_surface($tileimg, $X - $tx, $Y - $ty);
-      $ctx->rectangle($X, $Y, 124, 62);
+      $ctx->rectangle($X+2, $Y+1, 124, 62);
       $ctx->fill();
+      #$ctx->set_source_rgb(1, 1, 1);
+      #$ctx->move_to($X+60, $Y+30);
+      #$ctx->show_text($tile);
+   }
+}
+
+if (my $buildings = $map->{buildings}) {
+   foreach my $info (@$buildings) {
+      my $x = $wid/2 - $info->{x}/3 + 0.5;
+      my $y = $hgt/2 - $info->{y}/3 - 0.5;
+      $info->{X} = ($x - $y - $Xmin) * 60;
+      $info->{YY} = $info->{Y} = ($x + $y - $Ymin) * 30;
+      $info->{YY} += 20 if $info->{type} =~ /_egg_/; # kludge
+   }
+   foreach my $info (sort { $a->{YY} <=> $b->{YY} } @$buildings) {
+      my $bld = BN::Building->get($info->{type}) or next;
+      my $anim = BN::Animation->get($bld->animation('Default')) or next;
+      $ctx->save();
+      $ctx->translate($info->{X}, $info->{Y});
+      $ctx->scale(-1, 1) if $info->{flip};
+      $anim->render($ctx, 0);
+      $ctx->restore();
    }
 }
 

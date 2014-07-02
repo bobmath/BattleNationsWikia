@@ -454,4 +454,11 @@ BN->accessor(mill_rate => sub {
    return $out * 60*60*12 / $time;
 });
 
+sub animation {
+   my ($build, $which) = @_;
+   my $anim = $build->{Animation} or return;
+   $anim = $anim->{animations} or return;
+   return $anim->{$which || 'Default'} || $anim->{Default};
+}
+
 1 # end BN::Building
