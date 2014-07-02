@@ -3,6 +3,11 @@ use warnings;
 use lib 'lib';
 use BN;
 use Cairo;
+use Getopt::Std;
+
+my %opts;
+getopts('t', \%opts) or die 'bad opts';
+my $TILENUMS = $opts{t};
 
 my $mapname = $ARGV[0];
 unless ($mapname) {
@@ -62,23 +67,38 @@ for my $y (0 .. $hgt-1) {
       $ctx->set_source_surface($tileimg, $X - $tx, $Y - $ty);
       $ctx->rectangle($X+2, $Y+1, 124, 62);
       $ctx->fill();
-      #$ctx->set_source_rgb(1, 1, 1);
-      #$ctx->move_to($X+60, $Y+30);
-      #$ctx->show_text($tile);
+      if ($TILENUMS) {
+         $ctx->set_source_rgb(1, 1, 1);
+         $ctx->move_to($X+60, $Y+30);
+         $ctx->show_text($tile);
+      }
    }
 }
 
 if (my $buildings = $map->{buildings}) {
+   my %roads;
+   my $xoff = $wid/2 + 0.5;
+   my $yoff = $hgt/2 - 0.5;
    foreach my $info (@$buildings) {
-      my $x = $wid/2 - $info->{x}/3 + 0.5;
-      my $y = $hgt/2 - $info->{y}/3 - 0.5;
+      my $type = $info->{type};
+      my $bld = BN::Building->get($type) or next;
+      $info->{bld} = $bld;
+      my $x = $xoff - $info->{x}/3;
+      my $y = $yoff - $info->{y}/3;
       $info->{X} = ($x - $y - $Xmin) * 60;
       $info->{YY} = $info->{Y} = ($x + $y - $Ymin) * 30;
-      $info->{YY} += 20 if $info->{type} =~ /_egg_/; # kludge
+      $info->{YY} += 15 if $type =~ /^deco_egg_/; # kludge
+      $info->{YY} -= 15 if $type =~ /^deco_dirtroad_/;
+      if (my $road = $bld->{BNSmartRoad}) {
+         $roads{"$info->{x},$info->{y}"} = $road->{baseAnimationName};
+      }
    }
    foreach my $info (sort { $a->{YY} <=> $b->{YY} } @$buildings) {
-      my $bld = BN::Building->get($info->{type}) or next;
+      my $bld = $info->{bld} or next;
       my $animname = $bld->animation('Default') or next;
+      if (my $road = $bld->{BNSmartRoad}) {
+         $animname = smart_road($info, $road, \%roads) || $animname;
+      }
       my $anim = eval { BN::Animation->get($animname) };
       die "Can't load $animname: $@" if $@;
       next unless $anim;
@@ -91,4 +111,18 @@ if (my $buildings = $map->{buildings}) {
 }
 
 $surface->write_to_png($mapname . '.png');
+
+sub smart_road {
+   my ($info, $road, $roads) = @_;
+   my $x = $info->{x};
+   my $y = $info->{y};
+   my $wid = $road->{width} or return;
+   my $base = $road->{baseAnimationName} or return;
+   my $anim = $base . '_';
+   $anim .= ($roads->{($x+$wid).','.($y)}||'') eq $base ? 'x' : 'o';
+   $anim .= ($roads->{($x).','.($y+$wid)}||'') eq $base ? 'x' : 'o';
+   $anim .= ($roads->{($x-$wid).','.($y)}||'') eq $base ? 'x' : 'o';
+   $anim .= ($roads->{($x).','.($y-$wid)}||'') eq $base ? 'x' : 'o';
+   return $anim;
+}
 
