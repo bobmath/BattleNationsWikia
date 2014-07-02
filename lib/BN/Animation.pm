@@ -17,10 +17,11 @@ my %animations;
 sub get {
    my ($class, $key) = @_;
    return unless $key;
+   $key = lc($key);
    return $animations{$key} if $animations{$key};
    build_index() unless %index;
-   $class->read_pack($index{lc($key)});
-   return $animations{lc($key)};
+   $class->read_pack($index{$key});
+   return $animations{$key};
 }
 
 BN->simple_accessor('tag');
