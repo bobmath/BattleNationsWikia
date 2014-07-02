@@ -73,6 +73,7 @@ use BN::Tier;
 use BN::Encounter;
 use BN::Animation;
 use BN::Reward;
+use BN::Map;
 
 our %resource_map = (
    currency => 'nanopods',

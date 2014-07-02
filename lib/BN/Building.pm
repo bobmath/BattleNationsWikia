@@ -461,4 +461,10 @@ sub animation {
    return $anim->{$which || 'Default'} || $anim->{Default};
 }
 
+sub map_link {
+   my ($build) = @_;
+   my $map = $build->{WorldMapObject} or return;
+   return $map->{npcId};
+}
+
 1 # end BN::Building
