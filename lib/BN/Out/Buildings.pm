@@ -224,7 +224,6 @@ sub barracks_levels {
 sub mill_levels {
    my ($F, $build, $levels) = @_;
    my $rate = $build->mill_rate() or return;
-   print_line($F, 'collector', 'true');
    print_line($F, 'resource', BN->resource_template($build->mill_output()));
    print_line($F, 'interval', '{{Time|1d}}');
    $rate *= 100 / $levels->[0]->output();
@@ -238,7 +237,6 @@ sub level_tax {
       print_line($F, 'interval', "{{Time|$time}}");
    }
    if (my $gold = $tax->{gold}) {
-      print_line($F, 'collector', 'true');
       print_line($F, 'resource', '{{Gold}}');
       print_uv($F, $gold, $levels);
    }
@@ -257,7 +255,6 @@ sub level_tax {
 sub level_resource {
    my ($F, $build, $levels) = @_;
    my $rate = $build->resource_rate() or return;
-   print_line($F, 'collector', 'true');
    print_line($F, 'interval', '{{Time|1h}}');
    print_line($F, 'resource', BN->resource_template($build->resource_type()));
    print_uv($F, $rate, $levels);
