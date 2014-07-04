@@ -104,7 +104,7 @@ BN->accessor(notes => sub {
    my ($att) = @_;
    my @notes;
    if (my $range = $att->{maxRangeModATK}) {
-      push @notes, sprintf("%+d {{Offense}} at max range", $range);
+      push @notes, sprintf("%+d {{Offense}} range mod", $range);
    }
    if (my $min = $att->{minHPPercent}) {
       push @notes, "Cannot lower HP below $min%";
