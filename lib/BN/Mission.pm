@@ -12,6 +12,9 @@ sub all {
 }
 
 my %name = (
+   p02_SWLG_010_HiddenEncounter1    => 'Mystery Troops 1',
+   p02_SWLG_020_HiddenEncounter2    => 'Mystery Troops 2',
+   p02_SWLG_030_HiddenEncounter3    => 'Mystery Troops 3',
 );
 
 sub get {
