@@ -11,6 +11,9 @@ sub all {
    return map { $class->get($_) } sort keys %$missions;
 }
 
+my %name = (
+);
+
 sub get {
    my ($class, $key) = @_;
    return unless $key;
@@ -19,7 +22,7 @@ sub get {
    if (ref($mis) eq 'HASH') {
       bless $mis, $class;
       $mis->{_tag} = $key;
-      my $name = BN::Text->get($mis->{title}) || $key;
+      my $name = $name{$key} || BN::Text->get($mis->{title}) || $key;
       $name .= ' (Hidden)' if $mis->{hideIcon} && $name !~ /hidden/i;
       $name =~ s/\x{2026}/.../g;
       $mis->{_name} = $name;
@@ -238,59 +241,86 @@ sub encounters {
    return map { BN::Encounter->get($_) } @{$mis->{z_encounters}};
 }
 
-sub min_prereqs {
+sub full_prereqs {
    my ($mis) = @_;
-   return @{$mis->{z_min_prereqs}} if $mis->{z_min_prereqs};
+   return $mis->{zz_full_prereqs} if $mis->{zz_full_prereqs};
    my %prereqs;
-   $prereqs{$mis->{_tag}} = 1;
    $mis->{zz_full_prereqs} = \%prereqs;
-   my @filtered;
-   $mis->{z_min_prereqs} = \@filtered;
 
-   my @prereqs;
    foreach my $prereq ($mis->prereqs(), $mis->completion()->prereqs()) {
       my $t = $prereq->{_t} or next;
       next if $prereq->{inverse};
       my $preid;
       if ($t eq 'CompleteMissionPrereqConfig') {
          $preid = $prereq->{missionId};
-         next if $old_missions{$preid};
       }
       elsif ($t eq 'CompleteAnyMissionPrereqConfig'
          || $t eq 'ActiveMissionPrereqConfig')
       {
          my $ids = $prereq->{missionIds} or next;
-         foreach my $testid (@$ids) {
-            next if $old_missions{$testid};
-            next if $preid && $preid eq 'p01_BK2RR_053_HeroesReturn3'; # kludge
-            warn "too many ids for $mis->{_tag}" if $preid;
-            $preid = $testid;
+         my @ids = grep { !$old_missions{$_} } @$ids;
+         if (@ids > 1) {
+            my %count;
+            my $targ = 0;
+            foreach my $id (@ids) {
+               my $m = BN::Mission->get($id) or next;
+               my $p = $m->full_prereqs() or next;
+               $targ++;
+               while (my ($k,$v) = each %$p) {
+                  $count{$k}++;
+               }
+            }
+            while (my ($k,$v) = each %count) {
+               $prereqs{$k} = 1 if $v == $targ;
+            }
+            next;
          }
+         $preid = $ids[0];
       }
-      next unless $preid;
       my $m = BN::Mission->get($preid) or next;
-      $m->min_prereqs();
       my $p = $m->{zz_full_prereqs};
       while (my ($k,$v) = each %$p) {
          $prereqs{$k} = 1;
       }
-      push @prereqs, { id=>$preid, full=>$p };
    }
 
-   CHECK: foreach my $prereq (@prereqs) {
-      my $preid = $prereq->{id};
-      foreach my $other (@prereqs) {
-         next if $other->{id} eq $preid || $other->{mark};
-         if ($other->{full}{$preid}) {
-            $prereq->{mark} = 1;
-            next CHECK;
-         }
-      }
-      push @filtered, $preid;
-   }
-
-   return @filtered;
+   return \%prereqs;
 }
+
+BN->list_accessor(min_prereqs => sub {
+   my ($mis) = @_;
+   my @prereqs;
+
+   foreach my $prereq ($mis->prereqs(), $mis->completion()->prereqs()) {
+      my $t = $prereq->{_t} or next;
+      next if $prereq->{inverse};
+      if ($t eq 'CompleteMissionPrereqConfig') {
+         my $id = $prereq->{missionId};
+         push @prereqs, $id if $id;
+      }
+      elsif ($t eq 'CompleteAnyMissionPrereqConfig'
+         || $t eq 'ActiveMissionPrereqConfig')
+      {
+         my $ids = $prereq->{missionIds} or next;
+         push @prereqs, @$ids if $ids;
+      }
+   }
+
+   @prereqs = grep { !$old_missions{$_} } @prereqs;
+
+   my @filtered;
+   FILTER: while (@prereqs) {
+      my $id = shift @prereqs;
+      my $m = BN::Mission->get($id) or next;
+      foreach my $fid (@filtered, @prereqs) {
+         my $f = BN::Mission->get($fid) or next;
+         my $p = $f->full_prereqs() or next;
+         next FILTER if $p->{$id};
+      }
+      push @filtered, $id;
+   }
+   return @filtered;
+});
 
 sub completion {
    my ($mis) = @_;
