@@ -147,7 +147,7 @@ sub prereqs {
 
 BN->accessor(rewards => sub {
    my ($mis) = @_;
-   return BN->format_amount(delete($mis->{rewards}), 0, ' &nbsp; ');
+   return BN->flatten_amount(delete($mis->{rewards}));
 });
 
 BN->list_accessor(objectives => sub {
@@ -190,24 +190,23 @@ sub unlocks_units {
    return map { BN::Unit->get($_) } @{$mis->{_unlocks_units}};
 }
 
-sub scripts {
+BN->accessor(description_script => sub {
    my ($mis) = @_;
-   my %scripts;
-   $scripts{'1start'}    = get_script($mis->{startScript});
-   $scripts{'2desc'}     = get_script($mis->{description});
-   $scripts{'3finish'}   = get_script($mis->{finishScript});
-   $scripts{'4complete'} = get_script($mis->{completeScript});
-   return \%scripts;
-}
+   return get_script($mis->{description});
+});
+
+#   $scripts{'1start'}    = get_script($mis->{startScript});
+#   $scripts{'2desc'}     = get_script($mis->{description});
+#   $scripts{'3finish'}   = get_script($mis->{finishScript});
+#   $scripts{'4complete'} = get_script($mis->{completeScript});
 
 my $dialogs;
-
 sub get_script {
    my ($script) = @_;
    $script = $script->{scriptId} if ref($script);
    return $script unless $script;
    $dialogs ||= BN::File->json('Dialogs.json');
-   my $data = $dialogs->{$script} or return $script;
+   my $data = $dialogs->{$script} or return;
    foreach my $lines (@$data) {
       my $text = $lines->{text} or next;
       foreach my $line (@$text) {
@@ -330,7 +329,7 @@ sub followups {
       foreach my $m (BN::Mission->all()) {
          foreach my $id ($m->min_prereqs()) {
             my $p = BN::Mission->get($id) or next;
-            push @{$p->{z_followups}}, $id;
+            push @{$p->{z_followups}}, $m->tag();
          }
       }
    }
@@ -516,7 +515,9 @@ sub decorate {
          $obj->{icon} //= $b->icon();
       }
    }
-   elsif ($t eq 'StartProjectPrereqConfig') {
+   elsif ($t eq 'StartProjectPrereqConfig'
+      || $t eq 'CollectProjectPrereqConfig')
+   {
       if (my $u = BN::Unit->get($prereq->{projectId})) {
          $obj->{_text} //= 'Train ' . $u->name();
          $obj->{_link} = $u->wiki_page();
@@ -538,10 +539,10 @@ sub decorate {
    elsif ($t eq 'ZoomCameraPrereqConfig') {
       $obj->{_text} //= 'Zoom camera';
    }
-   $obj->{_text} //= '';
+   $obj->{_text} //= '???';
 }
 
-BN->simple_accessor('name');
+BN->simple_accessor('text');
 BN->simple_accessor('link');
 BN->simple_accessor('icon', 'icon');
 
