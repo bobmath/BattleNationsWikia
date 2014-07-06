@@ -325,6 +325,20 @@ BN->list_accessor(min_prereqs => sub {
    return @filtered;
 });
 
+sub followups {
+   my ($mis) = @_;
+   if (!$mis->{z_followups}) {
+      $_->{z_followups} = [] foreach BN::Mission->all();
+      foreach my $m (BN::Mission->all()) {
+         foreach my $id ($m->min_prereqs()) {
+            my $p = BN::Mission->get($id) or next;
+            push @{$p->{z_followups}}, $id;
+         }
+      }
+   }
+   return @{$mis->{z_followups}};
+}
+
 sub completion {
    my ($mis) = @_;
    return $mis->{z_completion} ||= BN::Mission::Completion->new($mis->{_tag});
