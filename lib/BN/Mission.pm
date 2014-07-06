@@ -150,17 +150,15 @@ BN->accessor(rewards => sub {
    return BN->format_amount(delete($mis->{rewards}), 0, ' &nbsp; ');
 });
 
-sub objectives {
+BN->list_accessor(objectives => sub {
    my ($mis) = @_;
-   my $objectives = $mis->{objectives} or return;
+   my $objectives = delete $mis->{objectives} or return;
    my @obj;
    foreach my $key (sort keys %$objectives) {
-      my $obj = $objectives->{$key} or next;
-      my $prereq = $obj->{prereq} or next;
-      push @obj, $prereq;
+      push @obj, BN::Mission::Objective->new($objectives->{$key}, $key);
    }
    return @obj;
-}
+});
 
 sub unlocks_buildings {
    my ($mis) = @_;
@@ -384,4 +382,173 @@ sub prereqs {
    return @prereqs;
 }
 
-1 # end BN::Mission::Completion
+package BN::Mission::Objective;
+
+sub new {
+   my ($class, $obj, $num) = @_;
+   return unless $obj;
+   $obj->{_num} = $num;
+   bless $obj, $class;
+   $obj->decorate();
+   return $obj;
+}
+
+sub decorate {
+   my ($obj) = @_;
+   $obj->{_link} = '';
+   my $prereq = $obj->{prereq} // {};
+   $obj->{_text} = BN::Text->get($prereq->{objectiveText});
+   my $t = $prereq->{_t} // '';
+   if ($t eq 'LevelPrereqConfig') {
+      my $level = $prereq->{level} || 1;
+      $obj->{_text} //= "Reach level $level";
+      $obj->{_link} = "Levels#$level";
+   }
+   elsif ($t eq 'DefeatEncounterPrereqConfig') {
+      if (my $enc = BN::Encounter->get($prereq->{encounterId})) {
+         $obj->{_text} //= 'Defeat ' . $enc->name();
+         $obj->{icon} //= $enc->icon();
+      }
+      else {
+         $obj->{_text} //= 'Defeat encounter';
+      }
+   }
+   elsif ($t eq 'DefeatEncounterSetPrereqConfig') {
+      my $who;
+      if (my $ids = $prereq->{encounterIds}) {
+         foreach my $id (@$ids) {
+            my $enc = BN::Encounter->get($id) or next;
+            $who //= $enc->name();
+            $obj->{icon} //= $enc->icon();
+         }
+      }
+      $obj->{_text} //= 'Defeat ' . ($who // 'encounter');
+   }
+   elsif ($t eq 'DefeatOccupationPrereqConfig') {
+      $obj->{_text} //= 'Defeat occupation';
+   }
+   elsif ($t eq 'FinishBattlePrereqConfig') {
+      $obj->{_text} //= 'Finish battle';
+   }
+   elsif ($t eq 'EnterStatePrereqConfig') {
+      my $where = $prereq->{state} // '';
+      if ($where eq 'MyLand') {
+         $obj->{_text} //= 'Go Home';
+         $obj->{_link} = 'Outpost';
+         $obj->{icon} //= 'Home.png';
+      }
+      elsif ($where eq 'WorldMap') {
+         $obj->{_text} //= 'Go to the World Map';
+         $obj->{_link} = 'Northern Frontier';
+         $obj->{icon} //= 'BN_icon_hudMap.png';
+      }
+   }
+   elsif ($t eq 'CreateStructurePrereqConfig') {
+      if (my $b = BN::Building->get($prereq->{structureType})) {
+         $obj->{_text} //= 'Build ' . $b->name();
+         $obj->{_link} = $b->name();
+         $obj->{icon} //= $b->icon();
+      }
+   }
+   elsif ($t eq 'HasCompositionPrereqConfig') {
+      if (my $b = BN::Building->get($prereq->{compositionName})) {
+         $obj->{_text} //= 'Have ' . $b->name() . count($prereq);
+         $obj->{_link} = $b->name();
+         $obj->{icon} //= $b->icon();
+      }
+   }
+   elsif ($t eq 'HaveAnyOfTheseStructuresPrereqConfig') {
+      if (my $ids = $prereq->{buildings}) {
+         my @names;
+         foreach my $id (@$ids) {
+            my $b = BN::Building->get($id) or next;
+            push @names, $b->name();
+            $obj->{_link} ||= $b->name();
+            $obj->{icon} ||= $b->icon();
+         }
+         $obj->{_text} ||= 'Have ' . join(' or ', @names) if @names;
+      }
+   }
+   elsif ($t eq 'BuildingLevelPrereqConfig') {
+      if (my $ids = $prereq->{compositionIds}) {
+         my @names;
+         foreach my $id (@$ids) {
+            my $b = BN::Building->get($id) or next;
+            push @names, $b->name();
+            $obj->{_link} ||= $b->name();
+            $obj->{icon} ||= $b->icon();
+         }
+         $obj->{_text} //= 'Upgrade ' . join(' or ', @names)
+            . ' to level ' . ($prereq->{level} // 1) if @names;
+      }
+   }
+   elsif ($t eq 'CompleteMissionPrereqConfig') {
+      if (my $m = BN::Mission->get($prereq->{missionId})) {
+         $obj->{_text} //= 'Complete mission ' . $m->name();
+      }
+   }
+   elsif ($t eq 'ActiveMissionPrereqConfig') {
+      if (my $ids = $prereq->{missionIds}) {
+         my @names;
+         foreach my $id (@$ids) {
+            my $m = BN::Mission->get($id) or next;
+            push @names, $m->name();
+         }
+         $obj->{_text} //= 'Start mission ' . join(' or ', @names) if @names;
+      }
+   }
+   elsif ($t eq 'StartJobPrereqConfig' || $t eq 'CollectJobPrereqConfig') {
+      if (my $job = BN::Job->get($prereq->{jobId})) {
+         my $verb = 'Make';
+         if (my ($bldid) = $job->buildings()) {
+            my $bld = BN::Building->get($bldid);
+            $verb = 'Grow' if ($bld->gets_bonus() // '') =~ /Agricultur/;
+            $obj->{_link} = $bld->name() . '#Goods';
+         }
+         $obj->{_text} //= $verb . ' ' . $job->name() . count($prereq);
+         $obj->{icon} //= $job->icon();
+      }
+   }
+   elsif ($t eq 'AttackNPCBuildingPrereqConfig') {
+      if (my $b = BN::Building->get($prereq->{compositionName})) {
+         $obj->{_text} //= 'Attack ' . $b->name();
+         $obj->{_link} = $b->name();
+         $obj->{icon} //= $b->icon();
+      }
+   }
+   elsif ($t eq 'StartProjectPrereqConfig') {
+      if (my $u = BN::Unit->get($prereq->{projectId})) {
+         $obj->{_text} //= 'Train ' . $u->name();
+         $obj->{_link} = $u->wiki_page();
+         $obj->{icon} //= $u->icon();
+      }
+   }
+   elsif ($t eq 'CollectTaxesPrereqConfig') {
+      $obj->{_text} //= 'Collect taxes' . count($prereq);
+   }
+   elsif ($t eq 'EnterOpponentLandPrereqConfig') {
+      if (my $map = BN::Map->get($prereq->{opponentId})) {
+         $obj->{_text} //= 'Go to ' . $map->name();
+         $obj->{_link} = $map->name();
+      }
+   }
+   elsif ($t eq 'PanCameraPrereqConfig') {
+      $obj->{_text} //= 'Pan camera';
+   }
+   elsif ($t eq 'ZoomCameraPrereqConfig') {
+      $obj->{_text} //= 'Zoom camera';
+   }
+   $obj->{_text} //= '';
+}
+
+BN->simple_accessor('name');
+BN->simple_accessor('link');
+BN->simple_accessor('icon', 'icon');
+
+sub count {
+   my ($num) = @_;
+   $num = $num->{count} if ref $num;
+   return $num && $num > 1 ? " x $num" : '';
+}
+
+1 # end BN::Mission::Objective
