@@ -12,6 +12,10 @@ sub all {
       keys %{$encounters->{armies}};
 }
 
+my %names = (
+   rndEnc_raiders    => 'Raiders',
+);
+
 sub get {
    my ($class, $key) = @_;
    return unless $key;
@@ -20,12 +24,16 @@ sub get {
    if (ref($enc) eq 'HASH') {
       bless $enc, $class;
       $enc->{_tag} = $key;
+      my $nm = $enc->{name} // '';
+      $enc->{_name} = BN::Text->get($nm) || $names{$nm} || $key;
    }
    return $enc;
 }
 
+BN->simple_accessor('name');
 BN->simple_accessor('tag');
 BN->simple_accessor('level', 'level');
+BN->simple_accessor('icon', 'icon');
 
 BN->accessor(rewards => sub {
    my ($enc) = @_;
