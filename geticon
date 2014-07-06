@@ -9,7 +9,7 @@ use Image::Size qw( imgsize );
 my %opts;
 getopts('s', \%opts) or die;
 die "usage: $0 [-s] icon_name\n" unless @ARGV == 1;
-my $max_size = $opts{s} ? 40 : 400;
+my $max_size = $opts{s} ? 40 : 2048;
 my $file = shift;
 $file =~ s/\.png$//;
 my @infiles = BN::File->glob("$file*.png") or die "not found\n";
