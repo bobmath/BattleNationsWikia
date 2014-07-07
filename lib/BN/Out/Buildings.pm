@@ -47,7 +47,7 @@ sub building_summary {
    my ($F, $build) = @_;
    print $F $build->name(), "\n";
    print $F "{{BuildingInfoBox\n";
-   print_line($F, 'image', BN::Out->icon($build->icon(), '200px'));
+   print_line($F, 'image', BN::Out->icon($build->icon(), 'x200px'));
    print_line($F, 'buildtype', $build->build_type());
    print_line($F, 'population', $build->population());
    print_line($F, 'pwi', $build->population_inactive());
@@ -331,7 +331,7 @@ sub other_goods {
    foreach my $job (@$jobs) {
       my $g = 'good' . ++$num;
       print_line($F, $g, $job->name());
-      print_line($F, $g.'image', BN::Out->icon($job->icon(), '40px'));
+      print_line($F, $g.'image', BN::Out->icon($job->icon(), 'x40px'));
       if (my $cost = $job->cost()) {
          my %cost = %$cost;
          print_line($F, $g.'time', BN->format_time(delete $cost{time}));
@@ -364,7 +364,7 @@ sub shop_goods {
    for my $job (@$jobs) {
       my $g = 'good' . ++$n;
       print_line($F, $g, $job->name());
-      print_line($F, $g.'image', BN::Out->icon($job->icon(), '40px'));
+      print_line($F, $g.'image', BN::Out->icon($job->icon(), 'x40px'));
       if (my $cost = $job->cost()) {
          print_line($F, $g.'time', BN->format_time($cost->{time}));
          print_line($F, $g.'basecost', $cost->{gold});
@@ -393,7 +393,7 @@ sub mill_goods {
    foreach my $job (@$jobs) {
       my $g = 'good' . ++$n;
       print_line($F, $g, $job->name());
-      print_line($F, $g.'image', BN::Out->icon($job->icon(), '40px'));
+      print_line($F, $g.'image', BN::Out->icon($job->icon(), 'x40px'));
       if (my $cost = $job->cost()) {
          print_line($F, $g.'time', BN->format_time($cost->{time}));
          my $i;
@@ -422,7 +422,7 @@ sub quest_goods {
       my ($id) = $job->missions() or die;
       my $mis = BN::Mission->get($id) or die;
       print_line($F, $g, $mis->wikilink($job->name()));
-      print_line($F, $g.'image', BN::Out->icon($job->icon(), '40px'));
+      print_line($F, $g.'image', BN::Out->icon($job->icon(), 'x40px'));
       if (my $cost = $job->cost()) {
          print_line($F, $g.'time', BN->format_time($cost->{time}));
          print_line($F, $g.'cost',
