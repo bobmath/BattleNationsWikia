@@ -112,15 +112,20 @@ sub show_mission {
    print $F "|}\n" unless $first;
    print $F "\n";
 
-   if (@followups == 1) {
-      if (my $follow = BN::Mission->get($followups[0])) {
-         my $lev = $follow->level() || 0;
-         if ($lev >= $curr_lo && $lev <= $curr_hi) {
-            my @pre = $follow->min_prereqs();
-            show_mission($F, $follow) if @pre == 1;
-         }
-      }
+   if (my $follow = get_single(@followups)) {
+      show_mission($F, $follow) if get_single($follow->min_prereqs());
    }
+}
+
+sub get_single {
+   my @list;
+   foreach my $id (@_) {
+      my $mis = BN::Mission->get($id) or next;
+      my $lev = $mis->level() or next;
+      push @list, $mis if $lev >= $curr_lo && $lev < $curr_hi;
+   }
+   return unless @list == 1;
+   return $list[0];
 }
 
 sub show_script {
