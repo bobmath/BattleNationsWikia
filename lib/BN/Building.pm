@@ -467,7 +467,7 @@ sub map_link {
    return $map->{npcId};
 }
 
-package BN::Buliding::Level;
+package BN::Building::Level;
 
 sub new {
    my ($class, $level, $num) = @_;
