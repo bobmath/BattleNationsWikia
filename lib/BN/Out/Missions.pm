@@ -81,11 +81,27 @@ sub show_mission {
    }
 
    my $n;
+   my (%cost, %time);
    foreach my $obj ($mis->objectives()) {
       my $tag = 'goal' . ++$n;
       print_line($F, $tag, $obj->text());
       print_line($F, $tag.'image', BN::Out->icon($obj->icon(),
          "40x40px|link=" . $obj->link()));
+      if (my $cost = $obj->cost()) {
+         while (my ($k,$v) = each %$cost) {
+            $cost{$k} += $v;
+         }
+      }
+      if ((my $tag = $obj->timetag()) && (my $time = $obj->time())) {
+         $time{$tag} += $time;
+      }
+   }
+   if (%cost || %time) {
+      my $time = 0;
+      foreach my $t (values %time) {
+         $time = $t if $t > $time;
+      }
+      print_line($F, 'notes', BN->format_amount(\%cost, $time, ', '));
    }
 
    print_line($F, 'game file name', $mis->tag());

@@ -517,6 +517,16 @@ sub decorate {
             my $bld = BN::Building->get($bldid);
             $verb = 'Grow' if ($bld->gets_bonus() // '') =~ /Agricultur/;
             $obj->{_link} = $bld->name() . '#Goods';
+            $obj->{_timetag} = $bldid;
+         }
+         if ($t eq 'CollectJobPrereqConfig' && (my $cost = $job->cost())) {
+            my $num = $prereq->{count} || 1;
+            my %cost;
+            while (my ($k,$v) = each %$cost) {
+               $cost{$k} += $v * $num;
+            }
+            $obj->{_time} = delete $cost{time};
+            $obj->{_cost} = \%cost;
          }
          $obj->{_text} //= $verb . ' ' . $job->name() . count($prereq);
          $obj->{icon} //= $job->icon();
@@ -558,6 +568,9 @@ sub decorate {
 
 BN->simple_accessor('text');
 BN->simple_accessor('link');
+BN->simple_accessor('cost');
+BN->simple_accessor('time');
+BN->simple_accessor('timetag');
 BN->simple_accessor('icon', 'icon');
 
 sub count {
