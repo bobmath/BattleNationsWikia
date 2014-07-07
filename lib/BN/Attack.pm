@@ -261,7 +261,7 @@ BN->accessor(targets => sub {
 BN->accessor(cost => sub {
    my ($att) = @_;
    my $reqs = $att->{z_reqs} or return;
-   return BN->format_amount(delete($reqs->{cost}), $reqs->{buildTime});
+   return BN->flatten_amount(delete($reqs->{cost}), $reqs->{buildTime});
 });
 
 sub rank_mods {

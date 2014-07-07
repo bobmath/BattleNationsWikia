@@ -177,7 +177,8 @@ sub unit_weapons {
          print_line($F, 'dot', $attack->dot());
          print_line($F, 'dotduration', $attack->dotduration());
          print_line($F, 'dottype', $attack->dottype());
-         $r += print_line($F, 'cost', $attack->cost());
+         $r += print_line($F, 'cost',
+            BN->format_amount($attack->cost(), 0, ', '));
          if (my $targ = $attack->targets()) {
             print_line($F, 'targets', $targ);
             print_line($F, 'targetbox-rows', $r) if $r > 7;
