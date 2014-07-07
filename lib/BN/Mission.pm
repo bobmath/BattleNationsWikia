@@ -15,6 +15,7 @@ my %name = (
    p02_SWLG_010_HiddenEncounter1    => 'Mystery Troops 1',
    p02_SWLG_020_HiddenEncounter2    => 'Mystery Troops 2',
    p02_SWLG_030_HiddenEncounter3    => 'Mystery Troops 3',
+   p03_PLASMA_020_RebelFight        => 'Defense is the Best (Insert Cliche Here)',
 );
 
 sub get {
@@ -46,19 +47,19 @@ BN->simple_accessor('name');
 BN->simple_accessor('tag');
 BN->simple_accessor('hidden', 'hideIcon');
 
-sub page {
-   my ($class, $level) = @_;
-   return 'Missions' unless $level;
-   my $lo = int(($level - 1) / 10) * 10 + 1;
-   my $hi = $lo + 9;
-   my $max = BN::Level->max();
-   $hi = $max if $hi > $max && $lo < $max;
-   return "Level $lo-$hi missions";
-}
-
 sub wikilink {
    my ($mis, $text) = @_;
-   my $page = $mis->page($mis->level());
+   my $page;
+   if (my $level = $mis->level()) {
+      my $lo = int(($level - 1) / 5) * 5 + 1;
+      my $hi = $lo + 4;
+      my $max = BN::Level->max();
+      $hi = $max if $hi > $max && $lo < $max;
+      $page = "Level $lo-$hi missions";
+   }
+   else {
+      $page = 'Missions';
+   }
    $text //= $mis->{_name};
    my $link = "[[$page#$mis->{_name}";
    $link .= '|' . $text if length($text);
@@ -190,23 +191,41 @@ sub unlocks_units {
    return map { BN::Unit->get($_) } @{$mis->{_unlocks_units}};
 }
 
-BN->accessor(description_script => sub {
+sub start_script {
    my ($mis) = @_;
-   return get_script($mis->{description});
-});
+   my $tag = 'zz1_start_script';
+   return $mis->{$tag} if exists $mis->{$tag};
+   return $mis->{$tag} = get_script($mis->{startScript});
+}
 
-#   $scripts{'1start'}    = get_script($mis->{startScript});
-#   $scripts{'2desc'}     = get_script($mis->{description});
-#   $scripts{'3finish'}   = get_script($mis->{finishScript});
-#   $scripts{'4complete'} = get_script($mis->{completeScript});
+sub description_script {
+   my ($mis) = @_;
+   my $tag = 'zz2_description_script';
+   return $mis->{$tag} if exists $mis->{$tag};
+   return $mis->{$tag} = get_script($mis->{description});
+}
+
+sub finish_script {
+   my ($mis) = @_;
+   my $tag = 'zz3_finish_script';
+   return $mis->{$tag} if exists $mis->{$tag};
+   return $mis->{$tag} = get_script($mis->{finishScript});
+}
+
+sub reward_script {
+   my ($mis) = @_;
+   my $tag = 'zz4_reward_script';
+   return $mis->{$tag} if exists $mis->{$tag};
+   return $mis->{$tag} = get_script($mis->{completeScript});
+}
 
 my $dialogs;
 sub get_script {
    my ($script) = @_;
    $script = $script->{scriptId} if ref($script);
-   return $script unless $script;
+   return undef unless $script;
    $dialogs ||= BN::File->json('Dialogs.json');
-   my $data = $dialogs->{$script} or return;
+   my $data = $dialogs->{$script} or return undef;
    foreach my $lines (@$data) {
       my $text = $lines->{text} or next;
       foreach my $line (@$text) {
@@ -221,19 +240,16 @@ sub encounters {
    my ($mis) = @_;
    if (!exists $mis->{z_encounters}) {
       $mis->{z_encounters} = undef;
-      if (my $objectives = $mis->{objectives}) {
-         foreach my $key (sort keys %$objectives) {
-            my $objective = $objectives->{$key} or next;
-            my $prereq = $objective->{prereq} or next;
-            my $t = $prereq->{_t} or next;
-            if ($t eq 'DefeatEncounterPrereqConfig') {
-               my $id = $prereq->{encounterId} or next;
-               push @{$mis->{z_encounters}}, $id;
-            }
-            elsif ($t eq 'DefeatEncounterSetPrereqConfig') {
-               my $ids = $prereq->{encounterIds} or next;
-               push @{$mis->{z_encounters}}, @$ids;
-            }
+      foreach my $objective ($mis->objectives()) {
+         my $prereq = $objective->{prereq} or next;
+         my $t = $prereq->{_t} or next;
+         if ($t eq 'DefeatEncounterPrereqConfig') {
+            my $id = $prereq->{encounterId} or next;
+            push @{$mis->{z_encounters}}, $id;
+         }
+         elsif ($t eq 'DefeatEncounterSetPrereqConfig') {
+            my $ids = $prereq->{encounterIds} or next;
+            push @{$mis->{z_encounters}}, @$ids;
          }
       }
    }
@@ -371,10 +387,8 @@ sub level {
 sub prereqs {
    my ($self) = @_;
    my $parent = BN::Mission->get($self->{_parent}) or return;
-   my $objectives = $parent->{objectives} or return;
    my @prereqs;
-   foreach my $key (sort keys %$objectives) {
-      my $objective = $objectives->{$key} or next;
+   foreach my $objective ($parent->objectives()) {
       my $prereq = $objective->{prereq} or next;
       push @prereqs, $prereq;
    }

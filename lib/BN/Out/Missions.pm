@@ -15,8 +15,8 @@ sub write {
       grep { $_->level() } BN::Mission->all())
    {
       if ($mis->level() > $curr_hi) {
-         $curr_hi = int(($mis->level() + 9) / 10) * 10;
-         $curr_lo = $curr_hi - 9;
+         $curr_hi = int(($mis->level() + 4) / 5) * 5;
+         $curr_lo = $curr_hi - 4;
          if ($curr_hi > $max && $curr_lo <= $max) {
             $curr_hi = $max;
          }
@@ -28,14 +28,14 @@ sub write {
    }
    close $F;
 
-#   foreach my $mis (BN::Mission->all()) {
-#      my $file = BN::Out->filename('missions', $mis->level(), $mis->name());
-#      print $file, "\n";
-#      open $F, '>:utf8', $file or die "Can't write $file: $!";;
-#      print $F dump($mis), "\n";
-#      close $F;
-#      BN::Out->checksum($file);
-#   }
+   foreach my $mis (BN::Mission->all()) {
+      my $file = BN::Out->filename('missions', $mis->level(), $mis->name());
+      print $file, "\n";
+      open $F, '>:utf8', $file or die "Can't write $file: $!";;
+      print $F dump($mis), "\n";
+      close $F;
+      BN::Out->checksum($file);
+   }
 }
 
 my %seen;
@@ -89,7 +89,28 @@ sub show_mission {
    }
 
    print_line($F, 'game file name', $mis->tag());
-   print $F "}}\n\n";
+   print $F "}}\n";
+
+   @rewards = ();
+   foreach my $enc ($mis->encounters()) {
+      my $rewards = $enc->rewards() or next;
+      push @rewards, BN->format_amount($rewards, 0, ', ');
+   }
+   if (@rewards == 1) {
+      print $F "Encounter reward: @rewards\n\n";
+   }
+   elsif (@rewards) {
+      print $F "Encounter rewards:\n";
+      print $F "* $_\n" foreach @rewards;
+      print $F "\n";
+   }
+
+   my $first = 1;
+   show_script($F, $mis->start_script(), 'Start mission', \$first);
+   show_script($F, $mis->finish_script(), 'Finish mission', \$first);
+   show_script($F, $mis->reward_script(), 'Reward screen', \$first);
+   print $F "|}\n" unless $first;
+   print $F "\n";
 
    if (@followups == 1) {
       if (my $follow = BN::Mission->get($followups[0])) {
@@ -99,6 +120,35 @@ sub show_mission {
             show_mission($F, $follow) if @pre == 1;
          }
       }
+   }
+}
+
+sub show_script {
+   my ($F, $script, $label, $first) = @_;
+   return unless $script;
+   if ($$first) {
+      print $F qq[{| class="mw-collapsible mw-collapsed"\n],
+         qq[|-\n],
+         qq[! colspan="2" | Dialogue\n];
+      $$first = 0;
+   }
+
+   print $F qq[|-\n],
+      qq[! colspan="2" align="left" | $label\n];
+
+   foreach my $elem (@$script) {
+      my $who = $elem->{speaker} // '';
+      $who = '{{' . ucfirst($who) . 'Image}}' if $who;
+      my @text;
+      foreach my $text (@{$elem->{text}}) {
+         if (my $t = $text->{_title}) {
+            push @text, "'''$t'''";
+         }
+         if (my $t = $text->{_body}) {
+            push @text, $t;
+         }
+      }
+      print $F qq[|- valign="top"\n| $who || ], join('<br>', @text), "\n";
    }
 }
 
