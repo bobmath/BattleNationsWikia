@@ -4,9 +4,15 @@ use warnings;
 use BN::Out;
 use Data::Dump qw( dump );
 
+sub write {
+   level_pages();
+   index_page();
+   mission_pages();
+}
+
 my ($curr_lo, $curr_hi);
 
-sub write {
+sub level_pages {
    $curr_hi = 0;
    my $max = BN::Level->max();
    my $F;
@@ -26,12 +32,45 @@ sub write {
       }
       show_mission($F, $mis);
    }
-   close $F;
+   close $F if $F;
+}
 
+sub index_page {
+   my %index;
+   foreach my $mis (BN::Mission->all()) {
+      next if $mis->hidden() || $mis->{persistenceRules};
+      my $level = $mis->level() or next;
+      my $name = lc($mis->name());
+      $name =~ s/^an?\s+|^the\s+//;
+      $name =~ s/^\W+//;
+      $name =~ s/^(\d)/#$1/;
+      $name =~ s/(\d+)/sprintf '%4d', $1/eg;
+      $name .= sprintf "\t%4d", $level;
+      $index{uc(substr($name,0,1))}{$name} = $mis->wikilink();
+   }
+
+   my $file = BN::Out->filename('missions', 'Mission_index');
+   open my $F, '>:utf8', $file or die "Can't write $file: $!";
+
+   foreach my $key (sort keys %index) {
+      my $sec = $index{$key} or next;
+      my @col1 = map { $sec->{$_} } sort keys %$sec;
+      my @col2 = splice @col1, (@col1+1)/2;
+      print $F "==$key==\n{{Col-begin}}\n";
+      print $F "* $_\n" foreach @col1;
+      print $F "{{Col-2}}";
+      print $F "* $_\n" foreach @col2;
+      print $F "{{Col-end}}\n\n";
+   }
+
+   close $F;
+}
+
+sub mission_pages {
    foreach my $mis (BN::Mission->all()) {
       my $file = BN::Out->filename('missions', $mis->level(), $mis->name());
       print $file, "\n";
-      open $F, '>:utf8', $file or die "Can't write $file: $!";;
+      open my $F, '>:utf8', $file or die "Can't write $file: $!";;
       print $F dump($mis), "\n";
       close $F;
       BN::Out->checksum($file);
