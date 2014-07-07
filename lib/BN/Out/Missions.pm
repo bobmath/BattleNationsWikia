@@ -101,7 +101,7 @@ sub show_mission {
       foreach my $t (values %time) {
          $time = $t if $t > $time;
       }
-      print_line($F, 'notes', BN->format_amount(\%cost, $time, ', '));
+      print_line($F, 'cost', BN->format_amount(\%cost, $time, ', '));
    }
 
    print_line($F, 'game file name', $mis->tag());
