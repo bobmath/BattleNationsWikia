@@ -519,6 +519,9 @@ sub decorate {
             $obj->{_link} = $bld->name() . '#Goods';
             $obj->{_timetag} = $bldid;
          }
+         $obj->{_text} //= $verb . ' ' . $job->name();
+         $obj->{_text} .= count($prereq);
+         $obj->{icon} //= $job->icon();
          if ($t eq 'CollectJobPrereqConfig' && (my $cost = $job->cost())) {
             my $num = $prereq->{count} || 1;
             my %cost;
@@ -528,8 +531,6 @@ sub decorate {
             $obj->{_time} = delete $cost{time};
             $obj->{_cost} = \%cost;
          }
-         $obj->{_text} //= $verb . ' ' . $job->name() . count($prereq);
-         $obj->{icon} //= $job->icon();
       }
    }
    elsif ($t eq 'AttackNPCBuildingPrereqConfig') {
