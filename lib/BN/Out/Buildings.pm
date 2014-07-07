@@ -426,10 +426,10 @@ sub quest_goods {
       if (my $cost = $job->cost()) {
          print_line($F, $g.'time', BN->format_time($cost->{time}));
          print_line($F, $g.'cost',
-            BN->format_amount({%$cost, time=>0}, 0, ' &nbsp; '));
+            BN->format_amount({%$cost, time=>0}, 0, ', '));
       }
       print_line($F, $g.'reward',
-         BN->format_amount($job->rewards(), 0, ' &nbsp; '));
+         BN->format_amount($job->rewards(), 0, ', '));
    }
    print $F "}}\n\n";
 }
