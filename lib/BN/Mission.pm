@@ -520,7 +520,10 @@ sub decorate {
             $obj->{_timetag} = $bldid;
          }
          $obj->{_text} //= $verb . ' ' . $job->name();
-         $obj->{_text} .= count($prereq);
+         if ((my $count = $prereq->{count} || 1) > 1) {
+            $obj->{_text} .= " x $count" if
+               index($obj->{_text}, $count) < 0;
+         }
          $obj->{icon} //= $job->icon();
          if ($t eq 'CollectJobPrereqConfig' && (my $cost = $job->cost())) {
             my $num = $prereq->{count} || 1;
