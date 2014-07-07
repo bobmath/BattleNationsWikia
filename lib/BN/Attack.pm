@@ -154,13 +154,7 @@ BN->accessor(dmgtype => sub {
    my ($att) = @_;
    my $type = $att->{damageType} or return;
    die 'Weird damage type' unless @$type == 1;
-   $type = $type->[0];
-   if ($type eq 'Fire') {
-      if (my $dottype = $att->dottype()) {
-         $type = 'Poison' if $dottype eq 'poison';
-      }
-   }
-   return $type;
+   return $type->[0];
 });
 
 BN->multi_accessor('mindmg', 'maxdmg', sub {
