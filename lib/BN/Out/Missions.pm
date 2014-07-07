@@ -138,7 +138,7 @@ sub get_single {
    foreach my $id (@_) {
       my $mis = BN::Mission->get($id) or next;
       my $lev = $mis->level() or next;
-      push @list, $mis if $lev >= $curr_lo && $lev < $curr_hi;
+      push @list, $mis if $lev >= $curr_lo && $lev <= $curr_hi;
    }
    return unless @list == 1;
    return $list[0];
