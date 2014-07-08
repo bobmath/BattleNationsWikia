@@ -18,7 +18,7 @@ if (@ARGV) {
 foreach my $dir (qw{ units buildings missions enemies }) {
    foreach my $file (glob "data/$dir/*") {
       next unless -f $file;
-      open my $F, '<', $file or warn "Can't read $file: $!";
+      open my $F, '<', $file or do { warn "Can't read $file: $!"; next };
       chomp(my $page = <$F>);
       close $F;
       get_page($page);
@@ -41,9 +41,12 @@ sub get_page {
    $name =~ s/(['"])/sprintf "%%%02X", ord($1)/eg;
    my $resp = $ua->get(
       "http://battlenations.wikia.com/wiki/Special:Export/$name");
-   warn "$name get failed" unless $resp->is_success();
+   unless ($resp->is_success()) {
+      warn "$name get failed";
+      return;
+   }
    open my $OUT, '>:encoding(utf8)', $file
-      or warn "Can't write $file: $!";
+      or do { warn "Can't write $file: $!"; return };
 
    my $capture;
    my $start = sub {
