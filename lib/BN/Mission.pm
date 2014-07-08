@@ -113,8 +113,6 @@ $old_missions{$_} = 1 foreach qw(
    p01_RTANK_010_RaiderScouts
    p01_RTANK_060_BuildToolShop
    p01_RTANK_070_MakeTools
-   p01_UNIT_020_TeachGrenadier
-   p01_UNIT_030_TeachMortar
    p01_UPBLD_010_BuildingUpgradeLvl1
    p01_UPBLD_010_BuildingUpgradeLvl1_LateGame
    p01_UPBLD_020_BuildingUpgradeLvl2
