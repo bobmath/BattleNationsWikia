@@ -45,8 +45,7 @@ sub index_page {
       $name =~ s/^\W+//;
       $name =~ s/^(\d)/#$1/;
       $name =~ s/(\d+)/sprintf '%4d', $1/eg;
-      $name .= sprintf "\t%4d", $level;
-      $index{uc(substr($name,0,1))}{$name} = $mis->wikilink();
+      $index{uc(substr($name,0,1))}{$name}{$level} = $mis->wikilink();
    }
 
    my $file = BN::Out->filename('missions', 'Mission_index');
@@ -54,7 +53,19 @@ sub index_page {
 
    foreach my $key (sort keys %index) {
       my $sec = $index{$key} or next;
-      my @col1 = map { $sec->{$_} } sort keys %$sec;
+      my @col1;
+      foreach my $nm (sort keys %$sec) {
+         my $missions = $sec->{$nm} or next;
+         if (keys(%$missions)  <= 1) {
+            push @col1, values %$missions;
+         }
+         else {
+            foreach my $lvl (sort { $a <=> $b } keys %$missions) {
+               push @col1, "$missions->{$lvl} ($lvl)";
+            }
+         }
+      }
+
       my @col2 = splice @col1, (@col1+1)/2;
       print $F "==$key==\n{{Col-begin}}\n";
       print $F "* $_\n" foreach @col1;
