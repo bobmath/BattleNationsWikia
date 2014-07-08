@@ -559,6 +559,7 @@ sub decorate {
       if (my $map = BN::Map->get($prereq->{opponentId})) {
          $obj->{_text} //= 'Go to ' . $map->name();
          $obj->{_link} = $map->name();
+         $obj->{icon} //= 'BN_icon_hudMap.png';
       }
    }
    elsif ($t eq 'PanCameraPrereqConfig') {
