@@ -14,6 +14,7 @@ sub all {
 
 sub get {
    my ($class, $key) = @_;
+   return unless $key;
    $buildings ||= BN::File->json($json_file);
    my $build = $buildings->{$key} or return;
    if (ref($build) eq 'HASH') {
