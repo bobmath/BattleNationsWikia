@@ -102,7 +102,7 @@ sub show_mission {
    print_line($F, 'level', $mis->level());
 
    if (@prereqs) {
-      print_line($F, 'prereq', join(', ', map { mission_link($_) } @prereqs));
+      print_line($F, 'prereq', mission_links(@prereqs));
    }
 
    if (my $desc = $mis->description_script()) {
@@ -126,8 +126,7 @@ sub show_mission {
 
    my @followups = $mis->followups();
    if (@followups) {
-      print_line($F, 'followup',
-         join(', ', map { mission_link($_) } @followups));
+      print_line($F, 'followup', mission_links(@followups));
    }
 
    my $n;
@@ -228,18 +227,25 @@ sub print_line {
    printf $F "| %-14s = %s\n", $tag, $val if defined $val;
 }
 
-sub mission_link {
-   my ($mis) = @_;
-   return unless $mis;
-   if (!ref $mis) {
-      $mis = BN::Mission->get($mis) or return;
+sub mission_links {
+   my @mis;
+   foreach my $m (@_) {
+      push @mis, ref($m) ? $m : BN::Mission->get($m);
    }
-   my $lev = $mis->level() || 0;
-   if ($lev >= $curr_lo && $lev <= $curr_hi) {
-      my $name = $mis->name();
-      return "[[#$name|$name]]";
+   @mis = sort { ($a->level() || 0) <=> ($b->level() || 0)
+      || $a->name() cmp $b->name() } @mis;
+   my @out;
+   foreach my $mis (@mis) {
+      my $lev = $mis->level() || 0;
+      if ($lev >= $curr_lo && $lev <= $curr_hi) {
+         my $name = $mis->name();
+         push @out, "[[#$name|$name]]";
+      }
+      else {
+         push @out, $mis->wikilink();
+      }
    }
-   return $mis->wikilink();
+   return join ', ', @out;
 }
 
 1 # end BN::Out::Missions
