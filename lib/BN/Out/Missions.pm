@@ -218,7 +218,8 @@ sub show_script {
             push @text, $t;
          }
       }
-      print $F qq[|- valign="top"\n| $who || ], join('<br>', @text), "\n";
+      print $F qq[|- valign="top"\n| align="center" | $who\n| ],
+         join('<br>', @text), "\n";
    }
 }
 
