@@ -261,6 +261,7 @@ sub full_prereqs {
    my ($mis) = @_;
    return $mis->{zz_full_prereqs} if $mis->{zz_full_prereqs};
    my %prereqs;
+   $prereqs{$mis->{_tag}} = 1;
    $mis->{zz_full_prereqs} = \%prereqs;
 
    foreach my $prereq ($mis->prereqs(), $mis->completion()->prereqs()) {
@@ -294,7 +295,7 @@ sub full_prereqs {
          $preid = $ids[0];
       }
       my $m = BN::Mission->get($preid) or next;
-      my $p = $m->{zz_full_prereqs};
+      my $p = $m->full_prereqs();
       while (my ($k,$v) = each %$p) {
          $prereqs{$k} = 1;
       }
