@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use lib 'lib';
 use BN;
+use File::Basename qw( basename );
 use Getopt::Std qw( getopts );;
 use Image::Size qw( imgsize );
 
@@ -12,7 +13,12 @@ die "usage: $0 [-s] icon_name\n" unless @ARGV == 1;
 my $max_size = $opts{s} ? 40 : 2048;
 my $file = shift;
 $file =~ s/\.png$//;
-my @infiles = BN::File->glob("$file*.png") or die "not found\n";
+my @infiles;
+foreach my $name ( BN::File->glob("$file*.png") ) {
+   my $tail = substr(basename($name), length($file), 1);
+   push @infiles, $name if $tail eq '.' || $tail eq '@' || $tail eq '~';
+}
+die "not found\n" unless @infiles;
 my $infile = shift @infiles;
 
 if (@infiles) {
