@@ -358,12 +358,21 @@ BN->accessor(taxes => sub {
       (delete($taxes->{paymentInterval})||0) * 60);
 });
 
-sub demand_cat {
+my %demand_map = (
+   Spices   => 'Spice',
+   Defense  => 'Security',
+);
+BN->accessor(demand_cat => sub {
    my ($build) = @_;
-   my $joblist = $build->{JobList} or return;
-   return unless $joblist->{applyDemands};
-   return $joblist->{demandCategory};
-}
+   my %cats;
+   foreach my $job ($build->jobs()) {
+      my $cat = $job->demand_cat();
+      $cats{$cat} = 1 if $cat;
+   }
+   return unless %cats;
+   return join ' ', map { '{{' . ($demand_map{$_} || $_) . '}}' }
+      sort keys %cats;
+});
 
 sub resource_rate {
    my ($build) = @_;

@@ -60,4 +60,24 @@ BN->accessor(rewards => sub {
    return BN->flatten_amount(delete($job->{rewards}));
 });
 
+our $economy;
+sub demand_cat {
+   my ($job) = @_;
+   if (!$economy) {
+      $economy = BN::File->json('Economy.json');
+      my $families = $economy->{families} or die;
+      foreach my $cat (sort keys %$families) {
+         my $info = $families->{$cat} or die;
+         my $jobs = delete $info->{jobs} or next;
+         next if $cat eq 'Fake';
+         foreach my $id (@$jobs) {
+            my $job = BN::Job->get($id) or next;
+            die "multiple cats for $id" if $job->{_demand_cat};
+            $job->{_demand_cat} = $cat;
+         }
+      }
+   }
+   return $job->{_demand_cat};
+}
+
 1 # end BN::Job
