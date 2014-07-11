@@ -44,11 +44,9 @@ BN->simple_accessor('preptime', 'chargeTime');
 BN->simple_accessor('target_area', 'targetArea');
 BN->simple_accessor('damage_area', 'damageArea');
 BN->simple_accessor('min_range', 'minRange');
-BN->simple_accessor('max_range', 'maxRange');
 
-BN->accessor(range => sub {
+BN->accessor(max_range => sub {
    my ($att) = @_;
-   my $min = $att->{minRange} or return;
    my $max = $att->{maxRange} or return;
    $max += $att->{rangeBonus} if $att->{rangeBonus};
    if (my $area = $att->{targetArea}) {
@@ -62,6 +60,13 @@ BN->accessor(range => sub {
          $max = $amax if $amax < $max;
       }
    }
+   return $max;
+});
+
+BN->accessor(range => sub {
+   my ($att) = @_;
+   my $min = $att->{minRange} or return;
+   my $max = $att->max_range() or return;
    return ($min == $max) ? $min : "$min-$max";
 });
 
