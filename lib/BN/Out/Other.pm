@@ -7,6 +7,7 @@ sub write {
    write_hints();
    write_text();
    write_economy();
+   write_land();
    write_json('Boosts', 'RewardMultiplierOffers.json');
    write_json('Status Effects',
       'StatusEffectFamiliesConfig.json', 'StatusEffectsConfig.json');
@@ -41,6 +42,29 @@ sub write_economy {
    my $file = BN::Out->filename('info', 'Economy');
    open my $F, '>', $file or die "Can't write $file: $!\n";
    print $F dump($BN::Job::economy), "\n";
+   close $F;
+   BN::Out->checksum($file);
+}
+
+sub write_land {
+   my $expand = BN::File->json('ExpandLandCosts.json');
+   my $file = BN::Out->filename('info', 'Land_Expansion_Chart');
+   open my $F, '>', $file or die "Can't write $file: $!";
+   print $F qq[{| class="wikitable standout"\n|-\n],
+      "! Level !! Cost !! Build Time !! Total\n";
+
+   my $n = 4;
+   for my $exp (@$expand) {
+      ++$n;
+      my $level = $exp->{prereq}{1}{level} or die;
+      my $money = BN->commify($exp->{moneyCost}{money}) or die;
+      my $nanos = $exp->{currencyCost}{currency} or die;
+      my $time  = BN->format_time($exp->{buildTime}) or die;
+      print $F qq[|- align="center"\n! $level\n],
+         "| {{Gold|$money}} or {{Nanopods|$nanos}} ||{{Time|$time}} || $n\n";
+   }
+
+   print $F "|}\n";
    close $F;
    BN::Out->checksum($file);
 }
