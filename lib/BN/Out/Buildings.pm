@@ -346,8 +346,8 @@ sub shop_goods {
    $n = 0;
    foreach my $level ($build->levels()) {
       ++$n;
-      print_line($F, 'input'.$n, $level->input())
-         unless $level->input() == ($n + 1) * 25;
+      print_line($F, 'output'.$n, $level->output())
+         unless $level->output() == ($n + 1) * 25;
    }
 
    my @notes;
