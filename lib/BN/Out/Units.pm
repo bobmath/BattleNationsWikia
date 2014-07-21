@@ -164,37 +164,48 @@ sub unit_weapons {
          print_line($F, 'maxdmg', $attack->maxdmg());
          print_line($F, 'numattacks', $attack->numattacks());
          print_line($F, 'baseoffense', $attack->offense());
-         $r += print_line($F, 'ammoused', $attack->ammoused());
-         $r += print_line($F, 'range', $attack->range());
-         $r += print_line($F, 'lof', $attack->lof());
-         $r += print_line($F, 'cooldown', $attack->cooldown() || undef);
-         $r += print_line($F, 'globalcooldown',
-            $attack->globalcooldown() || undef) if $nattacks > 1;
-         $r += print_line($F, 'preptime', $attack->preptime() || undef);
          $r += print_line($F, 'crit', $attack->crit(0, $unit->max_crit()));
-         $r += print_line($F, 'armorpiercing', $attack->armorpiercing());
-         $r += print_line($F, 'effects', $attack->effects());
          print_line($F, 'dot', $attack->dot());
          print_line($F, 'dotduration', $attack->dotduration());
          print_line($F, 'dottype', $attack->dottype());
          $r += print_line($F, 'cost',
             BN->format_amount($attack->cost(), 0, ', '));
-         if (my $targ = $attack->targets()) {
-            print_line($F, 'targets', $targ);
-            print_line($F, 'targetbox-rows', $r) if $r > 7;
-         }
          if (my $mods = $attack->rank_mods($unit)) {
             foreach my $key (sort keys %$mods) {
                print_line($F, $key, $mods->{$key});
             }
          }
-         print_line($F, 'notes', $attack->notes());
-         print_line($F, 'game file name', $attack->tag());
+         attack_details($F, $attack, $nattacks, $r);
          print $F "}}\n";
       }
       print $F "}}\n";
    }
    print $F "</tabber>\n{{Clear}}\n\n" unless $first;
+}
+
+sub attack_details {
+   my ($F, $attack, $nattacks, $r) = @_;
+   $r += print_line($F, 'ammoused', $attack->ammoused());
+   $r += print_line($F, 'range', $attack->range());
+   $r += print_line($F, 'lof', $attack->lof());
+   $r += print_line($F, 'armorpiercing', $attack->armorpiercing());
+   $r += print_line($F, 'effects', $attack->effects());
+   $r += print_line($F, 'preptime', $attack->preptime() || undef);
+
+   my $gcd;
+   $gcd = $attack->globalcooldown() if $nattacks > 1;
+   if (my $cd = $attack->cooldown()) {
+      $r += print_line($F, 'cooldown', $cd) unless $gcd && $gcd > $cd;
+   }
+   $r += print_line($F, 'globalcooldown', $gcd || undef);
+
+   if (my $targ = $attack->targets()) {
+      print_line($F, 'targets', $targ);
+      print_line($F, 'targetbox-rows', $r) if $r > 7;
+   }
+   print_line($F, 'notes', $attack->notes());
+   print_line($F, 'game file name', $attack->tag());
+   return $r;
 }
 
 sub unit_ranks {
@@ -575,28 +586,15 @@ sub old_attacks {
          print_line($F, 'nocat', $nocat);
          print_line($F, 'image',
             '[[File:' . $attack->filename($unit) . '_Damage.gif]]');
-
          print_line($F, 'weaponicon', BN::Out->icon($attack->icon(), '40px'));
          $r += print_line($F, 'offense', $attack->offense($accuracy));
          $r += print_line($F, 'damage', $attack->damage($power));
-         $r += print_line($F, 'armorpiercing', $attack->armorpiercing());
          $r += print_line($F, 'crit', $attack->crit($crit));
-         $r += print_line($F, 'ammoused', $attack->ammoused());
-         $r += print_line($F, 'range', $attack->range());
-         $r += print_line($F, 'lof', $attack->lof());
-         $r += print_line($F, 'cooldown', $attack->cooldown() || undef);
-         $r += print_line($F, 'globalcooldown',
-            $attack->globalcooldown() || undef) if @attacks > 1;
-         $r += print_line($F, 'preptime', $attack->preptime() || undef);
-         $r += print_line($F, 'effects', $attack->effects());
-         print_line($F, 'targets', $attack->targets());
-         print_line($F, 'targetbox-rows', $r) if $r > 7;
-         print_line($F, 'notes', $attack->notes());
-         print_line($F, 'game file name', $attack->tag());
+         attack_details($F, $attack, scalar(@attacks), $r);
          print $F "}}</div>\n";
       }
 
-      print $F "</div>}}</div>\n";
+      print $F "</div>}}\n</div>\n";
    }
 
    print $F "</div>\n";
