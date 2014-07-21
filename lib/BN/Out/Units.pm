@@ -192,12 +192,11 @@ sub attack_details {
    $r += print_line($F, 'effects', $attack->effects());
    $r += print_line($F, 'preptime', $attack->preptime() || undef);
 
-   my $gcd;
-   $gcd = $attack->globalcooldown() if $nattacks > 1;
+   my $gcd = $nattacks > 1 && $attack->globalcooldown();
    if (my $cd = $attack->cooldown()) {
       $r += print_line($F, 'cooldown', $cd) unless $gcd && $gcd >= $cd;
    }
-   $r += print_line($F, 'globalcooldown', $gcd || undef);
+   $r += print_line($F, 'globalcooldown', $gcd) if $gcd;
 
    if (my $targ = $attack->targets()) {
       print_line($F, 'targets', $targ);
