@@ -195,7 +195,7 @@ sub attack_details {
    my $gcd;
    $gcd = $attack->globalcooldown() if $nattacks > 1;
    if (my $cd = $attack->cooldown()) {
-      $r += print_line($F, 'cooldown', $cd) unless $gcd && $gcd > $cd;
+      $r += print_line($F, 'cooldown', $cd) unless $gcd && $gcd >= $cd;
    }
    $r += print_line($F, 'globalcooldown', $gcd || undef);
 
