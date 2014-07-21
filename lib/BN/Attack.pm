@@ -39,7 +39,6 @@ sub get {
 BN->simple_accessor('tag');
 BN->simple_accessor('name');
 BN->simple_accessor('icon', 'icon');
-BN->simple_accessor('globalcooldown', 'globalCooldown');
 BN->simple_accessor('preptime', 'chargeTime');
 BN->simple_accessor('target_area', 'targetArea');
 BN->simple_accessor('damage_area', 'damageArea');
@@ -345,11 +344,21 @@ sub filename {
 
 BN->accessor(cooldown => sub {
    my ($att) = @_;
-   my $cooldown = $att->{abilityCooldown} or return;
+   return $att->filter_cooldown($att->{abilityCooldown});
+});
+
+BN->accessor(globalcooldown => sub {
+   my ($att) = @_;
+   return $att->filter_cooldown($att->{globalCooldown});
+});
+
+sub filter_cooldown {
+   my ($att, $cooldown) = @_;
+   return unless $cooldown;
    my $ammo = $att->{ammo} or return $cooldown;
    my $used = $att->{ammoRequired} or return $cooldown;
    my $reload = $att->{reloadTime} or return $cooldown;
    return $ammo == $used && $reload >= $cooldown ? undef : $cooldown;
-});
+}
 
 1 # end BN::Attack
