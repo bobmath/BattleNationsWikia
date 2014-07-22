@@ -427,6 +427,7 @@ my %enemy_level = (
    hero_cast_morgan           => 15,
    hero_raider_warlord        => 30,
    s_raider_sniper_tutorial   => 3,
+   s_sandworm_elder           => 27,
    veh_raider_mammoth_armored => 25,
 );
 
