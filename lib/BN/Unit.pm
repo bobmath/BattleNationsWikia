@@ -67,8 +67,14 @@ my %wiki_page = (
    fr_guy_hunter_ignorable          => 'Frontier Hunter (ignorable)',
    fr_guy_pyro_ignorable            => 'Frontier Pyro (ignorable)',
    fr_guy_shotgun_ignorable         => 'Frontier Minuteman (ignorable)',
+   hero_ancient_robot_30            => 'Ancient Construct (Boss Strike)',
+   hero_ancient_robot_45            => 'Ancient Construct (Boss Strike)',
+   hero_ancient_robot_60            => 'Ancient Construct (Boss Strike)',
    hero_cast_morgan_buff            => 'Lt. Morgan (buffed)',
    hero_cast_morgan_duels           => 'Lt. Morgan (duels)',
+   hero_raider_crazyblades_ignorable   => 'Crazy Blades (ignorable)',
+   hero_raider_sarin_ignorable      => 'Sarin (ignorable)',
+   hero_raider_tronk_14_ignorable   => 'Tronk (ignorable)',
    hero_raider_warlord_ignorable    => 'Warlord Gantas (ignorable)',
    hero_raider_warlord_passive      => 'Warlord Gantas (passive)',
    raptor_zombie_enemy_20           => 'Shredder (unused)',
@@ -81,9 +87,6 @@ my %wiki_page = (
    sw_veh_artillery_20              => 'Silver Wolf Artillery',
    sw_veh_artillery_5               => 'Silver Wolf Artillery',
    sw_veh_artillery_player          => 'Wolf Artillery',
-   hero_ancient_robot_30            => 'Ancient Construct (Boss Strike)',
-   hero_ancient_robot_45            => 'Ancient Construct (Boss Strike)',
-   hero_ancient_robot_60            => 'Ancient Construct (Boss Strike)',
 );
 
 my %unit_names;
