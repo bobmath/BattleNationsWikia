@@ -79,6 +79,7 @@ my %wiki_page = (
    hero_raider_warlord_passive      => 'Warlord Gantas (passive)',
    raptor_zombie_enemy_20           => 'Shredder (unused)',
    raptor_zombie_enemy_40           => 'Shredder (unused)',
+   s_boar_militia                   => 'Wild Boar (militia)',
    s_raider_dustwalker              => 'Dust Walker (enemy)',
    s_raider_dustwalker_40           => 'Dust Walker (enemy)',
    s_raider_firebreather            => 'Firebreather (enemy)',
