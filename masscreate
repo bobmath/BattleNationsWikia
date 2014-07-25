@@ -1,0 +1,36 @@
+#!/usr/bin/env perl
+# Upload a bunch of new pages
+use strict;
+use warnings;
+use lib 'lib';
+use MW::UserAgent;
+use Data::Dump qw( dump );
+use File::Basename qw( basename );
+use Getopt::Std qw( getopts );
+
+my %args;
+getopts('rp:', \%args) or die "Bad args\n";
+die "Usage: $0 files\n" unless @ARGV;
+my $prefix = $args{p} || '';
+
+my $ua = MW::UserAgent->new('http://battlenations.wikia.com/api.php');
+$ua->login();
+
+foreach my $file (@ARGV) {
+   print $file, "\n";
+   my $text;
+   {
+      open my $F, '<', $file or die "Can't read $file: $!";
+      local $/ = undef;
+      $text = <$F>;
+   }
+   my $page = $prefix . $file;
+   $page =~ s/_/ /g;
+   $ua->get_info($page, 'edit');
+   my $info = $ua->get_info('Upload', 'edit');
+   my $token = $info->{edittoken} or die 'no token returned';
+   $ua->edit($page, $text, undef, $token, 'createonly');
+   unlink $file if $args{r};
+   sleep 5;
+}
+
