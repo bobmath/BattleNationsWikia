@@ -92,6 +92,21 @@ sub layout_width {
    return ($enc->{layoutId} || '') eq 'equal_3x3' ? 1 : 2;
 }
 
+my %grid_map = (
+   '2,1'  => 1,
+   '1,1'  => 2,
+   '0,1'  => 3,
+   '-1,1' => 4,
+   '-2,1' => 5,
+   '2,2'  => 6,
+   '1,2'  => 7,
+   '0,2'  => 8,
+   '-1,2' => 9,
+   '-2,2' => 10,
+   '1,3'  => 11,
+   '0,3'  => 12,
+   '-1,3' => 13,
+);
 sub unit_positions {
    my ($enc, $wave) = @_;
    my $wid = $enc->layout_width();
@@ -104,7 +119,7 @@ sub unit_positions {
          my $x = 2 - ($pos % 5);
          my $y = int($pos / 5) + 1;
          $taken{$y}{$x} = 1;
-         push @units, { unit=>$unit, x=>$x, y=>$y };
+         push @units, { unit=>$unit, x=>$x, y=>$y, grid=>$grid_map{"$x,$y"} };
       }
       else {
          push @rand, $unit;
@@ -125,7 +140,7 @@ sub unit_positions {
             $x = int(rand $max) - $row_wid;
          } while $row->{$x};
          $row->{$x} = 1;
-         push @units, { unit=>$unit, x=>$x, y=>$y };
+         push @units, { unit=>$unit, x=>$x, y=>$y, grid=>$grid_map{"$x,$y"} };
          last;
       }
    }
