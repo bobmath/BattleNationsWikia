@@ -593,7 +593,7 @@ sub old_attacks {
          print $F "}}</div>\n";
       }
 
-      print $F "</div>}}\n</div>\n";
+      print $F "</div>}}</div>\n";
    }
 
    print $F "</div>\n";
