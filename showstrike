@@ -5,23 +5,9 @@ use warnings;
 use lib 'lib';
 use BN;
 use Cairo;
-use POSIX qw( ceil );
-
-my $grid_x = 100;
-my $grid_y = 50;
-my $scale = 0.75;
-my $center_x = 159;
-my $center_y = 330;
-my $bg_wid = 540;
-my $bg_hgt = 375;
-
-my %icon_map;
-if (open my $MAP, '<', 'iconmap') {
-   while (<$MAP>) {
-      /^(\w+)=(.+)/ or next;
-      $icon_map{$1} = $2;
-   }
-}
+use Image::PNG::Const qw( PNG_COLOR_TYPE_RGB_ALPHA );
+use Image::PNG::Libpng qw( read_png_file );
+use POSIX qw( ceil floor );
 
 die "Usage: $0 strike_id\n" unless @ARGV == 1;
 my $strike = BN::BossStrike->get($ARGV[0]) or die "Boss strike not found\n";
@@ -72,7 +58,6 @@ foreach my $levels (sort keys %level_tiers) {
       my $file = "Level_${levels}_tier_${tnum}_battles";
       print "$file\n";
       open my $F, '>', $file or die "Can't write $file: $!";
-      print $F $strike->name(), " level $levels tier $tnum battles\n";
       my $eids = $tiers->{$tnum} or next;
       my $enum;
       foreach my $eid (sort keys %$eids) {
@@ -108,35 +93,20 @@ sub show_encounter {
    print $F "<tabber>\n";
 
    for my $wave (1 .. @$waves) {
-      my @units = $enc->unit_positions($wave) or next;
-      foreach my $u (@units) {
-         $u->{X} = $grid_x * $scale * ($u->{x} + $u->{y}) + $center_x;
-         $u->{Y} = $grid_y * $scale * ($u->{x} - $u->{y}) + $center_y;
-      }
-      @units = sort { $a->{Y} <=> $b->{Y} || $a->{X} <=> $b->{X} } @units;
+      my @units = sort { $a->{grid} <=> $b->{grid} }
+         grep { $_->{grid} } $enc->unit_positions($wave) or next;
 
       print $F "|-|\n" if $wave > 1;
-      print $F "Wave $wave=\n";
-      print $F qq{<div style="position:relative;width:${bg_wid}px;},
-         qq{height:${bg_hgt}px">\n},
-         qq{<div style="position:absolute;left:0px;top:0px">},
-         qq{[[File:BattleMapEnemy.png|link=]]</div>\n};
+      print $F "Wave $wave=\n{{BattleMap\n";
 
       foreach my $u (@units) {
-         my $tag = $u->{unit}->animation();
-         my $anim = BN::Animation->get($tag) or next;
-         my $img = $icon_map{$tag} ||= build_icon($anim);
+         my $tag = get_icon($u->{unit});
          my $link = $u->{unit}->wiki_page();
-         my @box = $anim->box(0) or next;
-         my $wid = ceil(($box[1] - $box[0]) * $scale) + 2;
-         my $hgt = ceil(($box[3] - $box[2]) * $scale) + 2;
-         my $x = int($u->{X} + $box[0]*$scale + 0.5);
-         my $y = int($u->{Y} + $box[2]*$scale + 0.5);
-         print $F qq{<div style="position:absolute;left:${x}px;top:${y}px">},
-            qq{[[File:\u$img|${wid}px|link=$link]]</div>\n};
+         print $F "| enemy$u->{grid} = $tag\n",
+            "| link$u->{grid} = $link\n";
       }
 
-      print $F "</div>\n";
+      print $F "}}\n";
    }
 
    print $F "</tabber>\n{{Clear}}\n";
@@ -164,32 +134,114 @@ sub show_encounter {
    }
 }
 
-sub build_icon {
-   my ($anim) = @_;
+my %icon_tags;
+sub get_icon {
+   my ($unit) = @_;
+   my $anim = BN::Animation->get($unit->animation()) or return;
    my $tag = $anim->tag();
-   my @box = $anim->box(0) or next;
-   my $w = $box[1] - $box[0];
-   my $h = $box[3] - $box[2];
-   my $wid = ceil($w) + 2;
-   my $hgt = ceil($h) + 2;
+   $tag =~ s/_idle$//i;
    my $img = ucfirst($tag);
-   $img =~ s/_idle$//i;
+   $tag =~ s/_fr(?:ont)?$//i;
+
+   if (!%icon_tags) {
+      $icon_tags{''} = '';
+      if (open my $MAP, '<', 'iconmap') {
+         local $_;
+         while (<$MAP>) {
+            $icon_tags{$1} = 1 if /^\|(.*?)=/;
+         }
+      }
+   }
+   return $tag if $icon_tags{$tag};
+   $icon_tags{$tag} = 1;
+
    $img .= '.png';
    print $img, "\n";
 
+   my @box = $anim->box(0);
+   my $xmin = floor($box[0]);
+   my $xmax = ceil($box[1]);
+   my $ymin = floor($box[2]);
+   my $ymax = ceil($box[3]);
+   my $wid = $xmax - $xmin;
+   my $hgt = $ymax - $ymin;
+
    my $surface = Cairo::ImageSurface->create('argb32', $wid, $hgt);
    my $ctx = Cairo::Context->create($surface);
-   $ctx->translate(($wid - $w) / 2 - $box[0], ($hgt - $h) / 2 - $box[2]);
+   $ctx->translate(-$xmin, -$ymin);
    $anim->render($ctx, 0);
 
    my $tmp = "$img.tmp";
    $surface->write_to_png($tmp) or die;
+   crop($tmp, \$xmin, \$ymin, \$wid);
    system("pngcrush -new -q -brute $tmp $img") == 0 or die;
    unlink $tmp;
 
-   if (open my $MAP, '>>', 'iconmap') {
-      print $MAP "$tag=$img\n";
+   open my $MAP, '>>', 'iconmap' or return $tag;
+   my $x = -$xmin;
+   my $y = -$ymin;
+   print $MAP "|$tag|$x/$y/$wid/$img\n";
+   return $tag;
+}
+
+sub crop {
+   my ($file, $xmin_ref, $ymin_ref, $wid_ref) = @_;
+   my $png = read_png_file($file);
+   my $hdr = $png->get_IHDR();
+   die unless $hdr->{color_type} == PNG_COLOR_TYPE_RGB_ALPHA
+      && $hdr->{bit_depth} == 8;
+   my $rows = $png->get_rows();
+
+   my $top = 0;
+   while (@$rows && $rows->[0] =~ /^(?:...\0)*\z/s) {
+      shift @$rows;
+      $top++;
    }
-   return $img;
+   while (@$rows && $rows->[-1] =~ /^(?:...\0)*\z/s) {
+      pop @$rows;
+   }
+   my $left = 0;
+   my $right = $hdr->{width} - 1;
+   while ($left < $right && blankcol($left, $rows)) {
+      $left++;
+   }
+   while ($left < $right && blankcol($right, $rows)) {
+      $right--;
+   }
+
+   my $wid = $right - $left + 1;
+   if ($wid != $hdr->{width}) {
+      my $i = $left * 4;
+      my $n = $wid * 4;
+      foreach my $row (@$rows) {
+         $row = substr($row, $i, $n);
+      }
+   }
+   elsif (@$rows == $hdr->{height}) {
+      return;
+   }
+
+   $$xmin_ref += $left;
+   $$ymin_ref += $top;
+   $$wid_ref = $wid;
+
+   $png = Image::PNG::Libpng::create_write_struct();
+   $png->set_IHDR({
+      width       => $wid,
+      height      => scalar(@$rows),
+      color_type  => PNG_COLOR_TYPE_RGB_ALPHA,
+      bit_depth   => 8,
+   });
+   $png->set_rows($rows);
+   $png->write_png_file($file);
+}
+
+sub blankcol {
+   my ($col, $rows) = @_;
+   my $n = $col * 4 + 3;
+   foreach my $row (@$rows) {
+      return unless substr($row, $n, 1) eq "\0";
+   }
+   return 1;
 }
 
