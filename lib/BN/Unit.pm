@@ -80,6 +80,7 @@ my %wiki_page = (
    raptor_zombie_enemy_20           => 'Shredder (unused)',
    raptor_zombie_enemy_40           => 'Shredder (unused)',
    s_boar_militia                   => 'Wild Boar (militia)',
+   s_commando_ignore                => 'Commando (ignorable)',
    s_raider_dustwalker              => 'Dust Walker (enemy)',
    s_raider_dustwalker_40           => 'Dust Walker (enemy)',
    s_raider_firebreather            => 'Firebreather (enemy)',
