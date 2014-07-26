@@ -9,12 +9,17 @@ use File::Basename qw( basename );
 use Getopt::Std qw( getopts );
 
 my %args;
-getopts('rp:', \%args) or die "Bad args\n";
+getopts('enrp:s:', \%args) or die "Bad args\n";
 die "Usage: $0 files\n" unless @ARGV;
 my $prefix = $args{p} || '';
+my $summary = $args{s};
 
 my $ua = MW::UserAgent->new('http://battlenations.wikia.com/api.php');
 $ua->login();
+
+my @args;
+push @args, 'createonly' unless $args{e} || $args{n};
+push @args, 'nocreate' if $args{n};
 
 foreach my $file (@ARGV) {
    print $file, "\n";
@@ -29,7 +34,7 @@ foreach my $file (@ARGV) {
    $ua->get_info($page, 'edit');
    my $info = $ua->get_info('Upload', 'edit');
    my $token = $info->{edittoken} or die 'no token returned';
-   $ua->edit($page, $text, undef, $token, 'createonly');
+   $ua->edit($page, $text, $summary, $token, @args);
    unlink $file if $args{r};
    sleep 5;
 }
