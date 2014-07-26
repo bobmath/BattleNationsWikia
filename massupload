@@ -9,7 +9,7 @@ use File::Basename qw( basename );
 use Getopt::Std qw( getopts );
 
 my %args;
-getopts('rt:', \%args) or die "Bad args\n";
+getopts('irt:', \%args) or die "Bad args\n";
 die "Usage: $0 files\n" unless @ARGV;
 
 my $ua = MW::UserAgent->new('http://battlenations.wikia.com/api.php');
@@ -17,9 +17,12 @@ $ua->login();
 my $info = $ua->get_info('Upload', 'edit');
 my $token = $info->{edittoken} or die 'no token returned';
 
+my @args;
+push @args, 'ignorewarnings' if $args{i};
+
 foreach my $file (@ARGV) {
    print $file, "\n";
-   $ua->upload($file, $token, text => $args{t});
+   $ua->upload($file, $token, text => $args{t}, @args);
    unlink $file if $args{r};
    sleep 5;
 }

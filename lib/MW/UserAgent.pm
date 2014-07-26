@@ -190,7 +190,7 @@ sub upload {
    croak 'File not found' unless -f $file;
 
    my $dest = ucfirst(basename($file));
-   my $text;
+   my ($text, $ignore);
    while (@opts) {
       my $opt = shift @opts;
       if ($opt eq 'dest') {
@@ -198,6 +198,9 @@ sub upload {
       }
       elsif ($opt eq 'text') {
          $text = shift(@opts);
+      }
+      elsif ($opt eq 'ignorewarnings') {
+         $ignore = 1;
       }
       else {
          croak "Unknown option: $opt";
@@ -212,6 +215,7 @@ sub upload {
        file     => [$file, $dest],
    );
    push @args, text => $text if defined $text;
+   push @args, ignorewarnings => '' if $ignore;
 
    my $resp = $self->{ua}->post($self->{uri},
       Content_Type => 'form-data', Content => \@args);
