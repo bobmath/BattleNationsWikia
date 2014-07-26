@@ -193,11 +193,11 @@ sub crop {
    my $rows = $png->get_rows();
 
    my $top = 0;
-   while (@$rows && $rows->[0] =~ /^(?:...\0)*\z/s) {
+   while (@$rows && blankrow($rows->[0])) {
       shift @$rows;
       $top++;
    }
-   while (@$rows && $rows->[-1] =~ /^(?:...\0)*\z/s) {
+   while (@$rows && blankrow($rows->[-1])) {
       pop @$rows;
    }
    my $left = 0;
@@ -236,11 +236,20 @@ sub crop {
    $png->write_png_file($file);
 }
 
+sub blankrow {
+   my ($row) = @_;
+   my $len = length($row);
+   for (my $n = 3; $n < $len; $n += 4) {
+      return unless ord(substr($row, $n, 1)) <= 5
+   }
+   return 1;
+}
+
 sub blankcol {
    my ($col, $rows) = @_;
    my $n = $col * 4 + 3;
    foreach my $row (@$rows) {
-      return unless substr($row, $n, 1) eq "\0";
+      return unless ord(substr($row, $n, 1)) <= 5
    }
    return 1;
 }
