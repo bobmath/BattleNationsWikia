@@ -180,7 +180,7 @@ sub get_icon {
    open my $MAP, '>>', 'iconmap' or return $tag;
    my $x = -$xmin;
    my $y = -$ymin;
-   print $MAP "|$tag|$x/$y/$wid/$img\n";
+   print $MAP "|$tag=$x/$y/$wid/$img\n";
    return $tag;
 }
 
