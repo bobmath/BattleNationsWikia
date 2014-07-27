@@ -32,7 +32,6 @@ sub get {
 
 BN->simple_accessor('name');
 BN->simple_accessor('tag');
-BN->simple_accessor('level', 'level');
 BN->simple_accessor('icon', 'icon');
 
 BN->accessor(rewards => sub {
@@ -145,6 +144,39 @@ sub unit_positions {
       }
    }
    return @units;
+}
+
+sub level {
+   my ($enc) = @_;
+   # level given in the game files is unreliable
+   $enc->calc_levels() unless exists $enc->{_level};
+   return $enc->{_level};
+}
+
+sub calc_levels {
+   my ($class) = @_;
+   $_->{_level} = undef foreach $class->all();
+
+   my $tables = $encounters->{tables} or die;
+   foreach my $table (values %$tables) {
+      my $levels = $table->{levels} or next;
+      my $min = $levels->{min} or next;
+      my $elist = $table->{encounters} or next;
+      foreach my $e (@$elist) {
+         my $enc = $class->get($e->{encounterId}) or next;
+         $enc->{_level} = $min
+            if !defined($enc->{_level}) || $min < $enc->{_level};
+      }
+   }
+
+   foreach my $mis (BN::Mission->all()) {
+      next if $mis->hidden();
+      my $level = $mis->level() or next;
+      foreach my $enc ($mis->encounters()) {
+         $enc->{_level} = $level
+            if !defined($enc->{_level}) || $level < $enc->{_level};
+      }
+   }
 }
 
 1 # end BN::Encounter

@@ -236,25 +236,39 @@ sub get_script {
    return $data;
 }
 
-sub encounters {
+BN->list_accessor(encounter_ids => sub {
    my ($mis) = @_;
-   if (!exists $mis->{z_encounters}) {
-      $mis->{z_encounters} = undef;
-      foreach my $objective ($mis->objectives()) {
-         my $prereq = $objective->{prereq} or next;
-         my $t = $prereq->{_t} or next;
-         if ($t eq 'DefeatEncounterPrereqConfig') {
-            my $id = $prereq->{encounterId} or next;
-            push @{$mis->{z_encounters}}, $id;
-         }
-         elsif ($t eq 'DefeatEncounterSetPrereqConfig') {
-            my $ids = $prereq->{encounterIds} or next;
-            push @{$mis->{z_encounters}}, @$ids;
+   my %ids;
+
+   foreach my $objective ($mis->objectives()) {
+      my $prereq = $objective->{prereq} or next;
+      my $t = $prereq->{_t} or next;
+      if ($t eq 'DefeatEncounterPrereqConfig') {
+         my $id = $prereq->{encounterId} or next;
+         $ids{$id} = 1;
+      }
+      elsif ($t eq 'DefeatEncounterSetPrereqConfig') {
+         my $ids = $prereq->{encounterIds} or next;
+         $ids{$_} = 1 foreach @$ids;
+      }
+   }
+
+   if (my $effects = $mis->{serverEffects}) {
+      foreach my $effect (@$effects) {
+         my $elist = $effect->{encounters} or next;
+         foreach my $enc (@$elist) {
+            my $id = $enc->{encounterId} or next;
+            $ids{$id} = 1;
          }
       }
    }
-   return unless $mis->{z_encounters};
-   return map { BN::Encounter->get($_) } @{$mis->{z_encounters}};
+
+   return sort keys %ids;
+});
+
+sub encounters {
+   my ($mis) = @_;
+   return map { BN::Encounter->get($_) } $mis->encounter_ids();
 }
 
 sub full_prereqs {
