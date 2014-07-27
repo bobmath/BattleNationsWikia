@@ -429,6 +429,7 @@ sub encounters {
 
 my %enemy_level = (
    air_spiderwasp_striker     => 45,
+   hero_cast_cassidy_unlimited_ammo => 56,
    hero_cast_morgan           => 15,
    hero_raider_warlord        => 30,
    s_raider_sniper_tutorial   => 3,
