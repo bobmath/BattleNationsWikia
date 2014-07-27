@@ -8,6 +8,7 @@ sub write {
    write_text();
    write_economy();
    write_land();
+   write_encounters();
    write_json('Boosts', 'RewardMultiplierOffers.json');
    write_json('Status Effects',
       'StatusEffectFamiliesConfig.json', 'StatusEffectsConfig.json');
@@ -65,6 +66,16 @@ sub write_land {
    }
 
    print $F "|}\n";
+   close $F;
+   BN::Out->checksum($file);
+}
+
+sub write_encounters {
+   my $file = BN::Out->filename('info', 'Encounters');
+   open my $F, '>', $file or die "Can't write $file: $!\n";
+   foreach my $enc (BN::Encounter->all()) {
+      print $F $enc->tag(), "\n", dump($enc), "\n\n";
+   }
    close $F;
    BN::Out->checksum($file);
 }
