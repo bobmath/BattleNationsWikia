@@ -21,6 +21,7 @@ foreach my $dir (qw{ units buildings missions enemies }) {
       open my $F, '<', $file or do { warn "Can't read $file: $!"; next };
       chomp(my $page = <$F>);
       close $F;
+      next if $page =~ /^[a-z]/;
       get_page($page);
    }
 }
