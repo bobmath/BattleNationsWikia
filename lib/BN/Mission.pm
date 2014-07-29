@@ -468,7 +468,7 @@ sub decorate {
       elsif ($where eq 'WorldMap') {
          $obj->{_text} //= 'Go to the World Map';
          $obj->{_link} = 'Northern Frontier';
-         $obj->{icon} //= 'BN_icon_hudMap.png';
+         $obj->{icon} //= 'Mapicon.png';
       }
    }
    elsif ($t eq 'CreateStructurePrereqConfig') {
@@ -574,7 +574,7 @@ sub decorate {
       if (my $map = BN::Map->get($prereq->{opponentId})) {
          $obj->{_text} //= 'Go to ' . $map->name();
          $obj->{_link} = $map->name();
-         $obj->{icon} //= 'BN_icon_hudMap.png';
+         $obj->{icon} //= 'Mapicon.png';
       }
    }
    elsif ($t eq 'PanCameraPrereqConfig') {
