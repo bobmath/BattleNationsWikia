@@ -361,4 +361,17 @@ sub filter_cooldown {
    return $ammo == $used && $reload >= $cooldown ? undef : $cooldown;
 }
 
+BN->accessor(suppression => sub {
+   my ($att) = @_;
+   my @mods;
+   if (defined(my $mult = $att->{damage_distraction})) {
+      push @mods, 'x' . $mult if $mult != 1;
+   }
+   if (my $add = $att->{damage_distractionBonus}) {
+      push @mods, '+' . $add;
+   }
+   return unless @mods;
+   return join ' ', @mods;
+});
+
 1 # end BN::Attack

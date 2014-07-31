@@ -190,6 +190,7 @@ sub attack_details {
    $r += print_line($F, 'lof', $attack->lof());
    $r += print_line($F, 'armorpiercing', $attack->armorpiercing());
    $r += print_line($F, 'effects', $attack->effects());
+   $r += print_line($F, 'suppression', $attack->suppression());
    $r += print_line($F, 'preptime', $attack->preptime() || undef);
 
    my $gcd = $nattacks > 1 && $attack->globalcooldown();
