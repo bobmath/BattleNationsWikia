@@ -4,10 +4,12 @@ use lib 'lib';
 use BN;
 use Cairo;
 use Getopt::Std;
+use POSIX qw( ceil floor );
 
 my %opts;
-getopts('t', \%opts) or die 'bad opts';
+getopts('lt', \%opts) or die 'bad opts';
 my $TILENUMS = $opts{t};
+my $LABELS = $opts{l};
 
 my $mapname = $ARGV[0];
 unless ($mapname) {
@@ -29,26 +31,55 @@ my $data = $layer->{data} or die;
 my $wid = $layer->{width} or die;
 my $hgt = $layer->{height} or die;
 
-my ($Xmin, $Xmax, $Ymin, $Ymax);
-$Xmin = $Ymin = $wid + $hgt;
-$Xmax = $Ymax = -$Xmin;
+my $xmin =  10000;
+my $xmax = -10000;
+my $ymin =  10000;
+my $ymax = -10000;
 my $i = 0;
 for my $y (0 .. $hgt-1) {
    for my $x (0 .. $wid-1) {
       next unless $data->[$i++];
-      my $X = $x - $y;
-      my $Y = $x + $y;
-      $Xmin = $X if $X < $Xmin;
-      $Xmax = $X if $X > $Xmax;
-      $Ymin = $Y if $Y < $Ymin;
-      $Ymax = $Y if $Y > $Ymax;
+      my $X = ($x - $y) * 60 + 59;
+      my $Y = ($x + $y) * 30 + 29;
+      $xmin = $X if $xmin > $X;
+      $xmax = $X if $xmax < $X;
+      $ymin = $Y if $ymin > $Y;
+      $ymax = $Y if $ymax < $Y;
    }
 }
 
-my $im_wid = ($Xmax - $Xmin + 2) * 60 + 16;
-my $im_hgt = ($Ymax - $Ymin + 2) * 30 + 8;
+my $buildings = $map->{buildings};
+if ($buildings) {
+   my %roads;
+   my $xoff = 30 * ($wid - $hgt) + 60;
+   my $yoff = 15 * ($wid + $hgt);
+   foreach my $info (@$buildings) {
+      $info->{YY} = 0;
+      my $type = $info->{type} or next;
+      $info->{bld} = my $bld = BN::Building->get($type) or next;
+      $info->{X} = $xoff - 20 * ($info->{x} - $info->{y});
+      $info->{Y} = $yoff - 10 * ($info->{x} + $info->{y});
+      $info->{YY} = $info->{Y};
+      $info->{YY} += 15 if $type =~ /^deco_egg_/; # kludge
+      $info->{YY} -= 15 if $type =~ /^deco_dirtroad_/;
+      if (my $road = $bld->{BNSmartRoad}) {
+         $roads{"$info->{x},$info->{y}"} = $road->{baseAnimationName};
+      }
+   }
+   foreach my $info (@$buildings) {
+      my $bld = $info->{bld} or next;
+      my $animname = $bld->animation('Default') or next;
+      if (my $road = $bld->{BNSmartRoad}) {
+         $animname = smart_road($info, $road, \%roads) || $animname;
+      }
+      $info->{anim} = eval { BN::Animation->get($animname) };
+      die "Can't load $animname: $@" if $@;
+   }
+}
 
-my $surface = Cairo::ImageSurface->create('argb32', $im_wid, $im_hgt);
+my $im_wid = $xmax - $xmin;
+my $im_hgt = $ymax - $ymin;
+my $surface = Cairo::ImageSurface->create('rgb24', $im_wid, $im_hgt);
 my $ctx = Cairo::Context->create($surface);
 
 my $tilesetfile = "../bg/${tileset}_split.png";
@@ -59,12 +90,12 @@ for my $y (0 .. $hgt-1) {
    for my $x (0 .. $wid-1) {
       my $tile = $data->[$i++] or next;
       $tile--;
-      my $tx = ($tile & 7) << 7;
-      my $ty = ($tile >> 3) << 6;
-      my $X = ($x - $y - $Xmin) * 60;
-      my $Y = ($x + $y - $Ymin) * 30;
+      my $tx = (($tile & 7) << 7) + 5;
+      my $ty = (($tile >> 3) << 6) + 3;
+      my $X = ($x - $y) * 60 - $xmin;
+      my $Y = ($x + $y) * 30 - $ymin;
       $ctx->set_source_surface($tileimg, $X - $tx, $Y - $ty);
-      $ctx->rectangle($X+2, $Y+1, 124, 62);
+      $ctx->rectangle($X-1, $Y-1, 122, 62);
       $ctx->fill();
       if ($TILENUMS) {
          $ctx->set_source_rgb(1, 1, 1);
@@ -74,24 +105,11 @@ for my $y (0 .. $hgt-1) {
    }
 }
 
-if (my $buildings = $map->{buildings}) {
-   my (%roads, %links);
-   my $xoff = $wid/2 + 0.5;
-   my $yoff = $hgt/2 - 0.5;
-   foreach my $info (@$buildings) {
-      my $type = $info->{type};
-      my $bld = BN::Building->get($type) or next;
-      $info->{bld} = $bld;
-      my $x = $xoff - $info->{x}/3;
-      my $y = $yoff - $info->{y}/3;
-      $info->{X} = ($x - $y - $Xmin) * 60;
-      $info->{YY} = $info->{Y} = ($x + $y - $Ymin) * 30;
-      $info->{YY} += 15 if $type =~ /^deco_egg_/; # kludge
-      $info->{YY} -= 15 if $type =~ /^deco_dirtroad_/;
-      if (my $road = $bld->{BNSmartRoad}) {
-         $roads{"$info->{x},$info->{y}"} = $road->{baseAnimationName};
-      }
-      if (my $link = $bld->map_link()) {
+if ($buildings) {
+   my %links;
+   foreach my $info (sort { $a->{YY} <=> $b->{YY} } @$buildings) {
+      my $bld = $info->{bld} or next;
+      if ($LABELS && (my $link = $bld->map_link())) {
          my $map = BN::Map->get($link);
          $links{"$info->{x},$info->{y}"} = {
             X    => $info->{X},
@@ -99,33 +117,27 @@ if (my $buildings = $map->{buildings}) {
             name => $map->name(),
          } if $map;
       }
-   }
-   foreach my $info (sort { $a->{YY} <=> $b->{YY} } @$buildings) {
-      my $bld = $info->{bld} or next;
-      my $animname = $bld->animation('Default') or next;
-      if (my $road = $bld->{BNSmartRoad}) {
-         $animname = smart_road($info, $road, \%roads) || $animname;
-      }
-      my $anim = eval { BN::Animation->get($animname) };
-      die "Can't load $animname: $@" if $@;
-      next unless $anim;
+      my $anim = $info->{anim} or next;
       $ctx->save();
-      $ctx->translate($info->{X}, $info->{Y});
+      $ctx->translate($info->{X} - $xmin, $info->{Y} - $ymin);
       $ctx->scale(-1, 1) if $info->{flip};
       $anim->render($ctx, 0);
       $ctx->restore();
    }
-   $ctx->set_font_size(32);
-   foreach my $link (sort { $a->{Y} <=> $b->{Y} } values %links) {
-      my $ext = $ctx->text_extents($link->{name});
-      $ctx->move_to($link->{X} - $ext->{width}/2 - $ext->{x_bearing},
-         $link->{Y} - $ext->{y_bearing});
-      $ctx->text_path($link->{name});
-      $ctx->set_source_rgb(0, 0, 0);
-      $ctx->set_line_width(4);
-      $ctx->stroke_preserve();
-      $ctx->set_source_rgb(1, 1, 1);
-      $ctx->fill();
+   if (%links) {
+      $ctx->set_font_size(32);
+      foreach my $link (sort { $a->{Y} <=> $b->{Y} } values %links) {
+         my $ext = $ctx->text_extents($link->{name});
+         $ctx->move_to(
+            $link->{X} - $ext->{width}/2 - $ext->{x_bearing} - $xmin,
+            $link->{Y} - $ext->{y_bearing} - $ymin);
+         $ctx->text_path($link->{name});
+         $ctx->set_source_rgb(0, 0, 0);
+         $ctx->set_line_width(4);
+         $ctx->stroke_preserve();
+         $ctx->set_source_rgb(1, 1, 1);
+         $ctx->fill();
+      }
    }
 }
 
