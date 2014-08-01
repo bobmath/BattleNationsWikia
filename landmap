@@ -7,9 +7,10 @@ use Getopt::Std;
 use POSIX qw( ceil floor );
 
 my %opts;
-getopts('lt', \%opts) or die 'bad opts';
-my $TILENUMS = $opts{t};
+getopts('lrt', \%opts) or die 'bad opts';
 my $LABELS = $opts{l};
+my $RAGGED = $opts{r};
+my $TILENUMS = $opts{t};
 
 my $mapname = $ARGV[0];
 unless ($mapname) {
@@ -48,6 +49,13 @@ for my $y (0 .. $hgt-1) {
    }
 }
 
+if ($RAGGED) {
+   $xmin -= 60;
+   $xmax += 60;
+   $ymin -= 30;
+   $ymax += 30;
+}
+
 my $buildings = $map->{buildings};
 if ($buildings) {
    my %roads;
@@ -72,14 +80,26 @@ if ($buildings) {
       if (my $road = $bld->{BNSmartRoad}) {
          $animname = smart_road($info, $road, \%roads) || $animname;
       }
-      $info->{anim} = eval { BN::Animation->get($animname) };
+      $info->{anim} = my $anim = eval { BN::Animation->get($animname) };
       die "Can't load $animname: $@" if $@;
+      if ($RAGGED && $anim) {
+         my @box = $anim->box(0);
+         my $lft = floor($info->{X} + $box[0]);
+         my $rgt =  ceil($info->{X} + $box[1]);
+         my $top = floor($info->{Y} + $box[2]);
+         my $btm =  ceil($info->{Y} + $box[3]);
+         $xmin = $lft if $xmin > $lft;
+         $xmax = $rgt if $xmax < $rgt;
+         $ymin = $top if $ymin > $top;
+         $ymax = $btm if $ymax < $btm;
+      }
    }
 }
 
+my $im_type = $RAGGED ? 'argb32' : 'rgb24';
 my $im_wid = $xmax - $xmin;
 my $im_hgt = $ymax - $ymin;
-my $surface = Cairo::ImageSurface->create('rgb24', $im_wid, $im_hgt);
+my $surface = Cairo::ImageSurface->create($im_type, $im_wid, $im_hgt);
 my $ctx = Cairo::Context->create($surface);
 
 my $tilesetfile = "../bg/${tileset}_split.png";
