@@ -8,7 +8,7 @@ sub write {
       my $file = BN::Out->filename('strikes', $strike->name());
       open my $F, '>', $file or die "Can't write $file: $!";
 
-      if (my $icon = BN::Out->icon($strike->icon())) {
+      if (my $icon = BN::Out->icon($strike->icon(), 'right')) {
          print $F $icon, "\n";
       }
       print_desc($F, $strike->short_desc());
