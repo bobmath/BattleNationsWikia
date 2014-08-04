@@ -38,6 +38,22 @@ sub get {
 
 BN->simple_accessor('tag');
 BN->simple_accessor('name');
+BN->simple_accessor('icon' => 'missionIcon');
+
+BN->accessor(short_desc => sub {
+   my ($strike) = @_;
+   return BN::Text->get($strike->{uiConfig}{eventShortDesc});
+});
+
+BN->accessor(long_desc => sub {
+   my ($strike) = @_;
+   return BN::Text->get($strike->{uiConfig}{eventLongDesc});
+});
+
+BN->accessor(prize_desc => sub {
+   my ($strike) = @_;
+   return BN::Text->get($strike->{uiConfig}{topPrizeDesc});
+});
 
 BN->list_accessor(tiers => sub {
    my ($strike) = @_;

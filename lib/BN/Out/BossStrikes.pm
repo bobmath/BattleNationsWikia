@@ -7,12 +7,25 @@ sub write {
    foreach my $strike (BN::BossStrike->all()) {
       my $file = BN::Out->filename('strikes', $strike->name());
       open my $F, '>', $file or die "Can't write $file: $!";
+
+      if (my $icon = BN::Out->icon($strike->icon())) {
+         print $F $icon, "\n";
+      }
+      print_desc($F, $strike->short_desc());
+      print_desc($F, $strike->long_desc());
+      print_desc($F, $strike->prize_desc());
+
       show_tiers($F, $strike);
       show_enemies($F, $strike);
       print $F dump($strike), "\n";
       close $F;
       BN::Out->checksum($file);
    }
+}
+
+sub print_desc {
+   my ($F, $desc) = @_;
+   print $F "{{IGD|$desc}}\n" if $desc;
 }
 
 sub show_tiers {
