@@ -14,6 +14,7 @@ sub write {
       print_desc($F, $strike->short_desc());
       print_desc($F, $strike->long_desc());
       print_desc($F, $strike->prize_desc());
+      print $F "\n";
 
       show_tiers($F, $strike);
       show_enemies($F, $strike);
