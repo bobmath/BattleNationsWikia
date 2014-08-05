@@ -156,8 +156,9 @@ sub edit {
    my @args = (
       format => 'json',
       action => 'edit',
-      title => $page,
-      token => $token,
+      title  => $page,
+      token  => $token,
+      bot    => '',
    );
    push @args, summary => $summary if defined $summary;
    if (delete $opts{append}) {
