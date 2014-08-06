@@ -113,7 +113,7 @@ sub unit_positions {
    my (@units, @rand, %taken);
    foreach my $info (@{$enc->{units}}) {
       next unless ($info->{waveNumber} || 0) + 1 == $wave;;
-      my $unit = BN::Unit->get($info->{unitId}) or next;
+      my $unit = BN::Unit->get($info->{unitId}, 1) or next;
       if (defined(my $pos = $info->{gridId})) {
          my $x = 2 - ($pos % 5);
          my $y = int($pos / 5) + 1;

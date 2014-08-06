@@ -71,7 +71,7 @@ sub show_enemies {
       my $einf = $encounters{$key} or next;
       my $encounter = BN::Encounter->get($key) or next;
       foreach my $id ($encounter->unit_ids()) {
-         my $unit = BN::Unit->get($id) or next;
+         my $unit = BN::Unit->get($id, 1) or next;
          my $link = $unit->wikilink();
          if (my $uinf = $units{$unit->name()}) {
             # prefer link with (enemy) tag

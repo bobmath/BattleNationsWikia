@@ -117,7 +117,7 @@ sub show_encounter {
       next unless $wave;
       my %links;
       foreach my $id (@$wave) {
-         my $unit = BN::Unit->get($id) or next;
+         my $unit = BN::Unit->get($id, 1) or next;
          $links{$unit->shortname()}{$unit->shortlink()}++;
       }
       my @links;
