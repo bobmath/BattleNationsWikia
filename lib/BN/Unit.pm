@@ -390,6 +390,7 @@ BN->accessor(other_reqs => sub {
          push @reqs, $mis->wikilink() if $mis;
       }
    }
+   push @reqs, '[[Infection Test Facility]]' if $unit->trans_from();
    push @reqs, 'Boss Strike' if $unit->boss_strike();
    return unless @reqs;
    return join '<br>', sort @reqs;
