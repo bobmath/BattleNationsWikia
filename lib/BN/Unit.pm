@@ -6,6 +6,7 @@ use Storable qw( dclone );
 my $units;
 
 my @clone_ids = qw(
+   s_veh_portableWall
    veh_tank_arctic_heavy
    veh_tank_mega
 );
