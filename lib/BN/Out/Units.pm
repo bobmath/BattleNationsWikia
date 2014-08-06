@@ -36,7 +36,7 @@ sub write {
       open my $F, '>', $file or die "Can't write $file: $!";
       print $F $name, "\n";
 
-      my $affil = guess_affil($units->[0]);
+      my $affil = guess_affil($units);
       enemy_profile($F, $units, $affil);
       enemy_defense($F, $units);
       enemy_attacks($F, $units, $affil);
@@ -608,16 +608,18 @@ sub is_aoe {
 }
 
 sub guess_affil {
-   my ($unit) = @_;
-   my $tag = $unit->tag();
-   return 'fr'     if $tag =~ /fr_/;
-   return 'inf'    if $tag =~ /_zombie_/;
-   return 'raider' if $tag =~ /_raider/;
-   return 'rebel'  if $tag =~ /_rebel/;
-   return 'sw'     if $tag =~ /sw_/;
-   my $type = $unit->type() // '';
-   return 'critter' if $type =~ /Critter|Spiderwasp/;
-   return 'player' if $unit->side() eq 'Hero';
+   my ($units) = @_;
+   foreach my $unit (@$units) {
+      my $tag = $unit->tag();
+      return 'fr'     if $tag =~ /fr_/;
+      return 'inf'    if $tag =~ /_zombie_/;
+      return 'raider' if $tag =~ /_raider/;
+      return 'rebel'  if $tag =~ /_rebel/;
+      return 'sw'     if $tag =~ /sw_/;
+      my $type = $unit->type() // '';
+      return 'critter' if $type =~ /Critter|Spiderwasp/;
+      return 'player' if $unit->side() eq 'Hero';
+   }
    return 'neutral';
 }
 

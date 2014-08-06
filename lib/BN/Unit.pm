@@ -1,13 +1,32 @@
 package BN::Unit;
 use strict;
 use warnings;
+use Storable qw( dclone );
 
 my $units;
-my $json_file = 'BattleUnits.json';
+
+my @clone_ids = qw(
+   veh_tank_arctic_heavy
+   veh_tank_mega
+);
+
+sub load {
+   unless ($units) {
+      $units = BN::File->json('BattleUnits.json');
+      foreach my $id (@clone_ids) {
+         my $unit = $units->{$id} or next;
+         my $clone = dclone($unit);
+         $unit->{_hasclone} = 1;
+         $clone->{_cloneof} = $id;
+         $clone->{side} = 'Hostile';
+         $units->{$id . '(hostile)'} = $clone;
+      }
+   }
+}
 
 sub all {
    my ($class) = @_;
-   $units ||= BN::File->json($json_file);
+   $class->load() unless $units;
    return map { $class->get($_) } sort keys %$units;
 }
 
@@ -17,10 +36,13 @@ my %name = (
 );
 
 sub get {
-   my ($class, $key) = @_;
+   my ($class, $key, $hostile) = @_;
    return unless $key;
-   $units ||= BN::File->json($json_file);
+   $class->load() unless $units;
    my $unit = $units->{$key} or return;
+   if ($hostile && $unit->{_hasclone}) {
+      $unit = $units->{$key . '(hostile)'} or return;
+   }
    if (ref($unit) eq 'HASH') {
       bless $unit, $class;
       $unit->{_tag} = $key;
@@ -190,14 +212,18 @@ BN->accessor(maxabil =>, sub {
 BN->list_accessor(weapons => sub {
    my ($unit) = @_;
    my $weapons = delete $unit->{weapons} or return;
-   my $tag = $unit->{_tag};
+   my $tag = $unit->{_cloneof} || $unit->{_tag};
+   my $max = $unit->{_cloneof} ? 1 : undef;
    my @weapons;
    foreach my $key (qw( primary secondary )) {
       my $weapon = delete $weapons->{$key} or next;
-      push @weapons, BN::Weapon->new($weapon, $key, $tag);
+      push @weapons, BN::Weapon->new($weapon, $key, $tag, $max);
    }
    foreach my $key (sort keys %$weapons) {
-      push @weapons, BN::Weapon->new($weapons->{$key}, $key, $tag);
+      push @weapons, BN::Weapon->new($weapons->{$key}, $key, $tag, $max);
+   }
+   if ($max) {
+      @weapons = grep { $_->attacks() } @weapons;
    }
    return @weapons;
 });
@@ -223,6 +249,7 @@ BN->accessor(immunities => sub {
 BN->list_accessor(ranks => sub {
    my ($unit) = @_;
    my $stats = delete $unit->{stats} or return;
+   splice @$stats, 1 if $unit->{_cloneof};
    my $n;
    return map { BN::Rank->new($_, ++$n) } @$stats;
 });

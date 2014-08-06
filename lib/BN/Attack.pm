@@ -20,18 +20,18 @@ sub get {
       }
    }
 
-   my $unit_tag;
+   my $reqs = delete $att->{reqs};
+
    if ($weap) {
-      $unit_tag = $weap->{_unit_tag};
+      my $unit_tag = $weap->{_unit_tag};
+      $att->{z_reqs} = $reqs->{$unit_tag} if $reqs && $unit_tag;
       if (my $stats = $weap->{stats}) {
          while (my ($k,$v) = each %$stats) {
             $att->{$k} //= ref($v) ? dclone($v) : $v;
          }
       }
+      return if $weap->{_max_rank} && $att->rank() > $weap->{_max_rank};
    }
-
-   my $reqs = delete $att->{reqs};
-   $att->{z_reqs} = $reqs->{$unit_tag} if $reqs && $unit_tag;
 
    return $att;
 }

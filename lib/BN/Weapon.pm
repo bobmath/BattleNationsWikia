@@ -3,12 +3,13 @@ use strict;
 use warnings;
 
 sub new {
-   my ($class, $weap, $key, $unit_tag) = @_;
+   my ($class, $weap, $key, $unit_tag, $max_rank) = @_;
    die unless ref($weap) eq 'HASH';
    bless $weap, $class;
    $weap->{_tag} = $key or die;
    $weap->{_unit_tag} = $unit_tag;
    $weap->{_name} = BN::Text->get($weap->{name}) || $key;
+   $weap->{_max_rank} = $max_rank if $max_rank;
    return $weap;
 }
 
