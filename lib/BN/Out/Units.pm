@@ -22,7 +22,7 @@ sub write {
       unit_weapons($F, $unit);
       unit_ranks($F, $unit);
       unit_cost($F, $unit);
-      print $F dump($unit), "\n";
+      print $F "__DUMP__\n", dump($unit), "\n";
       close $F;
       BN::Out->checksum($file);
    }
@@ -239,6 +239,8 @@ sub unit_ranks {
       if $unit->total_attacks();
 
    print_ranks($F, 'pc', undef, map { $_->cost() } @ranks1);
+   print_ranks($F, 'reward', undef,
+      map { BN->format_amount($_->level_up_rewards()) } @ranks1);
    print_ranks($F, 'uv', map { $_->uv() } @ranks);
 
    my $n;
