@@ -61,7 +61,7 @@ my %train_map = (
 
 sub unit_profile {
    my ($F, $unit) = @_;
-   print $F $unit->name(), "\n";
+   print $F $unit->wiki_page(), "\n";
    print $F "{{UnitProfile\n";
    profile_line($F, 'image', BN::Out->icon($unit->icon()));
    if (my $short = $unit->shortname()) {
