@@ -1,0 +1,63 @@
+use strict;
+use warnings;
+use lib 'lib';
+use MW::UserAgent;
+
+my $ua = MW::UserAgent->new('http://battlenations.wikia.com/api.php');
+$ua->login();
+
+my $summary = 'Promotion reward';
+
+foreach my $file (glob 'edit/*') {
+   open my $F, '<', $file or die;
+   my $name = <$F>;
+   die unless defined($name);
+   chomp($name);
+   my $text = do { local $/ = undef; <$F> };
+   close $F;
+   $text =~ s/\n__DUMP__\n.*//s;
+
+   print "\n>>> $name <<<\n";
+
+   sleep 1;
+   my $info = $ua->get_info($name, 'text', 'edit') or die;
+   die unless $info->{_text};
+   die unless $info->{edittoken};
+
+   my @file_parts = split /^(=+.*?=+)$/m, $text;
+   my @wiki_parts = split /^(=+.*?=+)$/m, $info->{_text};
+
+   my ($file_pos) =
+      grep { $file_parts[$_] =~ /^=+\s*Statistics/ } 0 .. $#file_parts or next;
+   my ($wiki_pos) =
+      grep { $wiki_parts[$_] =~ /^=+\s*Statistics/ } 0 .. $#wiki_parts or next;
+
+   $wiki_parts[$wiki_pos+1] = $file_parts[$file_pos+1];
+   my $new_text = join('', @wiki_parts);
+   if ($new_text eq $info->{_text}) {
+      unlink $file;
+      next;
+   }
+
+   open my $G, '>:utf8', 'temp' or die;
+   print $G $info->{_text} or die;
+   close $G or die;
+   open $G, '>:utf8', 'temp2' or die;
+   print $G $new_text or die;
+   close $G or die;
+   system "diff -biu temp temp2";
+
+   print "ok? ";
+   my $line = <STDIN>;
+   last unless defined $line;
+   if ($line =~ /y/i) {
+      $ua->edit($name, $new_text, $summary, $info->{edittoken}, 'nocreate');
+      unlink $file;
+      print "Edited\n";
+   }
+   unlink $file if $line =~ /n/i;
+   last if $line =~ /q/i;
+}
+
+unlink 'temp', 'temp2';
+

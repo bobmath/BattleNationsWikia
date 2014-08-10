@@ -148,7 +148,7 @@ sub get_icon {
       if (open my $MAP, '<', 'iconmap') {
          local $_;
          while (<$MAP>) {
-            $icon_tags{$1} = 1 if /^\|(.*?)=/;
+            $icon_tags{$1} = 1 if /^front\["(.*?)"\]=/;
          }
       }
    }
@@ -180,7 +180,7 @@ sub get_icon {
    open my $MAP, '>>', 'iconmap' or return $tag;
    my $x = -$xmin;
    my $y = -$ymin;
-   print $MAP "|$tag=$x/$y/$wid/$img\n";
+   print $MAP qq(front["$tag"]={x=$x,y=$y,w=$wid,f="$img"}\n);
    return $tag;
 }
 
