@@ -140,6 +140,7 @@ sub building_defense {
 sub building_attacks {
    my ($F, $build) = @_;
    my $unit = BN::Unit->get($build->defense()) or return;
+   print $F "==Attacks==\n";
    BN::Out::Units::old_attacks($F, $unit);
    print $F "{{Clear}}\n";
 }
