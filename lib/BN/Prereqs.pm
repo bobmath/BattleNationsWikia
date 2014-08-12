@@ -23,12 +23,15 @@ sub calc_levels {
       }
    }
 
+   foreach my $unit (BN::Unit->all()) {
+      $unit->{z_prereqs} = []
+         if $unit->side() ne 'Player' && $unit->{z_prereqs};
+   }
+
    foreach my $id (qw[ p01_LVLUP_010_UnitPromotion1 ]) {
       my $mis = BN::Mission->get($id) or next;
       $mis->{_level} = 1;
    }
-
-   BN::Unit->enemy_levels();
 
    my $changed;
    do {
@@ -51,6 +54,8 @@ sub calc_levels {
          }
       }
    } while $changed;
+
+   BN::Unit->enemy_levels();
 }
 
 sub add_prereq {

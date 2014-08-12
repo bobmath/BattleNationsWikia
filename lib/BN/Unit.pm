@@ -478,7 +478,6 @@ sub enemy_levels {
 
    foreach my $unit (BN::Unit->all()) {
       next if $unit->{side} eq 'Player';
-      $unit->{z_prereqs} = [] if $unit->{z_prereqs};
       if (my $level = $enemy_level{$unit->{_tag}}) {
          $unit->{_level} = $level;
          next;
