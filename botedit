@@ -6,7 +6,7 @@ use MW::UserAgent;
 my $ua = MW::UserAgent->new('http://battlenations.wikia.com/api.php');
 $ua->login();
 
-my $summary = 'Promotion reward';
+my $summary = 'New ranks template';
 
 foreach my $file (glob 'edit/*') {
    open my $F, '<', $file or die;
@@ -45,10 +45,18 @@ foreach my $file (glob 'edit/*') {
    open $G, '>:utf8', 'temp2' or die;
    print $G $new_text or die;
    close $G or die;
-   system "diff -biu temp temp2";
 
-   print "ok? ";
-   my $line = <STDIN>;
+   my $line;
+   while (1) {
+      system "diff -biu temp temp2";
+      print "ok? ";
+      $line = <STDIN>;
+      last unless $line && $line =~ /e/i;
+      system "vi temp2";
+      open $G, '<:utf8', 'temp2' or die;
+      $new_text = do { local $/ = undef; <$G> };
+      close $G;
+   }
    last unless defined $line;
    if ($line =~ /y/i) {
       $ua->edit($name, $new_text, $summary, $info->{edittoken}, 'nocreate');
