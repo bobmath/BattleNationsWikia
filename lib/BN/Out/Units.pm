@@ -61,6 +61,7 @@ my %train_map = (
 
 sub unit_profile {
    my ($F, $unit) = @_;
+   my @notes;
    print $F $unit->wiki_page(), "\n";
    print $F "{{UnitProfile\n";
    profile_line($F, 'image', BN::Out->icon($unit->icon()));
@@ -77,14 +78,13 @@ sub unit_profile {
    profile_line($F, 'immunities', $unit->immunities());
    profile_line($F, 'blocking', $unit->blocking());
 
-   my @notes;
-   if (my ($rank) = $unit->ranks()) {
-      if ($unit->max_armor()) {
-         damage_mods($F, 'armor', $rank->armor_mods());
-         if (my $type = $rank->armor_type()) {
-            push @notes, 'No armor while stunned' if $type eq 'active';
-         }
+   if (my ($rank) = grep { $_->armor() } $unit->ranks()) {
+      damage_mods($F, 'armor', $rank->armor_mods());
+      if (my $type = $rank->armor_type()) {
+         push @notes, 'No armor while stunned' if $type eq 'active';
       }
+   }
+   if (my ($rank) = $unit->ranks()) {
       damage_mods($F, 'base', $rank->damage_mods());
    }
    if (my $limit = $unit->deploy_limit()) {
@@ -210,38 +210,33 @@ sub attack_details {
 
 sub unit_ranks {
    my ($F, $unit) = @_;
-   my @notes;
    my @ranks = $unit->ranks() or return;
    my @ranks1 = @ranks[0 .. $#ranks-1];
-   print $F "==Statistics==\n{{",
-      (@ranks > 6 ? 'UnitRanks9Box' : 'UnitRanksBox') ,"\n";
+   print $F "==Statistics==\n{{UnitRanksBox\n";
    print_ranks($F, 'sp', undef, map { BN->commify($_->sp()) } @ranks1);
-   print_ranks($F, 'hp', map { $_->hp() } @ranks);
-   print_ranks_opt($F, 'armor', map { $_->armor() } @ranks);
-   print_ranks($F, 'bravery', map { $_->bravery() } @ranks);
-   print_ranks($F, 'defense', map { $_->defense() } @ranks);
-   print_ranks_opt($F, 'dodge', map { $_->dodge() } @ranks);
-
-   damage_mod_ranks($F, 'armormod', map { $_->armor_mods() } @ranks)
-      if $unit->max_armor();
-   damage_mod_ranks($F, 'damagemod', map { $_->damage_mods() } @ranks);
+   short_ranks($F, 'hp', map { $_->hp() } @ranks);
+   short_ranks($F, 'armor', map { $_->armor() } @ranks);
+   short_ranks($F, 'bravery', map { $_->bravery() } @ranks);
+   short_ranks($F, 'defense', map { $_->defense() } @ranks);
+   short_ranks($F, 'dodge', map { $_->dodge() } @ranks);
+   short_ranks($F, 'crit', map { $_->crit() } @ranks)
+      if $unit->total_attacks();
 
    if ((my $max = $unit->total_attacks()) > 1) {
-      my $n;
-      foreach my $rank (@ranks) {
-         my $slots = $rank->ability_slots() or next;
-         $slots = $max if $slots > $max;
-         print_line($F, 'ability' . ++$n, $slots);
-      }
+      short_ranks($F, 'ability', map {
+         my $slots = $_->ability_slots();
+         $slots <= $max ? $slots : $max;
+      } @ranks);
    }
 
-   print_ranks_opt($F, 'crit', map { $_->crit() } @ranks)
-      if $unit->total_attacks();
+   damage_mod_ranks($F, 'armormod',
+      map { $_->armor() && $_->armor_mods() } @ranks);
+   damage_mod_ranks($F, 'damagemod', map { $_->damage_mods() } @ranks);
 
    print_ranks($F, 'pc', undef, map { $_->cost() } @ranks1);
    print_ranks($F, 'reward', undef,
       map { BN->format_amount($_->level_up_rewards()) } @ranks1);
-   print_ranks($F, 'uv', map { $_->uv() } @ranks);
+   short_ranks($F, 'uv', map { $_->uv() } @ranks);
 
    my $n;
    foreach my $rank (@ranks) {
@@ -261,23 +256,16 @@ sub unit_ranks {
 
    my @reqs = map { $_->level_req() } @ranks;
    if (any(@reqs)) {
-      $reqs[0] ||= 'N/A';
       $n = 0;
       print_line($F, 'levelreq' . ++$n, $_) foreach @reqs;
    }
 
    @reqs = map { $_->prerank_req() } @ranks;
    if (any(@reqs)) {
-      $reqs[0] ||= 'N/A';
       $n = 0;
       print_line($F, 'prerankreq' . ++$n, $_) foreach @reqs;
    }
 
-   if (@ranks > 6 && @ranks < 9) {
-      push @notes, "This unit's maximum rank is " . @ranks;
-   }
-
-   print_line($F, 'notes', join('<br>', @notes)) if @notes;
    print $F "}}\n\n";
 }
 
@@ -287,23 +275,30 @@ my %damage_mod_templ = (
 
 sub damage_mod_ranks {
    my ($F, $tag, @mods) = @_;
-   my $first = $mods[0];
-   my %diff;
-   foreach my $mod (@mods[1 .. $#mods]) {
-      while (my ($key,$val) = each %$mod) {
-         $diff{$key} = 1 if $first->{$key} != $val;
+   my ($first, %diff);
+   foreach my $mod (@mods) {
+      next unless $mod;
+      if ($first) {
+         while (my ($key,$val) = each %$mod) {
+            $diff{$key} = 1 if $first->{$key} != $val;
+         }
+      }
+      else {
+         $first = $mod;
       }
    }
    my @diff = sort keys %diff or return;
    my $n;
    foreach my $mod (@mods) {
+      ++$n;
+      next unless $mod;
       my @out;
       foreach my $diff (@diff) {
          my $dmg = $mod->{$diff} * 100;
          my $templ = $damage_mod_templ{$diff} || $diff;
-         push @out, "{{$templ|$dmg%}}";
+         push @out, @diff == 1 ? "{{$templ}} $dmg%" : "{{$templ|$dmg%}}";
       }
-      print_line($F, $tag . ++$n, join('<br>', @out));
+      print_line($F, $tag . $n, join('<br>', @out));
    }
 }
 
@@ -313,11 +308,11 @@ sub print_ranks {
    print_line($F, $tag . ++$n, $_) foreach @vals;
 }
 
-sub print_ranks_opt {
+sub short_ranks {
    my ($F, $tag, @vals) = @_;
    return unless any(@vals);
-   my $n;
-   print_line($F, $tag . ++$n, $_ || 0) foreach @vals;
+   $_ ||= 0 foreach @vals;
+   print_line($F, $tag, join('; ', @vals));
 }
 
 sub any {
