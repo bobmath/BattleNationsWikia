@@ -10,6 +10,7 @@ sub write {
    write_land();
    write_encounters();
    write_json('Boosts', 'RewardMultiplierOffers.json');
+   write_json('Exclude', 'ExcludeTags.json');
    write_json('Status Effects',
       'StatusEffectFamiliesConfig.json', 'StatusEffectsConfig.json');
    write_json('Manifest', 'z2manifest.json', 'onDemandOtaManifest.json',
