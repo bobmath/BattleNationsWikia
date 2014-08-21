@@ -48,7 +48,7 @@ foreach my $file (glob 'edit/*') {
 
    my $line;
    while (1) {
-      system "diff -biu temp temp2";
+      system "diff -bu temp temp2";
       print "ok? ";
       $line = <STDIN>;
       last unless $line && $line =~ /e/i;
