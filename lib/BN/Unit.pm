@@ -34,7 +34,6 @@ sub all {
 my %name = (
    raptor_zombie_40     => "Specimen g03 'Advanced Shredder'",
    raptor_zombie_c      => "Specimen g03 'Advanced Shredder'",
-   sw_veh_artillery_5   => 'Wolf Bombadier',
 );
 
 sub get {
@@ -75,7 +74,6 @@ BN->simple_accessor('visibility_prereq', 'visibilityPrereq');
 BN->simple_accessor('preferred_row', 'preferredRow');
 
 my %shortname = (
-   sw_veh_artillery_5   => 'Bombadier',
 );
 
 BN->accessor(shortname => sub {
