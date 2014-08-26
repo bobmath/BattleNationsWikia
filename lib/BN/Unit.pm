@@ -533,13 +533,14 @@ sub encounters {
 }
 
 my %enemy_level = (
-   air_spiderwasp_striker     => 45,
+   air_spiderwasp_striker           => 45,
    hero_cast_cassidy_unlimited_ammo => 56,
-   hero_cast_morgan           => 15,
-   hero_raider_warlord        => 30,
-   s_raider_sniper_tutorial   => 3,
-   s_sandworm_elder           => 27,
-   veh_raider_mammoth_armored => 25,
+   hero_cast_morgan                 => 15,
+   hero_raider_warlord              => 30,
+   s_ninja_npc                      => 64,
+   s_raider_sniper_tutorial         => 3,
+   s_sandworm_elder                 => 27,
+   veh_raider_mammoth_armored       => 25,
 );
 
 sub enemy_levels {
