@@ -6,9 +6,80 @@ use Storable qw( dclone );
 my $units;
 
 my @clone_ids = qw(
+   i17_veh_tank_railgun
+   s_arctic_trooper
+   s_bazooka
+   s_bounty_hunter
+   s_chem_trooper
+   s_commando
+   s_demolition
+   s_flame
+   s_flame_heavy
+   s_grenadier
+   s_grenadier_bio
+   s_gunner
+   s_hitman
+   s_hunter_eagleEye
+   s_juggernaut
+   s_laser_machingun
+   s_mgshield
+   s_midrange_agent
+   s_ninja
+   s_officer
+   s_ranger
+   s_rocket_light
+   s_rpg
+   s_saboteur
+   s_shock
+   s_shotgunner
+   s_sniper
+   s_sniper_heavy
+   s_sniper_special
+   s_sniper_super
+   s_trooper
+   s_trooper_bigGameHunter
+   s_trooper_cryo
+   s_trooper_fire_ice
+   s_trooper_lightning
+   s_trooper_missileStrike
+   s_trooper_plasma
+   s_trooper_saboteur_heavy
    s_veh_portableWall
+   veh_artillery
+   veh_artillery_heavy
+   veh_artillery_light
+   veh_artillery_mega
+   veh_artillery_super
+   veh_bike
+   veh_cannon_plasma
+   veh_combine_tank
+   veh_dunerider
+   veh_flametank_light
+   veh_guntruck
+   veh_jeep_humvee
+   veh_mgtank
+   veh_mlrs
+   veh_mlrs_heavy
+   veh_recon_heavy
+   veh_rockettruck_light
+   veh_sports_bike
    veh_tank_arctic_heavy
+   veh_tank_basilisk
+   veh_tank_chem_heavy
+   veh_tank_chem_light
+   veh_tank_cryo
+   veh_tank_flame_heavy
+   veh_tank_heavier
+   veh_tank_heavy
+   veh_tank_light
+   veh_tank_medium
    veh_tank_mega
+   veh_tank_mini
+   veh_tank_super
+   veh_tank_tesla
+   veh_tank_wheeled
+   veh_tankdestroyer
+   veh_trackedmortar
 );
 
 sub load {
@@ -17,10 +88,11 @@ sub load {
       foreach my $id (@clone_ids) {
          my $unit = $units->{$id} or next;
          my $clone = dclone($unit);
-         $unit->{_hasclone} = 1;
+         my $clone_id = $id . '(hostile)';
+         $unit->{_hasclone} = $clone_id;
          $clone->{_cloneof} = $id;
          $clone->{side} = 'Hostile';
-         $units->{$id . '(hostile)'} = $clone;
+         $units->{$clone_id} = $clone;
       }
    }
 }
@@ -42,7 +114,7 @@ sub get {
    $class->load() unless $units;
    my $unit = $units->{$key} or return;
    if ($hostile && $unit->{_hasclone}) {
-      $unit = $units->{$key . '(hostile)'} or return;
+      $unit = $units->{$unit->{_hasclone}} or return;
    }
    if (ref($unit) eq 'HASH') {
       bless $unit, $class;
