@@ -607,6 +607,7 @@ sub is_aoe {
 sub guess_affil {
    my ($units) = @_;
    foreach my $unit (@$units) {
+      return $unit->{_affiliation} if $unit->{_affiliation};
       my $tag = $unit->tag();
       return 'fr'     if $tag =~ /fr_/;
       return 'inf'    if $tag =~ /_zombie_/;

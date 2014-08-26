@@ -6,24 +6,32 @@ use Storable qw( dclone );
 my $units;
 
 my @clone_ids = qw(
+   air_attack_helicopter
    i17_veh_tank_railgun
    s_arctic_trooper
+   s_arsonist
    s_bazooka
    s_bounty_hunter
    s_chem_trooper
    s_commando
+   s_crowd_control_trooper
    s_demolition
+   s_dragoon
    s_flame
    s_flame_heavy
    s_grenadier
    s_grenadier_bio
    s_gunner
    s_hitman
+   s_hunter
    s_hunter_eagleEye
    s_juggernaut
    s_laser_machingun
    s_mgshield
    s_midrange_agent
+   s_minigunner
+   s_mortar
+   s_mortar_turtleShell
    s_ninja
    s_officer
    s_ranger
@@ -39,30 +47,44 @@ my @clone_ids = qw(
    s_trooper
    s_trooper_bigGameHunter
    s_trooper_cryo
+   s_trooper_dragoon_heavy
    s_trooper_fire_ice
+   s_trooper_jetpack
    s_trooper_lightning
    s_trooper_missileStrike
    s_trooper_plasma
+   s_trooper_railgun
    s_trooper_saboteur_heavy
+   s_trooper_specialAgent
+   s_trooper_veteran
    s_veh_portableWall
+   veh_anti_aircraft_gun_premium
+   veh_anti_aircraft_gun_regular
    veh_artillery
    veh_artillery_heavy
    veh_artillery_light
    veh_artillery_mega
+   veh_artillery_napalm
    veh_artillery_super
    veh_bike
+   veh_boomBus
    veh_cannon_plasma
    veh_combine_tank
    veh_dunerider
+   veh_flame_turret
    veh_flametank_light
    veh_guntruck
    veh_jeep_humvee
+   veh_jeep_tow
+   veh_machine_gun_turret
    veh_mgtank
    veh_mlrs
    veh_mlrs_heavy
    veh_recon_heavy
+   veh_recon_light
    veh_rockettruck_light
    veh_sports_bike
+   veh_tank_arctic
    veh_tank_arctic_heavy
    veh_tank_basilisk
    veh_tank_chem_heavy
@@ -71,6 +93,8 @@ my @clone_ids = qw(
    veh_tank_flame_heavy
    veh_tank_heavier
    veh_tank_heavy
+   veh_tank_heavy_gold
+   veh_tank_laser
    veh_tank_light
    veh_tank_medium
    veh_tank_mega
@@ -80,6 +104,7 @@ my @clone_ids = qw(
    veh_tank_wheeled
    veh_tankdestroyer
    veh_trackedmortar
+   veh_trebuchet
 );
 
 sub load {
@@ -92,6 +117,7 @@ sub load {
          $unit->{_hasclone} = $clone_id;
          $clone->{_cloneof} = $id;
          $clone->{side} = 'Hostile';
+         $clone->{_affiliation} = 'rebel';
          $units->{$clone_id} = $clone;
       }
    }
@@ -106,6 +132,7 @@ sub all {
 my %name = (
    raptor_zombie_40     => "Specimen g03 'Advanced Shredder'",
    raptor_zombie_c      => "Specimen g03 'Advanced Shredder'",
+   's_dragoon(hostile)' => 'Rebel Dragoon',
 );
 
 sub get {
@@ -114,7 +141,8 @@ sub get {
    $class->load() unless $units;
    my $unit = $units->{$key} or return;
    if ($hostile && $unit->{_hasclone}) {
-      $unit = $units->{$unit->{_hasclone}} or return;
+      $key = $unit->{_hasclone};
+      $unit = $units->{$key} or return;
    }
    if (ref($unit) eq 'HASH') {
       bless $unit, $class;
@@ -188,6 +216,7 @@ my %wiki_page = (
    sw_veh_artillery_20              => 'Silver Wolf Artillery',
    sw_veh_artillery_5               => 'Silver Wolf Artillery',
    sw_veh_artillery_player          => 'Wolf Artillery',
+   's_hunter(hostile)'              => 'Rebel Hunter',
 );
 
 my %unit_names;
@@ -533,6 +562,8 @@ sub encounters {
 }
 
 my %enemy_level = (
+   'air_attack_helicopter(hostile)' => 10,
+   's_trooper_jetpack(hostile)'     => 5,
    air_spiderwasp_striker           => 45,
    hero_cast_cassidy_unlimited_ammo => 56,
    hero_cast_morgan                 => 15,
