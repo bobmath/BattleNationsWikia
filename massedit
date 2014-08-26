@@ -31,8 +31,7 @@ foreach my $file (@ARGV) {
    }
    my $page = $prefix . $file;
    $page =~ s/_/ /g;
-   $ua->get_info($page, 'edit');
-   my $info = $ua->get_info('Upload', 'edit');
+   my $info = $ua->get_info($page, 'edit');
    my $token = $info->{edittoken} or die 'no token returned';
    $ua->edit($page, $text, $summary, $token, @args);
    unlink $file if $args{r};
