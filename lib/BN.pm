@@ -73,6 +73,7 @@ use BN::Encounter;
 use BN::Animation;
 use BN::Reward;
 use BN::Map;
+use BN::StatusEffect;
 
 our %resource_map = (
    currency => 'nanopods',

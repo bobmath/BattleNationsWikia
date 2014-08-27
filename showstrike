@@ -111,6 +111,11 @@ sub show_encounter {
 
    print $F "</tabber>\n{{Clear}}\n";
 
+   if (my $eff = $enc->environment()) {
+      my $text = $eff->effect();
+      print $F "Environment: $text\n" if $text;
+   }
+
    my $wnum;
    foreach my $wave (@$waves) {
       $wnum++;

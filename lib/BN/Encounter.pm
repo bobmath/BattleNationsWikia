@@ -179,4 +179,9 @@ sub calc_levels {
    }
 }
 
+sub environment {
+   my ($enc) = @_;
+   return BN::StatusEffect->get($enc->{envStatEff});
+}
+
 1 # end BN::Encounter
