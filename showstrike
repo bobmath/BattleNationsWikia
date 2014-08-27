@@ -94,7 +94,9 @@ sub add_encounter {
 sub show_encounter {
    my ($F, $enc, $num) = @_;
    my $waves = $enc->waves() or return;
-   print $F "==Battle $num==\n";
+   my $name = "Battle $num";
+   $name .= ': ' . $enc->name() if $enc->name();
+   print $F "==$name==\n";
    print $F "<tabber>\n";
 
    my $map = $maps{$enc->map() || ''};
