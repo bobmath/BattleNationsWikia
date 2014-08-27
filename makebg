@@ -1,0 +1,63 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use lib 'lib';
+use BN;
+use Cairo;
+use POSIX qw( ceil );
+
+my $grid_x = 100 * 1.04;
+my $grid_y = 50 * 1.04;
+my $background = 'BattleMapCave.png';
+my $scale = 0.75 / 1.04;
+
+$background = BN::File->get($background) or die "Background not found\n";
+
+my $bkg = Cairo::ImageSurface->create_from_png($background) or die;
+my $bwid = $bkg->get_width()  / 2;
+my $bhgt = $bkg->get_height() / 2;
+my ($xmin, $xmax, $ymin, $ymax);
+$xmin = -$bwid;
+$xmax =  $bwid;
+$ymin = -$bhgt;
+$ymax =  $bhgt;
+
+my $wid = ceil(($xmax - $xmin) * $scale);
+my $hgt = ceil(($ymax - $ymin) * $scale);
+my $surface = Cairo::ImageSurface->create('rgb24', $wid, $hgt);
+my $ctx = Cairo::Context->create($surface);
+$ctx->translate(($wid - ($xmax + $xmin) * $scale) / 2,
+   ($hgt - ($ymax + $ymin) * $scale) / 2);
+$ctx->scale($scale, $scale);
+$ctx->set_source_surface($bkg, -$bwid, -$bhgt);
+$ctx->paint();
+
+my $w = 2;
+
+$ctx->set_line_width(0.75);
+$ctx->set_source_rgb(0, 0, 0);
+$ctx->move_to(xform(-$w-1, 1));  $ctx->line_to(xform($w, 1));
+$ctx->move_to(xform(-$w-1, 2));  $ctx->line_to(xform($w, 2));
+$ctx->move_to(xform(-$w-1, 3));  $ctx->line_to(xform($w, 3));
+$ctx->move_to(xform(-2, 4));     $ctx->line_to(xform(1, 4));
+if ($w == 2) {
+   $ctx->move_to(xform(-3, 1));  $ctx->line_to(xform(-3, 3));
+   $ctx->move_to(xform(2, 1));   $ctx->line_to(xform(2, 3));
+}
+for my $x (-2 .. 1) {
+   $ctx->move_to(xform($x, 1));  $ctx->line_to(xform($x, 4));
+}
+$ctx->stroke();
+
+my $tempfile = 'bkg_temp.png';
+my $outfile = 'bkg.png';
+$surface->write_to_png($tempfile) or die;
+system("pngcrush -new -q $tempfile $outfile") == 0 or die;
+unlink $tempfile;
+
+sub xform {
+   my ($x, $y) = @_;
+   $y -= 0.25;
+   return ($grid_x * ($x + $y), $grid_y * ($x - $y + 1));
+}
+
