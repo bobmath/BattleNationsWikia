@@ -12,6 +12,11 @@ use POSIX qw( ceil floor );
 die "Usage: $0 strike_id\n" unless @ARGV == 1;
 my $strike = BN::BossStrike->get($ARGV[0]) or die "Boss strike not found\n";
 
+my %maps = (
+   'BattleMapCave.png'  => 'cave',
+   'BattleMapSnow.png'  => 'snow',
+);
+
 my %levels;
 foreach my $encounter (@{$strike->{globalEventEncounters}}) {
    add_encounter($encounter, \%levels, 0);
@@ -92,12 +97,15 @@ sub show_encounter {
    print $F "==Battle $num==\n";
    print $F "<tabber>\n";
 
+   my $map = $maps{$enc->map() || ''};
+
    for my $wave (1 .. @$waves) {
       my @units = sort { $a->{grid} <=> $b->{grid} }
          grep { $_->{grid} } $enc->unit_positions($wave) or next;
 
       print $F "|-|\n" if $wave > 1;
       print $F "Wave $wave=\n{{BattleMap\n";
+      print $F "| map = $map\n" if $map;
 
       foreach my $u (@units) {
          my $tag = get_icon($u->{unit});
@@ -113,7 +121,7 @@ sub show_encounter {
 
    if (my $eff = $enc->environment()) {
       my $text = $eff->effect();
-      print $F "Environment: $text\n" if $text;
+      print $F "Environmental damage: $text\n" if $text;
    }
 
    my $wnum;

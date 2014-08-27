@@ -33,6 +33,7 @@ sub get {
 BN->simple_accessor('name');
 BN->simple_accessor('tag');
 BN->simple_accessor('icon', 'icon');
+BN->simple_accessor('map', 'bgImage');
 
 BN->accessor(rewards => sub {
    my ($enc) = @_;
