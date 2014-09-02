@@ -9,9 +9,9 @@ use File::Basename qw( basename );
 use Getopt::Std qw( getopts );
 
 my %args;
-getopts('enrp:s:', \%args) or die "Bad args\n";
+getopts('enrp:qs:', \%args) or die "Bad args\n";
 die "Usage: $0 files\n" unless @ARGV;
-my $prefix = $args{p} || '';
+my $prefix = $args{p};
 my $summary = $args{s};
 
 my $ua = MW::UserAgent->new('http://battlenations.wikia.com/api.php');
@@ -29,10 +29,17 @@ foreach my $file (@ARGV) {
       local $/ = undef;
       $text = <$F>;
    }
-   my $page = $prefix . $file;
+   (my $page = $file) =~ s{^.*/}{};
+   $page = $prefix . $file if $prefix;
    $page =~ s/_/ /g;
    my $info = $ua->get_info($page, 'edit');
    my $token = $info->{edittoken} or die 'no token returned';
+   if ($args{q} && !exists($info->{missing})) {
+      print "exists\n";
+      unlink $file if $args{r};
+      sleep 1;
+      next;
+   }
    $ua->edit($page, $text, $summary, $token, @args);
    unlink $file if $args{r};
    sleep 5;
