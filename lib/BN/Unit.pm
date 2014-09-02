@@ -130,9 +130,23 @@ sub all {
 }
 
 my %name = (
-   raptor_zombie_40     => "Specimen g03 'Advanced Shredder'",
-   raptor_zombie_c      => "Specimen g03 'Advanced Shredder'",
-   's_dragoon(hostile)' => 'Rebel Dragoon',
+   's_dragoon(hostile)'             => 'Rebel Dragoon',
+   air_s_trooper_zombie             => 'Specimen f01 "Proto-Hunter"',
+   air_s_trooper_zombie_b           => 'Specimen f02 "Hunter"',
+   air_s_trooper_zombie_c           => 'Specimen f03 "Advanced Hunter"',
+   air_s_trooper_zombie_d           => 'Specimen f04 "Archetype Hunter"',
+   raptor_zombie                    => 'Specimen g01 "Proto-Shredder"',
+   raptor_zombie_40                 => 'Specimen g03 "Advanced Shredder"',
+   raptor_zombie_b                  => 'Specimen g02 "Shredder"',
+   raptor_zombie_c                  => 'Specimen g03 "Advanced Shredder"',
+   raptor_zombie_d                  => 'Specimen g04 "Archetype Shredder"',
+   s_trooper_zombie_ninja_super     => 'Specimen d05 "Apex Stalker"',
+   s_trooper_zombie_spider          => 'Specimen h01 "Proto-Crawler"',
+   s_trooper_zombie_spider_b        => 'Specimen h02 "Crawler"',
+   s_trooper_zombie_spider_c        => 'Specimen h03 "Advanced Crawler"',
+   s_trooper_zombie_spider_d        => 'Specimen h04 "Archetype Crawler"',
+   s_trooper_zombie_spitter_super   => 'Specimen a05 "Apex Bullfrog"',
+   s_trooper_zombie_tank_super      => 'Specimen e03 "Apex Colossus"',
 );
 
 sub get {
