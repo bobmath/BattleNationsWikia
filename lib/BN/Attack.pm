@@ -43,6 +43,9 @@ BN->simple_accessor('preptime', 'chargeTime');
 BN->simple_accessor('target_area', 'targetArea');
 BN->simple_accessor('damage_area', 'damageArea');
 BN->simple_accessor('min_range', 'minRange');
+BN->simple_accessor('unit_offense_mult', 'attackFromUnit');
+BN->simple_accessor('unit_damage_mult', 'damageFromUnit');
+BN->simple_accessor('unit_crit_mult', 'critFromUnit');
 
 BN->accessor(max_range => sub {
    my ($att) = @_;
@@ -120,22 +123,20 @@ BN->accessor(notes => sub {
    return join('<br>', @notes);
 });
 
-BN->multi_accessor('effects', 'dot', 'dotduration', 'dottype',
+BN->multi_accessor('effects', 'dotduration', 'dottype',
 sub {
    my ($att) = @_;
    my $efflist = $att->{statusEffects} or return;
-   my ($effects, $dot, $dotduration, $dottype);
+   my ($effects, $dotduration, $dottype);
    my @effects;
    foreach my $tag (sort keys %$efflist) {
       my $val = $efflist->{$tag};
       if ($tag =~ /^dot_fire_(\d+)_turn/) {
-         $dot = 'true';
          $dotduration = $1;
          $dottype = 'fire';
          push @effects, "{{FireDOT|chance=$val|duration=$1}}";
       }
       elsif ($tag =~ /^dot_poison_(\d+)_turn$/) {
-         $dot = 'true';
          $dotduration = $1;
          $dottype = 'poison';
          push @effects, "{{PoisonDOT|chance=$val|duration=$1}}";
@@ -151,7 +152,7 @@ sub {
       }
    }
    $effects = join('<br>', @effects) if @effects;
-   return ($effects, $dot, $dotduration, $dottype);
+   return ($effects, $dotduration, $dottype);
 });
 
 BN->accessor(dmgtype => sub {
@@ -214,11 +215,16 @@ my %critmap = (
    Zombie      => '[[:Category:Infected|Infected]]',
 );
 
+BN->accessor(base_crit => sub {
+   my ($att) = @_;
+   return int(($att->{criticalHitPercent} // 0)
+      + ($att->{base_critPercent} // 0) * ($att->{critFromWeapon} // 1));
+});
+
 sub crit {
    my ($att, $bonus, $maxbonus) = @_;
    my $mult = $att->{critFromUnit} // 1;
-   my $crit = int(($att->{criticalHitPercent} || 0) + ($bonus || 0) * $mult
-      + ($att->{base_critPercent} || 0) * ($att->{critFromWeapon} // 1));
+   my $crit = int($att->base_crit() + ($bonus // 0) * $mult);
    my @crit;
    push @crit, $crit . '%';
    if (my $mods = $att->{criticalBonuses}) {
@@ -240,6 +246,19 @@ sub crit {
       }
    }
    return join('<br>', @crit);
+}
+
+sub crit_bonuses {
+   my ($att) = @_;
+   my $mods = $att->{criticalBonuses} or return;
+   my @crit;
+   foreach my $targ (sort keys %$mods) {
+      my $val = $mods->{$targ} or next;
+      my $name = $critmap{$targ} || $targ;
+      push @crit, sprintf('%s %+d', $name, $val);
+   }
+   return unless @crit;
+   return join('; ', @crit);
 }
 
 BN->accessor(rank => sub {
@@ -267,48 +286,6 @@ BN->accessor(cost => sub {
    my $reqs = $att->{z_reqs} or return;
    return BN->flatten_amount(delete($reqs->{cost}), $reqs->{buildTime});
 });
-
-sub rank_mods {
-   my ($att, $unit) = @_;
-   my %mods;
-   my @ranks = $unit->ranks();
-   my $mult = $att->{attackFromUnit} // 1;
-   onemod(\%mods, 'accuracy', $att->rank(),
-      map { ($_->accuracy() || 0) * $mult } @ranks);
-   $mult = $att->{damageFromUnit} // 1;
-   onemod(\%mods, 'power', $att->rank(),
-      map { ($_->power() || 0) * $mult } @ranks);
-   if (@ranks > 6 && @ranks < 9) {
-      my $dot = $att->dot();
-      for my $i (@ranks+1 .. 9) {
-         $mods{"damage$i"} = '-';
-         $mods{"offense$i"} = '-';
-         $mods{"dot$i"} = '-' if $dot;
-      }
-   }
-   return unless %mods;
-   return \%mods;
-}
-
-sub onemod {
-   my ($mods, $tag, $rank, @vals) = @_;
-   if (@vals >= 2 && !$vals[0] && $vals[1] != 5) {
-      my $step = $vals[1];
-      for my $i (2 .. $#vals) {
-         if ($i*$step != $vals[$i]) {
-            undef $step;
-            last;
-         }
-      }
-      if (defined $step) {
-         $mods->{$tag} = $step;
-         return;
-      }
-   }
-   for my $i ($rank-1 .. $#vals) {
-      $mods->{$tag . ($i+1)} = $vals[$i] if $vals[$i] != 5*$i;
-   }
-}
 
 my $damage_animation;
 BN->accessor(damage_animation_config => sub {

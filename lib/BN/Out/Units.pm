@@ -136,7 +136,6 @@ sub unit_transform {
 sub unit_weapons {
    my ($F, $unit) = @_;
    my $first = 1;
-   my $attackbox = $unit->ranks() > 6 ? 'Attack9BoxTabber' : 'AttackBoxTabber';
    foreach my $weap ($unit->weapons()) {
       print $F $first ? "==Attacks==\n<tabber>\n" : "|-|\n";
       $first = 0;
@@ -151,31 +150,30 @@ sub unit_weapons {
       my $n;
       foreach my $attack (@attacks) {
          my $rank = $attack->rank();
-         my $r = 1;
          print_line($F, 'attack' . ++$n, '');
-         print $F "{{$attackbox\n";
+         print $F "{{AttackBox\n";
          print_line($F, 'name', $attack->name());
          print_line($F, 'image',
             '[[File:' . $attack->filename($unit) . '_Damage.gif]]');
          print_line($F, 'weaponicon', BN::Out->icon($attack->icon(), '40px'));
-         $r += print_line($F, 'rank', $rank);
-         $r += print_line($F, 'damagetype', $attack->dmgtype());
+         print_line($F, 'rank', $rank);
+         print_line($F, 'damagetype', $attack->dmgtype());
          print_line($F, 'mindmg', $attack->mindmg());
          print_line($F, 'maxdmg', $attack->maxdmg());
+         rank_mods($F, 'power', 5, $attack->unit_damage_mult(),
+            map { $_->power() } $unit->ranks());
          print_line($F, 'numattacks', $attack->numattacks());
          print_line($F, 'baseoffense', $attack->offense());
-         $r += print_line($F, 'crit', $attack->crit(0, $unit->max_crit()));
-         print_line($F, 'dot', $attack->dot());
-         print_line($F, 'dotduration', $attack->dotduration());
+         rank_mods($F, 'accuracy', 5, $attack->unit_offense_mult(),
+            map { $_->accuracy() } $unit->ranks());
+         print_line($F, 'basecrit', $attack->base_crit());
+         rank_mods($F, 'critmod', 0, $attack->unit_crit_mult(),
+            map { $_->crit() } $unit->ranks());
+         print_line($F, 'critbonus', $attack->crit_bonuses());
          print_line($F, 'dottype', $attack->dottype());
-         $r += print_line($F, 'cost',
-            BN->format_amount($attack->cost(), 0, ', '));
-         if (my $mods = $attack->rank_mods($unit)) {
-            foreach my $key (sort keys %$mods) {
-               print_line($F, $key, $mods->{$key});
-            }
-         }
-         attack_details($F, $attack, $nattacks, $r);
+         print_line($F, 'dotduration', $attack->dotduration());
+         print_line($F, 'cost', BN->format_amount($attack->cost(), 0, ', '));
+         attack_details($F, $attack, $nattacks);
          print $F "}}\n";
       }
       print $F "}}\n";
@@ -183,8 +181,25 @@ sub unit_weapons {
    print $F "</tabber>\n{{Clear}}\n\n" unless $first;
 }
 
+sub rank_mods {
+   my ($F, $tag, $step, $mult, @vals) = @_;
+   $mult //= 1;
+   $_ = ($_ || 0) * $mult foreach @vals;
+   my $same = 1;
+   for my $i (0 .. $#vals) {
+      if ($vals[$i] != $i * $step) {
+         $same = 0;
+         last;
+      }
+   }
+   # kludge - attackbox uses power to determine number of ranks
+   return if $same && ($tag ne 'power' || @vals == 6);
+   print_line($F, $tag, join('; ', @vals));
+}
+
 sub attack_details {
-   my ($F, $attack, $nattacks, $r) = @_;
+   my ($F, $attack, $nattacks) = @_;
+   my $r = 0;
    $r += print_line($F, 'ammoused', $attack->ammoused());
    $r += print_line($F, 'range', $attack->range());
    $r += print_line($F, 'lof', $attack->lof());
@@ -199,10 +214,7 @@ sub attack_details {
    }
    $r += print_line($F, 'globalcooldown', $gcd) if $gcd;
 
-   if (my $targ = $attack->targets()) {
-      print_line($F, 'targets', $targ);
-      print_line($F, 'targetbox-rows', $r) if $r > 7;
-   }
+   print_line($F, 'targets', $attack->targets());
    print_line($F, 'notes', $attack->notes());
    print_line($F, 'game file name', $attack->tag());
    return $r;
@@ -219,8 +231,6 @@ sub unit_ranks {
    short_ranks($F, 'bravery', map { $_->bravery() } @ranks);
    short_ranks($F, 'defense', map { $_->defense() } @ranks);
    short_ranks($F, 'dodge', map { $_->dodge() } @ranks);
-   short_ranks($F, 'crit', map { $_->crit() } @ranks)
-      if $unit->total_attacks();
 
    if ((my $max = $unit->total_attacks()) > 1) {
       short_ranks($F, 'ability', map {
@@ -587,7 +597,8 @@ sub old_attacks {
          $r += print_line($F, 'offense', $attack->offense($accuracy));
          $r += print_line($F, 'damage', $attack->damage($power));
          $r += print_line($F, 'crit', $attack->crit($crit));
-         attack_details($F, $attack, scalar(@attacks), $r);
+         $r += attack_details($F, $attack, scalar(@attacks));
+         print_line($F, 'targetbox-rows', $r) if $attack->targets() && $r > 7;
          print $F "}}</div>\n";
       }
 
