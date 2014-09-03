@@ -116,9 +116,9 @@ BN->accessor(notes => sub {
    if (my $min = $att->{minHPPercent}) {
       push @notes, "Cannot lower HP below $min%";
    }
-   if ($att->{capture}) {
-      push @notes, 'Can apprehend civilians';
-   }
+   #if ($att->{capture}) {
+   #   push @notes, 'Can apprehend civilians';
+   #}
    return unless @notes;
    return join('<br>', @notes);
 });
@@ -206,9 +206,11 @@ my %critmap = (
    Air         => '[[:Category:Air|Aircraft]]',
    Aircraft    => '[[:Category:Air|Aircraft]]',
    Artillery   => '[[:Category:Artillery|Artillery]]',
+   Civilian    => '[[:Category:Civilians Non-Player|Civilians]]',
    Critter     => '[[:Category:Critters|Critters]]',
    Defense     => '[[:Category:Defense|Defense]]',
    I17Ancient  => '[[Experimental Construct]]',
+   Metal       => '[[:Category:Metal|Metal]]',
    Soldier     => '[[:Category:Soldiers|Soldiers]]',
    Tank        => '[[:Category:Tanks|Tanks]]',
    Vehicle     => '[[:Category:Vehicles|Vehicles]]',
@@ -222,7 +224,7 @@ BN->accessor(base_crit => sub {
 });
 
 sub crit {
-   my ($att, $bonus, $maxbonus) = @_;
+   my ($att, $bonus) = @_;
    my $mult = $att->{critFromUnit} // 1;
    my $crit = int($att->base_crit() + ($bonus // 0) * $mult);
    my @crit;
@@ -232,17 +234,6 @@ sub crit {
          my $val = $crit + $mods->{$targ};
          my $targname = $critmap{$targ} || $targ;
          push @crit, "$val% vs. $targname";
-      }
-   }
-   if ($maxbonus) {
-      if (!$mult) {
-         push @crit, 'No rank bonus';
-      }
-      elsif ($mult == 1) {
-         push @crit, '+ rank bonus';
-      }
-      else {
-         push @crit, sprintf('+%.0f%% of rank bonus', $mult*100);
       }
    }
    return join('<br>', @crit);
