@@ -15,6 +15,10 @@ sub get {
    return $eff;
 }
 
+BN->simple_accessor('family', 'family');
+BN->simple_accessor('diminish', 'dot_Diminishing');
+BN->simple_accessor('duration', 'duration');
+
 my %effect_icons = (
    Fire     => 'FireDOT',
    Poison   => 'PoisonDOT',

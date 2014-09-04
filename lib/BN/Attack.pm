@@ -130,26 +130,33 @@ sub {
    my ($effects, $dotduration, $dottype);
    my @effects;
    foreach my $tag (sort keys %$efflist) {
-      my $val = $efflist->{$tag};
-      if ($tag =~ /^dot_fire_(\d+)_turn/) {
-         $dotduration = $1;
-         $dottype = 'fire';
-         push @effects, "{{FireDOT|chance=$val|duration=$1}}";
+      my $chance = $efflist->{$tag};
+      if (my $eff = BN::StatusEffect->get($tag)) {
+         my $fam = $eff->family();
+         if ($fam eq 'Fire') {
+            $dottype = $eff->diminish() ? 'fire' : 'napalm';
+            $dotduration = $eff->duration();
+            push @effects, "{{FireDOT|chance=$chance|duration=$dotduration}}";
+            next;
+         }
+         if ($fam eq 'Poison') {
+            $dottype = 'poison';
+            $dotduration = $eff->duration();
+            push @effects, "{{PoisonDOT|chance=$chance|duration=$dotduration}}";
+            next;
+         }
+         if ($fam eq 'Frozen') {
+            my $d = $eff->duration();
+            push @effects, "{{Freeze|chance=$chance|duration=$d}}";
+            next;
+         }
+         if ($fam eq 'Flammable' || $fam eq 'Shatter' || $fam eq 'Stun') {
+            my $d = $eff->duration();
+            push @effects, "{{$fam|chance=$chance|duration=$d}}";
+            next;
+         }
       }
-      elsif ($tag =~ /^dot_poison_(\d+)_turn$/) {
-         $dotduration = $1;
-         $dottype = 'poison';
-         push @effects, "{{PoisonDOT|chance=$val|duration=$1}}";
-      }
-      elsif ($tag =~ /^frozen_(\d+)_turn$/) {
-         push @effects, "{{Freeze|chance=$val|duration=$1}}";
-      }
-      elsif ($tag =~ /^(flammable|shatter|stun)_(\d+)_turn$/) {
-         push @effects, "{{\u$1|chance=$val|duration=$2}}";
-      }
-      else {
-         push @effects, "$tag=$val";
-      }
+      push @effects, "$tag ($chance%)";
    }
    $effects = join('<br>', @effects) if @effects;
    return ($effects, $dotduration, $dottype);
