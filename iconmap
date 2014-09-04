@@ -17,7 +17,7 @@ front["SWGrenadier"]={x=34,y=112,w=61,f="SWGrenadier_front.png"}
 front["SWThug"]={x=41,y=120,w=70,f="SWThug_front.png"}
 front["SWarmoredTruck"]={x=57,y=125,w=125,f="SWarmoredTruck_front.png"}
 front["SWscrapper"]={x=52,y=133,w=81,f="SWscrapper_front.png"}
-front["Sniper2_front_dle"]={x=50,y=109,w=105,f="Sniper2_front_dle.png"}
+front["Sniper2_front_dle"]={x=50,y=109,w=105,f="Sniper2_front.png"}
 front["Supertank"]={x=78,y=141,w=162,f="Supertank_fr.png"}
 front["TOW"]={x=51,y=114,w=106,f="TOW_front.png"}
 front["air_ancient_fragment"]={x=96,y=258,w=156,f="Air_ancient_fragment_front.png"}
