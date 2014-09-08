@@ -172,7 +172,7 @@ front["sw_guy_grenade_5"]={x=34,y=112,w=61,f="Sw_guy_grenade_5_front.png"}
 front["sw_guy_laser"]={x=53,y=131,w=90,f="Sw_guy_laser_front.png"}
 front["sw_guy_machete_5"]={x=52,y=133,w=81,f="Sw_guy_machete_5_front.png"}
 front["sw_guy_rpg_5"]={x=53,y=123,w=74,f="Sw_guy_rpg_5_front.png"}
-front["sw_guy_slingshot"]={x=73,y=169,w=136,f="Sw_guy_slingshot_front.png"}
+front["sw_guy_slingshot"]={x=73,y=160,w=136,f="Sw_guy_slingshot_front.png"}
 front["sw_guy_sniper"]={x=59,y=108,w=96,f="Sw_guy_sniper_front.png"}
 front["sw_guy_uzi_5"]={x=42,y=120,w=71,f="Sw_guy_uzi_5_front.png"}
 front["sw_veh_artillery"]={x=56,y=121,w=107,f="Sw_veh_artillery_front.png"}
