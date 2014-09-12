@@ -9,76 +9,96 @@ use Image::PNG::Const qw( PNG_COLOR_TYPE_RGB_ALPHA );
 use Image::PNG::Libpng qw( read_png_file );
 use POSIX qw( ceil floor );
 
-die "Usage: $0 strike_id\n" unless @ARGV == 1;
-my $strike = BN::BossStrike->get($ARGV[0]) or die "Boss strike not found\n";
+die "Usage: $0 strike_id | encounter_id\n" unless @ARGV == 1;
 
 my %maps = (
    'BattleMapCave.png'  => 'cave',
    'BattleMapSnow.png'  => 'snow',
 );
 
-my %levels;
-foreach my $encounter (@{$strike->{globalEventEncounters}}) {
-   add_encounter($encounter, \%levels, 0);
+if (my $strike = BN::BossStrike->get($ARGV[0])) {
+   write_strike($strike);
 }
-my $tnum;
-foreach my $tier ($strike->tiers()) {
-   ++$tnum;
-   foreach my $encounter (@{$tier->{encounters}}) {
-      add_encounter($encounter, \%levels, $tnum);
-   }
+elsif (my $enc = BN::Encounter->get($ARGV[0])) {
+   write_encounter($enc, $ARGV[0]);
+}
+else {
+   die "Encounter $ARGV[0] not found\n";
 }
 
-my %level_tiers;
-foreach my $levels (sort keys %levels) {
-   my $tiers = $levels{$levels} or next;
-   my @tiers = sort {$a <=> $b} keys %$tiers;
-   while (@tiers) {
-      my $tnum = shift @tiers;
-      my $eids = $tiers->{$tnum} or next;
-      my $hinum = $tnum;
-      if ($tnum) {
-         my $eidstr = join ',', sort keys %$eids;
-         while (@tiers) {
-            my $nextnum = $tiers[0];
-            my $nextids = $tiers->{$nextnum} or last;
-            my $nextstr = join ',', sort keys %$nextids;
-            last unless $nextstr eq $eidstr;
-            $hinum = $nextnum;
-            shift @tiers;
+sub write_encounter {
+   my ($enc, $id) = @_;
+   open my $F, '>', $id or die "Can't write $id: $!\n";
+   show_encounter($F, $enc);
+   close $F;
+}
+
+sub write_strike {
+   my ($strike) = @_;
+
+   my %levels;
+   foreach my $encounter (@{$strike->{globalEventEncounters}}) {
+      add_encounter($encounter, \%levels, 0);
+   }
+   my $tnum;
+   foreach my $tier ($strike->tiers()) {
+      ++$tnum;
+      foreach my $encounter (@{$tier->{encounters}}) {
+         add_encounter($encounter, \%levels, $tnum);
+      }
+   }
+
+   my %level_tiers;
+   foreach my $levels (sort keys %levels) {
+      my $tiers = $levels{$levels} or next;
+      my @tiers = sort {$a <=> $b} keys %$tiers;
+      while (@tiers) {
+         my $tnum = shift @tiers;
+         my $eids = $tiers->{$tnum} or next;
+         my $hinum = $tnum;
+         if ($tnum) {
+            my $eidstr = join ',', sort keys %$eids;
+            while (@tiers) {
+               my $nextnum = $tiers[0];
+               my $nextids = $tiers->{$nextnum} or last;
+               my $nextstr = join ',', sort keys %$nextids;
+               last unless $nextstr eq $eidstr;
+               $hinum = $nextnum;
+               shift @tiers;
+            }
          }
+         else {
+            $tnum = 1;
+            $hinum = 10;
+         }
+         if ($tnum == $hinum) { $level_tiers{$levels}{$tnum} = $eids }
+         else { $level_tiers{$levels}{"$tnum-$hinum"} = $eids }
       }
-      else {
-         $tnum = 1;
-         $hinum = 10;
-      }
-      if ($tnum == $hinum) { $level_tiers{$levels}{$tnum} = $eids }
-      else { $level_tiers{$levels}{"$tnum-$hinum"} = $eids }
    }
-}
 
-foreach my $levels (sort keys %level_tiers) {
-   my $tiers = $level_tiers{$levels} or next;
-   foreach my $tnum (sort keys %$tiers) {
-      my $file = "Level_${levels}_tier_${tnum}_battles";
-      print "$file\n";
-      open my $F, '>', $file or die "Can't write $file: $!";
-      my $eids = $tiers->{$tnum} or next;
-      my $enum;
-      foreach my $eid (sort keys %$eids) {
-         show_encounter($F, BN::Encounter->get($eid), ++$enum);
+   foreach my $levels (sort keys %level_tiers) {
+      my $tiers = $level_tiers{$levels} or next;
+      foreach my $tnum (sort keys %$tiers) {
+         my $file = "Level_${levels}_tier_${tnum}_battles";
+         print "$file\n";
+         open my $F, '>', $file or die "Can't write $file: $!";
+         my $eids = $tiers->{$tnum} or next;
+         my $enum;
+         foreach my $eid (sort keys %$eids) {
+            show_encounter($F, BN::Encounter->get($eid), 'Battle ' . ++$enum);
+         }
+         print $F "[[Category:Boss Strike Battles]]\n";
       }
-      print $F "[[Category:Boss Strike Battles]]\n";
    }
-}
 
-foreach my $levels (sort keys %level_tiers) {
-   my $tiers = $level_tiers{$levels} or next;
-   my @links;
-   foreach my $tnum (sort keys %$tiers) {
-      push @links, "[[/Level $levels tier $tnum battles|tier $tnum]]";
+   foreach my $levels (sort keys %level_tiers) {
+      my $tiers = $level_tiers{$levels} or next;
+      my @links;
+      foreach my $tnum (sort keys %$tiers) {
+         push @links, "[[/Level $levels tier $tnum battles|tier $tnum]]";
+      }
+      print "*Level $levels ", join(', ', @links), "\n";
    }
-   print "*Level $levels ", join(', ', @links), "\n";
 }
 
 sub add_encounter {
@@ -92,10 +112,15 @@ sub add_encounter {
 }
 
 sub show_encounter {
-   my ($F, $enc, $num) = @_;
+   my ($F, $enc, $name) = @_;
    my $waves = $enc->waves() or return;
-   my $name = "Battle $num";
-   $name .= ': ' . $enc->name() if $enc->name();
+   if ($enc->name()) {
+      $name .= ': ' if $name;
+      $name .= $enc->name();
+   }
+   else {
+      $name ||= 'Battle';
+   }
    print $F "==$name==\n";
    print $F "<tabber>\n";
 
