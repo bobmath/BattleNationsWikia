@@ -135,10 +135,17 @@ sub show_encounter {
       print $F "| map = $map\n" if $map;
 
       foreach my $u (@units) {
-         my $tag = get_icon($u->{unit});
-         my $link = $u->{unit}->wiki_page();
-         print $F "| enemy$u->{grid} = $tag\n",
-            "| link$u->{grid} = $link\n";
+         my $unit = $u->{unit};
+         my $tag = get_icon($unit);
+         my $link = $unit->wiki_page();
+         my $title = $unit->shortname();
+         if (my $level = $unit->level()) {
+            $title .= " (Level $level)";
+         }
+         my $grid = $u->{grid};
+         print $F "| enemy$grid = $tag\n",
+            "| link$grid = $link\n",
+            "| title$grid = $title\n";
       }
 
       print $F "}}\n";
