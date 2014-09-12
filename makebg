@@ -4,35 +4,43 @@ use warnings;
 use lib 'lib';
 use BN;
 use Cairo;
-use POSIX qw( ceil );
 
+die "usage: $0 mapname\n" unless @ARGV == 1;
+
+my $bgfile = $ARGV[0];
 my $grid_x = 100 * 1.04;
 my $grid_y = 50 * 1.04;
-my $background = 'BattleMapCave.png';
 my $scale = 0.75 / 1.04;
+my $w = 2;
+my $pad = 8;
+my $tempfile = 'bkg_temp.png';
 
-$background = BN::File->get($background) or die "Background not found\n";
+my $bgpath = BN::File->get($bgfile) or die "Background $bgfile not found\n";
+my $bkg = Cairo::ImageSurface->create_from_png($bgpath)
+   or die "Couldn't read $bgfile\n";
+my $half_wid = $bkg->get_width() / 2;
+my $half_hgt = $bkg->get_height() / 2;
 
-my $bkg = Cairo::ImageSurface->create_from_png($background) or die;
-my $bwid = $bkg->get_width()  / 2;
-my $bhgt = $bkg->get_height() / 2;
 my ($xmin, $xmax, $ymin, $ymax);
-$xmin = -$bwid;
-$xmax =  $bwid;
-$ymin = -$bhgt;
-$ymax =  $bhgt;
+($xmin, undef) = xform(-$w-1, 1);  $xmin -= $pad;
+($xmax, undef) = xform(1, 4);      $xmax += $pad;
+(undef, $ymax) = xform($w, 1);     $ymax += $pad;
+$xmin = -$half_wid if $xmin < -$half_wid;
+$xmax = $half_wid if $xmax > $half_wid;
+$ymin = -$half_hgt;
+$ymax = $half_hgt if $ymax > $half_hgt;
 
-my $wid = ceil(($xmax - $xmin) * $scale);
-my $hgt = ceil(($ymax - $ymin) * $scale);
+my $wid = int(($xmax - $xmin) * $scale);
+my $hgt = int(($ymax - $ymin) * $scale);
+printf qq{w=%d,h=%d,x=%.0f,y=%.0f,f="%s"\n}, $wid, $hgt,
+   (0.75*$grid_x - $xmin) * $scale, (0.25*$grid_y - $ymin) * $scale, $bgfile;
+
 my $surface = Cairo::ImageSurface->create('rgb24', $wid, $hgt);
 my $ctx = Cairo::Context->create($surface);
-$ctx->translate(($wid - ($xmax + $xmin) * $scale) / 2,
-   ($hgt - ($ymax + $ymin) * $scale) / 2);
 $ctx->scale($scale, $scale);
-$ctx->set_source_surface($bkg, -$bwid, -$bhgt);
+$ctx->translate(-$xmin, -$ymin);
+$ctx->set_source_surface($bkg, -$half_wid, -$half_hgt);
 $ctx->paint();
-
-my $w = 2;
 
 $ctx->set_line_width(0.75);
 $ctx->set_source_rgb(0, 0, 0);
@@ -49,10 +57,8 @@ for my $x (-2 .. 1) {
 }
 $ctx->stroke();
 
-my $tempfile = 'bkg_temp.png';
-my $outfile = 'bkg.png';
 $surface->write_to_png($tempfile) or die;
-system("pngcrush -new -q $tempfile $outfile") == 0 or die;
+system("pngcrush -new -q $tempfile $bgfile") == 0 or die;
 unlink $tempfile;
 
 sub xform {
