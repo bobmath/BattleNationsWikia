@@ -42,21 +42,19 @@ sub format_chance {
    return $num;
 }
 
-1 # end BN::Reward
-__END__
-
 sub get_rewards {
    my ($tag) = @_;
    return unless $tag;
-   my $rewards = $reward_map->{$tag} or return;
+   $rewards_table ||= BN::File->json('RewardTables.json');
+   my $rewards = $rewards_table->{rewardsMap}{$tag} or return;
    my $list = $rewards->{list} or return;
    my @rewards;
 
    foreach my $item (@$list) {
       my $levels = $item->{levels};
       my $lmin = $levels->{min} || 1;
-      my $lmax = $levels->{max} || 65;
-      $lmax = 65 if $lmax > 65;
+      my $lmax = $levels->{max} || 70;
+      $lmax = 70 if $lmax > 70;
 
       if (my $money = $item->{money}) {
          push @rewards, new_reward(rsrc => 'money', $money, $lmin, $lmax);
@@ -177,3 +175,4 @@ sub merge_rewards {
    return \@out;
 }
 
+1 # end BN::Reward
