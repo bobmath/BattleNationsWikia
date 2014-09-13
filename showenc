@@ -5,8 +5,6 @@ use warnings;
 use lib 'lib';
 use BN;
 use Cairo;
-use Image::PNG::Const qw( PNG_COLOR_TYPE_RGB_ALPHA );
-use Image::PNG::Libpng qw( read_png_file );
 use POSIX qw( ceil floor );
 
 die "Usage: $0 strike_id | encounter_id\n" unless @ARGV == 1;
@@ -202,101 +200,95 @@ sub get_icon {
    return $tag if $icon_tags{$tag};
    $icon_tags{$tag} = 1;
 
-   $img .= '.png';
-   print $img, "\n";
+   my ($left,$right,$top,$bottom) = $anim->box(0);
+   my $x = -floor($left);
+   my $y = -floor($top);
+   my $wid = ceil($right) + $x;
+   my $hgt = ceil($bottom) + $y;
+   my $fmt = 'argb32';
+   my $stride = Cairo::Format::stride_for_width($fmt, $wid);
+   my $data = "\0" x ($stride * $hgt);
 
-   my @box = $anim->box(0);
-   my $xmin = floor($box[0]);
-   my $xmax = ceil($box[1]);
-   my $ymin = floor($box[2]);
-   my $ymax = ceil($box[3]);
-   my $wid = $xmax - $xmin;
-   my $hgt = $ymax - $ymin;
-
-   my $surface = Cairo::ImageSurface->create('argb32', $wid, $hgt);
+   my $surface = Cairo::ImageSurface->create_for_data(
+      $data, $fmt, $wid, $hgt, $stride);
    my $ctx = Cairo::Context->create($surface);
-   $ctx->translate(-$xmin, -$ymin);
+   $ctx->translate($x, $y);
    $anim->render($ctx, 0);
 
-   my $tmp = "$img.tmp";
+   if (($left,$right,$top,$bottom) = crop(\$data, $wid, $hgt, $stride)) {
+      $x -= $left;
+      $y -= $top;
+      $wid -= $left + $right;
+      $hgt -= $top + $bottom;
+      die 'no image' if $wid <= 0 || $hgt <= 0;
+      my $old_stride = $stride;
+      $stride = Cairo::Format::stride_for_width($fmt, $wid);
+      my $off = 4*$left + $top*$old_stride;
+      $data = join '',
+         map { substr($data, $off + $old_stride*$_, $stride) } 0 .. $hgt-1;
+      $surface = Cairo::ImageSurface->create_for_data(
+         $data, $fmt, $wid, $hgt, $stride);
+   }
+
+   my $tmp = "$img-tmp.png";
+   $img .= '.png';
    $surface->write_to_png($tmp) or die;
-   crop($tmp, \$xmin, \$ymin, \$wid);
    system("pngcrush -new -q -brute $tmp $img") == 0 or die;
    unlink $tmp;
 
-   open my $MAP, '>>', 'iconmap' or return $tag;
-   my $x = -$xmin;
-   my $y = -$ymin;
-   print $MAP qq(front["$tag"]={x=$x,y=$y,w=$wid,f="$img"}\n);
+   my $line = qq(front["$tag"]={x=$x,y=$y,w=$wid,f="$img"}\n);
+   print $line;
+   if (open my $MAP, '>>', 'iconmap') {
+      print $MAP $line;
+      close $MAP;
+   }
    return $tag;
 }
 
 sub crop {
-   my ($file, $xmin_ref, $ymin_ref, $wid_ref) = @_;
-   my $png = read_png_file($file);
-   my $hdr = $png->get_IHDR();
-   die unless $hdr->{color_type} == PNG_COLOR_TYPE_RGB_ALPHA
-      && $hdr->{bit_depth} == 8;
-   my $rows = $png->get_rows();
-
-   my $top = 0;
-   while (@$rows && blankrow($rows->[0])) {
-      shift @$rows;
-      $top++;
-   }
-   while (@$rows && blankrow($rows->[-1])) {
-      pop @$rows;
-   }
+   my ($data, $wid, $hgt, $stride) = @_;
    my $left = 0;
-   my $right = $hdr->{width} - 1;
-   while ($left < $right && blankcol($left, $rows)) {
+   my $right = $wid - 1;
+   my $top = 0;
+   my $bottom = $hgt - 1;
+
+   while ($left < $right && blankcol($data, $left, $top, $bottom, $stride)) {
       $left++;
    }
-   while ($left < $right && blankcol($right, $rows)) {
+   while ($left < $right && blankcol($data, $right, $top, $bottom, $stride)) {
       $right--;
    }
-
-   my $wid = $right - $left + 1;
-   if ($wid != $hdr->{width}) {
-      my $i = $left * 4;
-      my $n = $wid * 4;
-      foreach my $row (@$rows) {
-         $row = substr($row, $i, $n);
-      }
+   while ($top < $bottom && blankrow($data, $top, $left, $right, $stride)) {
+      $top++;
    }
-   elsif (@$rows == $hdr->{height}) {
-      return;
+   while ($top < $bottom && blankrow($data, $bottom, $left, $right, $stride)) {
+      $bottom--;
    }
 
-   $$xmin_ref += $left;
-   $$ymin_ref += $top;
-   $$wid_ref = $wid;
-
-   $png = Image::PNG::Libpng::create_write_struct();
-   $png->set_IHDR({
-      width       => $wid,
-      height      => scalar(@$rows),
-      color_type  => PNG_COLOR_TYPE_RGB_ALPHA,
-      bit_depth   => 8,
-   });
-   $png->set_rows($rows);
-   $png->write_png_file($file);
+   $right = $wid - 1 - $right;
+   $bottom = $hgt - 1 - $bottom;
+   return unless $left || $right || $top || $bottom;
+   return ($left, $right, $top, $bottom);
 }
 
-sub blankrow {
-   my ($row) = @_;
-   my $len = length($row);
-   for (my $n = 3; $n < $len; $n += 4) {
-      return unless ord(substr($row, $n, 1)) <= 5
+sub blankcol {
+   my ($data, $x, $top, $bottom, $stride) = @_;
+   my $i = 4*$x + $top*$stride;
+   for my $y ($top .. $bottom) {
+      my $alpha = unpack('L', substr($$data, $i, 4)) >> 24;
+      return if $alpha > 8;
+      $i += $stride;
    }
    return 1;
 }
 
-sub blankcol {
-   my ($col, $rows) = @_;
-   my $n = $col * 4 + 3;
-   foreach my $row (@$rows) {
-      return unless ord(substr($row, $n, 1)) <= 5
+sub blankrow {
+   my ($data, $y, $left, $right, $stride) = @_;
+   my $i = 4*$left + $y*$stride;
+   for my $x ($left .. $right) {
+      my $alpha = unpack('L', substr($$data, $i, 4)) >> 24;
+      return if $alpha > 8;
+      $i += 4;
    }
    return 1;
 }
