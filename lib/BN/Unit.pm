@@ -582,6 +582,7 @@ my %enemy_level = (
    hero_cast_cassidy_unlimited_ammo => 56,
    hero_cast_morgan                 => 15,
    hero_raider_warlord              => 30,
+   hero_spiderwasp_queen_super      => 70,
    s_ninja_npc                      => 64,
    s_raider_sniper_tutorial         => 3,
    s_sandworm_elder                 => 27,
