@@ -27,6 +27,7 @@ front["air_corsair"]={x=63,y=136,w=135,f="Air_corsair_front.png"}
 front["air_jet_fighter"]={x=69,y=156,w=148,f="Air_jet_fighter_front.png"}
 front["air_raider_zeppelin"]={x=99,y=181,w=173,f="Air_raider_zeppelin_front.png"}
 front["air_spiderwasp_striker"]={x=63,y=190,w=99,f="Air_spiderwasp_striker_front.png"}
+front["air_spiderwasp_striker_70"]={x=63,y=189,w=99,f="Air_spiderwasp_striker_70_front.png"}
 front["air_sw_plane"]={x=83,y=155,w=184,f="Air_sw_plane_front.png"}
 front["air_sw_whirlybird"]={x=65,y=219,w=153,f="Air_sw_whirlybird_front.png"}
 front["air_warthog"]={x=66,y=147,w=133,f="Air_warthog_front.png"}
@@ -39,6 +40,10 @@ front["assassinator"]={x=69,y=129,w=100,f="Assassinator_front.png"}
 front["bazookaTeam"]={x=67,y=114,w=130,f="BazookaTeam_front.png"}
 front["bioGrenadier"]={x=43,y=119,w=72,f="BioGrenadier_fr.png"}
 front["blockhouses_idle"]={x=55,y=142,w=112,f="Blockhouses_idle_front.png"}
+front["boss_goliath_tank_leftside"]={x=77,y=318,w=227,f="Boss_goliath_tank_leftside_front.png"}
+front["boss_goliath_tank_main"]={x=122,y=380,w=378,f="Boss_goliath_tank_main_front.png"}
+front["boss_goliath_tank_rightside"]={x=37,y=266,w=230,f="Boss_goliath_tank_rightside_front.png"}
+front["boss_spiderwasp_queen"]={x=134,y=237,w=213,f="Boss_spiderwasp_queen_front.png"}
 front["cannonSchoolBus"]={x=58,y=146,w=124,f="CannonSchoolBus_front.png"}
 front["cannonraider"]={x=54,y=137,w=83,f="Cannonraider_front.png"}
 front["championraider"]={x=64,y=137,w=106,f="Championraider_front.png"}
@@ -51,6 +56,7 @@ front["def_barricade_concreteWall"]={x=84,y=124,w=149,f="Def_barricade_concreteW
 front["def_barricade_sandbags"]={x=66,y=95,w=124,f="Def_barricade_sandbags_front.png"}
 front["def_fence_electric"]={x=65,y=122,w=82,f="Def_fence_electric_front.png"}
 front["def_raiderbarricade"]={x=77,y=132,w=141,f="Def_raiderbarricade.png"}
+front["def_spiderwasp_egg"]={x=59,y=126,w=116,f="Def_spiderwasp_egg_front.png"}
 front["def_wall_concrete_60"]={x=69,y=114,w=110,f="Def_wall_concrete_60_front.png"}
 front["demolitionist"]={x=34,y=117,w=74,f="Demolitionist_front.png"}
 front["dragoon"]={x=87,y=110,w=130,f="Dragoon_front.png"}
@@ -67,6 +73,11 @@ front["heavyLauncher"]={x=69,y=137,w=136,f="HeavyLauncher_front.png"}
 front["heavyartillery"]={x=92,y=116,w=175,f="Heavyartillery_front.png"}
 front["heavytank_front_grey"]={x=67,y=129,w=138,f="Heavytank_front_grey.png"}
 front["hero_ancient_robot"]={x=207,y=279,w=386,f="Hero_ancient_robot_front.png"}
+front["hero_ancient_robot_2_arm_left"]={x=106,y=349,w=252,f="Hero_ancient_robot_2_arm_left_front.png"}
+front["hero_ancient_robot_2_arm_right"]={x=149,y=368,w=202,f="Hero_ancient_robot_2_arm_right_front.png"}
+front["hero_ancient_robot_2_body"]={x=132,y=447,w=284,f="Hero_ancient_robot_2_body.png"}
+front["hero_i17_ancient_robot_clone"]={x=208,y=279,w=388,f="Hero_i17_ancient_robot_clone_front.png"}
+front["hero_spiderwasp_queen"]={x=135,y=237,w=214,f="SpiderwaspQueen.png"}
 front["hitman"]={x=23,y=134,w=61,f="Hitman_fr.png"}
 front["hunter"]={x=57,y=120,w=107,f="Hunter_front.png"}
 front["i17_veh_tank_railgun"]={x=87,y=149,w=157,f="I17_veh_tank_railgun_front.png"}
@@ -186,6 +197,7 @@ front["trooper_grey"]={x=47,y=112,w=68,f="Trooper_grey_front.png"}
 front["veh_air_biplane"]={x=60,y=143,w=126,f="Veh_air_biplane_front.png"}
 front["veh_air_dirigible"]={x=67,y=189,w=157,f="Veh_air_dirigible_front.png"}
 front["veh_air_helicopter"]={x=75,y=204,w=182,f="Veh_air_helicopter_front.png"}
+front["veh_ancient_robot_clone_trap_mission"]={x=86,y=139,w=149,f="Veh_ancient_robot_clone_trap_mission_front.png"}
 front["veh_ancient_robot_player"]={x=86,y=139,w=149,f="Veh_ancient_robot_player_front.png"}
 front["veh_anti_aircraft_gun_premium"]={x=79,y=175,w=158,f="Veh_anti_aircraft_gun_premium_front.png"}
 front["veh_anti_aircraft_gun_regular"]={x=56,y=141,w=122,f="Veh_anti_aircraft_gun_regular_front.png"}
