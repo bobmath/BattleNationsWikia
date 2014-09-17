@@ -149,6 +149,7 @@ front["s_raptor_small"]={x=27,y=93,w=56,f="S_raptor_small_front.png"}
 front["s_raptor_tough_55"]={x=57,y=138,w=161,f="S_raptor_tough_55_front.png"}
 front["s_sandbags"]={x=43,y=86,w=89,f="S_sandbags_front.png"}
 front["s_sandworm_55"]={x=113,y=186,w=160,f="S_sandworm_55_front.png"}
+front["s_sandworm_emperor"]={x=180,y=252,w=259,f="S_sandworm_emperor_front.png"}
 front["s_sandworm_large"]={x=114,y=186,w=161,f="S_sandworm_large_front.png"}
 front["s_sandworm_medium"]={x=81,y=159,w=127,f="S_sandworm_medium_front.png"}
 front["s_spiderwasp_spitter"]={x=61,y=150,w=120,f="S_spiderwasp_spitter_front.png"}
