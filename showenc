@@ -5,6 +5,7 @@ use warnings;
 use lib 'lib';
 use BN;
 use Cairo;
+use Data::Dump qw( dump );
 use POSIX qw( ceil floor );
 
 die "Usage: $0 strike_id | encounter_id\n" unless @ARGV == 1;
@@ -28,6 +29,12 @@ sub write_encounter {
    my ($enc, $id) = @_;
    open my $F, '>', $id or die "Can't write $id: $!\n";
    show_encounter($F, $enc);
+   if (my $rewards = $enc->rewards()) {
+      print $F "\n", dump($rewards), "\n";
+   }
+   if (my $rewards = BN::Reward::get_rewards($enc->{rewardsRef})) {
+      print $F "\n", dump(BN::Reward::merge_rewards($rewards)), "\n";
+   }
    close $F;
 }
 
