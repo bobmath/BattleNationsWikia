@@ -447,6 +447,7 @@ BN->accessor(mill_output => sub {
       my $rewards = $job->rewards() or next;
       $out{$_} = 1 foreach keys %$rewards;
    }
+   delete $out{XP};
    return unless %out;
    die 'too many outputs' if keys(%out) > 1;
    my ($out) = keys %out;
