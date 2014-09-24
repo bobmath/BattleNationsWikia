@@ -20,17 +20,29 @@ BN->simple_accessor('diminish', 'dot_Diminishing');
 BN->simple_accessor('duration', 'duration');
 
 my %effect_icons = (
-   Fire     => 'FireDOT',
-   Poison   => 'PoisonDOT',
    Cold     => 'ColdEnvironment',
+   Fire     => 'FireDOT',
+   Firemod  => 'Fire',
+   Plague   => 'PoisonDOT',
+   Poison   => 'PoisonDOT',
 );
 
 sub effect {
    my ($eff) = @_;
    my $family = $eff->{family} or return;
    my $icon = $effect_icons{$family} or return;
-   my $dmg = $eff->{dot_BonusDamage} or return;
-   return "{{$icon}} $dmg";
+   my $type = $eff->{type} or return;
+   if ($type eq 'dot') {
+      my $dmg = $eff->{dot_BonusDamage} or return;
+      return "{{$icon}} $dmg";
+   }
+   elsif ($type eq 'stun') {
+      my $mod = $eff->{stun_DamageMods} or return;
+      my ($val) = values %$mod;
+      $val *= 100;
+      return "{{$icon}} $val%";
+   }
+   return;
 }
 
 1 # end BN::StatusEffect

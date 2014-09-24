@@ -99,6 +99,7 @@ my @clone_ids = qw(
    veh_tank_medium
    veh_tank_mega
    veh_tank_mini
+   veh_tank_plasma
    veh_tank_super
    veh_tank_tesla
    veh_tank_wheeled

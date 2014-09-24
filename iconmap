@@ -110,6 +110,7 @@ front["raiderLuitThin"]={x=93,y=163,w=134,f="RaiderLieutThin.png"}
 front["raiderwatchtowerfront"]={x=54,y=164,w=105,f="Raiderwatchtowerfront.png"}
 front["ranger"]={x=48,y=119,w=93,f="Ranger_front.png"}
 front["ratBrown"]={x=21,y=57,w=46,f="RatBrown.png"}
+front["ratGrey"]={x=21,y=57,w=46,f="RatGrey.png"}
 front["rpg"]={x=75,y=125,w=94,f="Rpg_front.png"}
 front["s_arctic_trooper"]={x=56,y=132,w=99,f="S_arctic_trooper_front.png"}
 front["s_arctic_trooper_rebel"]={x=56,y=132,w=99,f="S_arctic_trooper_rebel_front.png"}
