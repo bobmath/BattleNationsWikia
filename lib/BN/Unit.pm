@@ -355,6 +355,7 @@ my %immune = (
    Fire        => '{{FireDOT}} Fire',
    Flammable   => '{{Flammable}} Flammable',
    Frozen      => '{{Freeze}} Freeze',
+   Plague      => '{{Acid}} Plague',
    Poison      => '{{PoisonDOT}} Poison',
    Shatter     => '{{Shatter}} Shatter',
    Stun        => '{{Stun}} Stun',
