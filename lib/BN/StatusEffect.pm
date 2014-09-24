@@ -22,7 +22,7 @@ BN->simple_accessor('duration', 'duration');
 my %effect_icons = (
    Cold     => 'ColdEnvironment',
    Fire     => 'FireDOT',
-   Firemod  => 'Fire',
+   Firemod  => 'Firemod',
    Plague   => 'PoisonDOT',
    Poison   => 'PoisonDOT',
 );
@@ -38,6 +38,7 @@ sub effect {
    }
    elsif ($type eq 'stun') {
       my $mod = $eff->{stun_DamageMods} or return;
+      return if keys(%$mod) > 1;
       my ($val) = values %$mod;
       $val *= 100;
       return "{{$icon}} $val%";
