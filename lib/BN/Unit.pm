@@ -198,6 +198,7 @@ BN->accessor(shortname => sub {
 });
 
 my %wiki_page = (
+   's_hunter(hostile)'              => 'Rebel Hunter',
    boss_goliath_tank_leftside       => 'Multi-Launch Rocket System (Left)',
    boss_goliath_tank_leftside_mis   => 'Multi-Launch Rocket System (Left) (Mission)',
    boss_goliath_tank_main           => 'Goliath Tank (Main)',
@@ -214,6 +215,16 @@ my %wiki_page = (
    hero_ancient_robot_60            => 'Ancient Construct (Boss Strike)',
    hero_cast_morgan_buff            => 'Lt. Morgan (buffed)',
    hero_cast_morgan_duels           => 'Lt. Morgan (duels)',
+   hero_cast_perkins_duels          => 'Perkins (duels)',
+   hero_cast_perkins_flamecostume   => 'Perkins (flame)',
+   hero_cast_perkins_passive        => 'Perkins (passive)',
+   hero_cast_perkins_raidercostume  => 'Perkins (raider)',
+   hero_cast_perkins_tank           => 'Perkins (tank)',
+   hero_cast_perkins_zombie         => 'Perkins (zombie)',
+   hero_cast_ramsey                 => 'Ramsey',
+   hero_cast_ramsey_50              => 'Ramsey',
+   hero_cast_ramsey_buff            => 'Ramsey',
+   hero_cast_ramsey_hostage         => 'Ramsey (hostage)',
    hero_raider_crazyblades_ignorable   => 'Crazy Blades (ignorable)',
    hero_raider_sarin_ignorable      => 'Sarin (ignorable)',
    hero_raider_tronk_14_ignorable   => 'Tronk (ignorable)',
@@ -231,7 +242,6 @@ my %wiki_page = (
    sw_veh_artillery_20              => 'Silver Wolf Artillery',
    sw_veh_artillery_5               => 'Silver Wolf Artillery',
    sw_veh_artillery_player          => 'Wolf Artillery',
-   's_hunter(hostile)'              => 'Rebel Hunter',
 );
 
 my %unit_names;
@@ -583,6 +593,7 @@ my %enemy_level = (
    air_spiderwasp_striker           => 45,
    hero_cast_cassidy_unlimited_ammo => 56,
    hero_cast_morgan                 => 15,
+   hero_cast_ramsey_rage_buff       => 30,
    hero_raider_warlord              => 30,
    hero_spiderwasp_queen_super      => 70,
    s_ninja_npc                      => 64,
