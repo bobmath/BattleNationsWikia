@@ -77,16 +77,7 @@ sub unit_profile {
    profile_line($F, 'other requirements', $unit->other_reqs());
    profile_line($F, 'immunities', $unit->immunities());
    profile_line($F, 'blocking', $unit->blocking());
-
-   if (my ($rank) = grep { $_->armor() } $unit->ranks()) {
-      damage_mods($F, 'armor', $rank->armor_mods());
-      if (my $type = $rank->armor_type()) {
-         push @notes, 'No armor while stunned' if $type eq 'active';
-      }
-   }
-   if (my ($rank) = $unit->ranks()) {
-      damage_mods($F, 'base', $rank->damage_mods());
-   }
+   unit_defense($F, $unit);
    if (my $limit = $unit->deploy_limit()) {
       push @notes, "Deployment limit: $limit";
    }
@@ -100,6 +91,43 @@ sub unit_profile {
    print $F "==Overview==\n{{Clear}}\n\n";
 }
 
+sub unit_defense {
+   my ($F, $unit) = @_;
+   my ($hp, $armor, %show);
+   if (my ($rank) = $unit->ranks()) {
+      flag_defense($hp = $rank->damage_mods(), \%show);
+   }
+   if (my ($rank) = grep { $_->armor() } $unit->ranks()) {
+      flag_defense($armor = $rank->armor_mods(), \%show);
+   }
+   my @show = sort keys %show or return;
+   profile_line($F, 'hp defense', show_defense($hp, @show));
+   profile_line($F, 'armor defense', show_defense($armor, @show)) if $armor;
+}
+
+sub flag_defense {
+   my ($def, $show) = @_;
+   while (my ($k, $v) = each %$def) {
+      $show->{$k} = 1 unless $v == 1;
+   }
+}
+
+sub show_defense {
+   my ($def, @show) = @_;
+   my @def;
+   foreach my $key (@show) {
+      my $val = int(($def->{$key} // 1) * 100 + 0.5);
+      if ($val > 100) {
+         $key .= 'Vuln';
+      }
+      elsif ($key eq 'Cold') {
+         $key .= 'Damage';
+      }
+      push @def, "{{$key|$val%}}";
+   }
+   return join '<br>', @def;
+}
+
 sub damage_mods {
    my ($F, $tag, $mods) = @_;
    foreach my $key (sort keys %$mods) {
@@ -111,7 +139,7 @@ sub damage_mods {
 
 sub profile_line {
    my ($F, $tag, $val) = @_;
-   printf $F "| %-23s = %s\n", $tag, $val if defined $val;
+   printf $F "| %-22s = %s\n", $tag, $val if defined $val;
 }
 
 sub unit_transform {

@@ -6,7 +6,7 @@ use MW::UserAgent;
 my $ua = MW::UserAgent->new('http://battlenations.wikia.com/api.php');
 $ua->login();
 
-my $summary = 'New ranks template';
+my $summary = 'Defense';
 
 foreach my $file (glob 'edit/*') {
    open my $F, '<', $file or die;
@@ -24,16 +24,21 @@ foreach my $file (glob 'edit/*') {
    die unless $info->{_text};
    die unless $info->{edittoken};
 
-   my @file_parts = split /^(=+.*?=+)$/m, $text;
-   my @wiki_parts = split /^(=+.*?=+)$/m, $info->{_text};
+#   my @file_parts = split /^(=+.*?=+)$/m, $text;
+#   my @wiki_parts = split /^(=+.*?=+)$/m, $info->{_text};
+#
+#   my ($file_pos) =
+#      grep { $file_parts[$_] =~ /^=+\s*Statistics/ } 0 .. $#file_parts or next;
+#   my ($wiki_pos) =
+#      grep { $wiki_parts[$_] =~ /^=+\s*Statistics/ } 0 .. $#wiki_parts or next;
+#
+#   $wiki_parts[$wiki_pos+1] = $file_parts[$file_pos+1];
+#   my $new_text = join('', @wiki_parts);
 
-   my ($file_pos) =
-      grep { $file_parts[$_] =~ /^=+\s*Statistics/ } 0 .. $#file_parts or next;
-   my ($wiki_pos) =
-      grep { $wiki_parts[$_] =~ /^=+\s*Statistics/ } 0 .. $#wiki_parts or next;
+   my $new_text = $info->{_text};
+   my ($profile) = $text =~ /^\| image\s*=[^\n]*(.*?^}})/ms or die;
+   $new_text =~ s/^(\| image\s*=[^\n]*).*?^}}/$1$profile/ms or die;
 
-   $wiki_parts[$wiki_pos+1] = $file_parts[$file_pos+1];
-   my $new_text = join('', @wiki_parts);
    if ($new_text eq $info->{_text}) {
       unlink $file;
       next;
