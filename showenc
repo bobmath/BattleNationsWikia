@@ -21,6 +21,9 @@ if (my $strike = BN::BossStrike->get($ARGV[0])) {
 elsif (my $enc = BN::Encounter->get($ARGV[0])) {
    write_encounter($enc, $ARGV[0]);
 }
+elsif (my $unit = BN::Unit->get($ARGV[0])) {
+   get_icon($unit);
+}
 else {
    die "Encounter $ARGV[0] not found\n";
 }
