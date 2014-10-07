@@ -77,7 +77,7 @@ sub unit_profile {
    profile_line($F, 'other requirements', $unit->other_reqs());
    profile_line($F, 'immunities', $unit->immunities());
    profile_line($F, 'blocking', $unit->blocking());
-   unit_defense($F, $unit);
+   unit_defense($F, $unit, \@notes);
    if (my $limit = $unit->deploy_limit()) {
       push @notes, "Deployment limit: $limit";
    }
@@ -92,13 +92,16 @@ sub unit_profile {
 }
 
 sub unit_defense {
-   my ($F, $unit) = @_;
+   my ($F, $unit, $notes) = @_;
    my ($hp, $armor, %show);
    if (my ($rank) = $unit->ranks()) {
       flag_defense($hp = $rank->damage_mods(), \%show);
    }
    if (my ($rank) = grep { $_->armor() } $unit->ranks()) {
       flag_defense($armor = $rank->armor_mods(), \%show);
+      if (my $type = $rank->armor_type()) {
+         push @$notes, 'No armor while stunned' if $type eq 'active';
+      }
    }
    my @show = sort keys %show or return;
    profile_line($F, 'hp defense', show_defense($hp, @show));
