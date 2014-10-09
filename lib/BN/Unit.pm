@@ -142,6 +142,7 @@ my %name = (
    raptor_zombie_b                  => 'Specimen g02 "Shredder"',
    raptor_zombie_c                  => 'Specimen g03 "Advanced Shredder"',
    raptor_zombie_d                  => 'Specimen g04 "Archetype Shredder"',
+   s_bigfoot_zombie_player          => 'Specimen i01 "Mauler"',
    s_trooper_zombie_ninja_super     => 'Specimen d05 "Apex Stalker"',
    s_trooper_zombie_spider          => 'Specimen h01 "Proto-Crawler"',
    s_trooper_zombie_spider_b        => 'Specimen h02 "Crawler"',
