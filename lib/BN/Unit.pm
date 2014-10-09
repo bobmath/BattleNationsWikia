@@ -119,6 +119,7 @@ sub load {
          $clone->{_cloneof} = $id;
          $clone->{side} = 'Hostile';
          $clone->{_affiliation} = 'rebel';
+         delete $clone->{transformationTable};
          $units->{$clone_id} = $clone;
       }
    }
