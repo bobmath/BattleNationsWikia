@@ -29,8 +29,12 @@ sub write {
       $short{$unit->wikilink()} = sprintf
          '%.0f%% || %.0f%% || %.0f%% || %.0f%%',
          $proto, $normal, $advanced, $archetype;
-      $full{$unit->wikilink()} = join(', ', map { "$_ $links{$_}%" }
+
+      my $out = join('<br>', map { "$_ $links{$_}%" }
          sort { $links{$b} <=> $links{$a} || $a cmp $b } keys %links);
+      my $icon = BN::Out->icon($unit->icon(), 'x50px') // '';
+      $icon .= ' ' if length $icon;
+      $full{$unit->wikilink()} = $icon . $unit->wikilink() . ' || ' . $out;
    }
 
    print $F qq({| class="wikitable sortable"\n);
@@ -43,7 +47,7 @@ sub write {
    print $F qq({| class="wikitable"\n);
    print $F "! Unit !! Results\n";
    foreach my $name (sort keys %full) {
-      print $F "|-\n| $name || $full{$name}\n";
+      print $F "|-\n| $full{$name}\n";
    }
    print $F "|}\n";
 
