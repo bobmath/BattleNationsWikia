@@ -18,7 +18,6 @@ sub write {
       open my $F, '>', $file or die "Can't write $file: $!";;
 
       unit_profile($F, $unit);
-      unit_transform($F, $unit);
       unit_weapons($F, $unit);
       unit_ranks($F, $unit);
       unit_cost($F, $unit);
@@ -143,25 +142,6 @@ sub damage_mods {
 sub profile_line {
    my ($F, $tag, $val) = @_;
    printf $F "| %-22s = %s\n", $tag, $val if defined $val;
-}
-
-sub unit_transform {
-   my ($F, $unit) = @_;
-   my $from = $unit->trans_from() or return;
-   my %links;
-   while (my ($k,$v) = each %$from) {
-      my $unit = BN::Unit->get($k) or next;
-      my $prob = sprintf '%.0f', $v * 100;
-      $links{$unit->wikilink()} += $prob;
-   }
-   print $F "==Infection Rates==\n",
-      qq({| class="wikitable sortable"\n),
-      "! Unit !! Chance\n";
-   my @links = sort { $links{$b} <=> $links{$a} || $a cmp $b } keys %links;
-   foreach my $name (@links) {
-      print $F "|-\n| $name || $links{$name}%\n";
-   }
-   print $F "|}\n\n";
 }
 
 sub unit_weapons {
