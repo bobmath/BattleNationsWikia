@@ -244,6 +244,11 @@ my %wiki_page = (
    sw_veh_artillery_20              => 'Silver Wolf Artillery',
    sw_veh_artillery_5               => 'Silver Wolf Artillery',
    sw_veh_artillery_player          => 'Wolf Artillery',
+   tf2_hero_demoman                 => 'Demoman (Team Fortress 2)',
+   tf2_hero_heavy                   => 'Heavy (Team Fortress 2)',
+   tf2_hero_pyro                    => 'Pyro (Team Fortress 2)',
+   tf2_hero_scout                   => 'Scout (Team Fortress 2)',
+   tf2_hero_soldier                 => 'Soldier (Team Fortress 2)',
 );
 
 my %unit_names;
@@ -551,7 +556,7 @@ BN->accessor(other_reqs => sub {
          push @reqs, $mis->wikilink() if $mis;
       }
    }
-   push @reqs, '[[Infection Test Facility]]' if $unit->{transformationTable};
+   #push @reqs, '[[Infection Test Facility]]' if $unit->{transformationTable};
    push @reqs, 'Boss Strike' if $unit->boss_strike();
    return unless @reqs;
    return join '<br>', sort @reqs;
