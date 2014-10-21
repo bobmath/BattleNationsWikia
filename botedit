@@ -39,7 +39,7 @@ foreach my $file (glob 'edit/*') {
    my ($profile) = $text =~ /^\| image\s*=[^\n]*(.*?^}})/ms or die;
    $new_text =~ s/^(\| image\s*=[^\n]*).*?^}}/$1$profile/ms or die;
 
-   if ($new_text eq $info->{_text}) {
+   if (minspace($new_text) eq minspace($info->{_text})) {
       unlink $file;
       next;
    }
@@ -73,4 +73,10 @@ foreach my $file (glob 'edit/*') {
 }
 
 unlink 'temp', 'temp2';
+
+sub minspace {
+   my ($str) = @_;
+   $str =~ s/[ \t]+/ /g;
+   return $str;
+}
 
