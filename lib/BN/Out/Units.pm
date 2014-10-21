@@ -92,19 +92,21 @@ sub unit_profile {
 
 sub unit_defense {
    my ($F, $unit, $notes) = @_;
-   my ($hp, $armor, %show);
-   if (my ($rank) = $unit->ranks()) {
-      flag_defense($hp = $rank->damage_mods(), \%show);
-   }
-   if (my ($rank) = grep { $_->armor() } $unit->ranks()) {
-      flag_defense($armor = $rank->armor_mods(), \%show);
+   my ($hp, $hp_mods, $armor, $armor_mods, %show);
+   my $rank = ($unit->ranks())[-1];
+   $hp = $rank->hp();
+   flag_defense($hp_mods = $rank->damage_mods(), \%show);
+   if ($armor = $rank->armor()) {
+      flag_defense($armor_mods = $rank->armor_mods(), \%show);
       if (my $type = $rank->armor_type()) {
          push @$notes, 'No armor while stunned' if $type eq 'active';
       }
    }
    my @show = sort keys %show or return;
-   profile_line($F, 'hp defense', show_defense($hp, @show));
-   profile_line($F, 'armor defense', show_defense($armor, @show)) if $armor;
+   profile_line($F, 'hp defense', "{{HP|$hp}}<br>"
+      . show_defense($hp_mods, @show));
+   profile_line($F, 'armor defense', "{{Armor|$armor}}<br>"
+      . show_defense($armor_mods, @show)) if $armor;
 }
 
 sub flag_defense {
