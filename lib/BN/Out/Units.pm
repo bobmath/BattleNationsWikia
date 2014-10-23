@@ -102,11 +102,11 @@ sub unit_defense {
          push @$notes, 'No armor while stunned' if $type eq 'active';
       }
    }
-   my @show = sort keys %show or return;
-   profile_line($F, 'hp defense', "{{HP|$hp}}<br>"
-      . show_defense($hp_mods, @show));
-   profile_line($F, 'armor defense', "{{Armor|$armor}}<br>"
-      . show_defense($armor_mods, @show)) if $armor;
+   my @show = sort keys %show;
+   profile_line($F, 'hp defense',
+      show_defense("{{HP|$hp}}", $hp_mods, @show));
+   profile_line($F, 'armor defense',
+      show_defense("{{Armor|$armor}}", $armor_mods, @show)) if $armor;
 }
 
 sub flag_defense {
@@ -117,8 +117,8 @@ sub flag_defense {
 }
 
 sub show_defense {
-   my ($def, @show) = @_;
-   my @def;
+   my ($hp, $def, @show) = @_;
+   my @def = ($hp);;
    foreach my $key (@show) {
       my $val = int(($def->{$key} // 1) * 100 + 0.5);
       if ($val > 100) {
