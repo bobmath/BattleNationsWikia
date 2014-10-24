@@ -1,0 +1,18 @@
+#!/usr/bin/env perl
+# Show contents of promotional image cache
+use strict;
+use warnings;
+use DBI;
+use File::HomeDir;
+
+my $dir = File::HomeDir->my_home()
+   . '/Library/Containers/com.z2live.battlenations-mac'
+   . '/Data/Library/Caches/com.z2live.battlenations-mac';
+
+my $dbh = DBI->connect("dbi:SQLite:dbname=$dir/Cache.db", "", "") or die;
+my $cache = $dbh->selectall_arrayref(
+   'select time_stamp, request_key from cfurl_cache_response') or die;
+foreach my $entry (sort { $a->[0] cmp $b->[0] } @$cache) {
+   print join("\t", @$entry), "\n";
+}
+
