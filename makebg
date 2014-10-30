@@ -10,7 +10,7 @@ die "usage: $0 mapname\n" unless @ARGV == 1;
 my $bgfile = $ARGV[0];
 my $grid_x = 100 * 1.04;
 my $grid_y = 50 * 1.04;
-my $scale = 0.75 / 1.04;
+my $scale = 0.90 / 1.04;
 my $w = 2;
 my $pad = 8;
 my $tempfile = 'bkg_temp.png';
