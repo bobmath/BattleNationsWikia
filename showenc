@@ -47,14 +47,21 @@ sub write_strike {
 
    my %levels;
    foreach my $encounter (@{$strike->{globalEventEncounters}}) {
-      add_encounter($encounter, \%levels, 0);
+      my $id = $encounter->{encounterId} or next;
+      $levels{level_range($encounter)}{0}{$id} = 1;
    }
    my $tnum;
    foreach my $tier ($strike->tiers()) {
       ++$tnum;
       foreach my $encounter (@{$tier->{encounters}}) {
-         add_encounter($encounter, \%levels, $tnum);
+         my $id = $encounter->{encounterId} or next;
+         $levels{level_range($encounter)}{$tnum}{$id} = 1;
       }
+   }
+
+   my %multipliers;
+   foreach my $row (@{$strike->{waveProgressMultipliers}}) {
+      $multipliers{level_range($row)} = $row->{multipliers};
    }
 
    my %level_tiers;
@@ -87,6 +94,7 @@ sub write_strike {
 
    foreach my $levels (sort keys %level_tiers) {
       my $tiers = $level_tiers{$levels} or next;
+      my $mult = $multipliers{$levels};
       foreach my $tnum (sort keys %$tiers) {
          my $file = "Level_${levels}_tier_${tnum}_battles";
          print "$file\n";
@@ -94,7 +102,8 @@ sub write_strike {
          my $eids = $tiers->{$tnum} or next;
          my $enum;
          foreach my $eid (sort keys %$eids) {
-            show_encounter($F, BN::Encounter->get($eid), 'Battle ' . ++$enum);
+            show_encounter($F, BN::Encounter->get($eid),
+               'Battle ' . ++$enum, $mult);
          }
          print $F "[[Category:Boss Strike Battles]]\n";
       }
@@ -110,18 +119,17 @@ sub write_strike {
    }
 }
 
-sub add_encounter {
-   my ($enc, $levels, $tier) = @_;
-   my $id = $enc->{encounterId} or return;
+sub level_range {
+   my ($obj) = @_;
    my $max_level = BN::Level->max();
-   my $min = $enc->{minLevel} || 1;
-   my $max = $enc->{maxLevel} || $max_level;
+   my $min = $obj->{minLevel} || 1;
+   my $max = $obj->{maxLevel} || $max_level;
    $max = $max_level if $max > $max_level;
-   $levels->{"$min-$max"}{$tier}{$id} = 1;
+   return "$min-$max";
 }
 
 sub show_encounter {
-   my ($F, $enc, $name) = @_;
+   my ($F, $enc, $name, $mults) = @_;
    my $waves = $enc->waves() or return;
    if ($enc->name()) {
       $name .= ': ' if $name;
@@ -168,12 +176,15 @@ sub show_encounter {
    }
 
    my $wnum;
+   my $total_uv;
    foreach my $wave (@$waves) {
       $wnum++;
       next unless $wave;
+      my $uv = 0;
       my %links;
       foreach my $id (@$wave) {
          my $unit = BN::Unit->get($id, 1) or next;
+         $uv += ($unit->ranks())[0]->uv();
          $links{$unit->shortname()}{$unit->shortlink()}++;
       }
       my @links;
@@ -185,9 +196,26 @@ sub show_encounter {
             push @links, $link;
          }
       }
+      if ($mults) {
+         $uv *= $mults->[$wnum - 1];
+         $total_uv += $uv;
+         $uv = BN->commify(int($uv));
+         push @links, "{{BSPoints|$uv}}";
+      }
       my $links = join ', ', @links;
       print $F "* Wave $wnum: $links\n" if $links;
    }
+
+   if ($total_uv) {
+      $total_uv = BN->commify(int($total_uv));
+      print $F "Total: {{BSPoints|$total_uv}}<br>\n";
+   }
+
+   my $num = $enc->{attackerSlots};
+   if (my $def = $enc->{attackerDefenseSlots}) {
+      $num .= ", $def Defense";
+   }
+   print $F "Player Units: $num\n";
 }
 
 my %icon_tags;
