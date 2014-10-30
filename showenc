@@ -12,6 +12,7 @@ die "Usage: $0 strike_id | encounter_id\n" unless @ARGV == 1;
 
 my %maps = (
    'BattleMapCave.png'  => 'cave',
+   'BattleMapMarin.png' => 'city',
    'BattleMapSnow.png'  => 'snow',
 );
 
