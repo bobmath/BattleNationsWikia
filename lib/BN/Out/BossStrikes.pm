@@ -2,6 +2,7 @@ package BN::Out::BossStrikes;
 use strict;
 use warnings;
 use Data::Dump qw( dump );
+use POSIX qw( ceil );
 
 sub write {
    foreach my $strike (BN::BossStrike->all()) {
@@ -18,6 +19,7 @@ sub write {
 
       show_tiers($F, $strike);
       show_enemies($F, $strike);
+      show_weights($F, $strike);
       print $F dump($strike), "\n";
       close $F;
       BN::Out->checksum($file);
@@ -111,6 +113,34 @@ sub add_encounter {
    else {
       $encounters->{$id} = { min=>$min, max=>$max };
    }
+}
+
+sub show_weights {
+   my ($F, $strike) = @_;
+   my $weights = $strike->{guildWeights} or return;
+   my @tbl;
+   foreach my $row (@$weights) {
+      my $max = $row->{max} or next;
+      my $min = $row->{min} || 1;
+      my $perc = $row->{percent} || 0;
+      my $eff = $max > $min ? '' : int($max * $perc / 100);
+      $min .= '-' . $max if $max > $min;
+      push @tbl, [ "'''$min'''", ($perc - 100) . '%', $eff ];
+   }
+   my $cols = 5;
+   my $step = ceil(@tbl / $cols);
+   print $F "==Guild Weights==\n";
+   print $F qq[{| class="wikitable"\n|-\n];
+   print $F "! Size !! Bonus !! Total\n" for 1 .. $cols;
+   for my $row (0 .. $step-1) {
+      my $i = $row;
+      print $F qq[|- align="center"\n];
+      while ($i < @tbl) {
+         print $F "| ", join(" || ", @{$tbl[$i]}), "\n";
+         $i += $step;
+      }
+   }
+   print $F "|}\n\n";
 }
 
 1 # end BN::Out::BossStrikes
