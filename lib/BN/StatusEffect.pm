@@ -23,7 +23,7 @@ my %effect_icons = (
    Cold     => 'ColdEnvironment',
    Fire     => 'FireDOT',
    Firemod  => 'Firemod',
-   Plague   => 'PoisonDOT',
+   Plague   => 'Plague',
    Poison   => 'PoisonDOT',
 );
 
