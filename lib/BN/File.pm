@@ -1,15 +1,19 @@
 package BN::File;
 use strict;
 use warnings;
-use JSON::XS qw( decode_json );
+use Digest::SHA1 ();
+use File::Copy qw( copy );
 use File::Glob qw( bsd_glob GLOB_NOCASE );
-use File::HomeDir;
+use File::HomeDir ();
+use JSON::XS qw( decode_json );
+use POSIX qw( strftime );
 
 my ($app_dir, $new_dir);
 if ($^O eq 'darwin') {
    $app_dir = '/Applications/BattleNations.app/Contents/Resources/bundle';
-   $new_dir = File::HomeDir->my_home() .
-      '/Library/Containers/com.z2live.battlenations-mac/Data/Library/Caches/jujulib/remoteData';
+   $new_dir = File::HomeDir->my_home()
+      . '/Library/Containers/com.z2live.battlenations-mac'
+      . '/Data/Library/Caches/jujulib/remoteData';
 }
 elsif ($^O =~ /^MSWin/) {
    my $steam_dir = 'Steam/SteamApps/common/BattleNations/assets';
@@ -20,6 +24,116 @@ elsif ($^O =~ /^MSWin/) {
 }
 else {
    die "Don't know OS $^O";
+}
+
+sub update {
+   my $date = strftime('%Y-%m-%d-%H-%M', localtime);
+   mkdir "data";
+   mkdir "data/game";
+   mkdir "data/game/$date";
+
+   my %sha1;
+   if (open my $SHA1, '<', 'data/game/sha1.txt') {
+      while (defined(my $line = <$SHA1>)) {
+         $line =~ /^(\w{40}) (.+)/ and $sha1{$1} = $2;
+      }
+      close $SHA1;
+   }
+   my $SHA1;
+
+   my $index = "data/game/$date/!index.txt";
+   open my $INDEX, '>', $index or die "open: $!";
+
+   print "Checking for updated files\n";
+   my %seen;
+   foreach my $dir ($new_dir, $app_dir) {
+      opendir my $DIR, $dir or die "opendir: $!";
+      while (defined(my $file = readdir($DIR))) {
+         next if $seen{lc($file)}++;
+         my $src = "$dir/$file";
+         next unless -f $src;
+         my $sha1 = Digest::SHA1->new();
+         open my $F, '<', $src or die "open: $!";
+         $sha1->addfile($F);
+         close($F);
+         $sha1 = $sha1->hexdigest();
+         my $oldfile = $sha1{$sha1};
+         if (!$oldfile) {
+            print $file, "\n";
+            my $dest = "data/game/$date/$file";
+            $file =~ /\.json$/i and copy_json($src, $dest)
+               or copy($src, $dest) or die "copy: $!";
+            if (!$SHA1) {
+               open $SHA1, '>>', 'data/game/sha1.txt' or die "open: $!";
+            }
+            print $SHA1 "$sha1 $date/$file\n";
+            $sha1{$sha1} = $oldfile = $file;
+         }
+         (my $oldbase = $oldfile) =~ s{^.*/}{};
+         $oldfile .= " => $file" unless $file eq $oldbase;
+         print $INDEX $oldfile, "\n";
+      }
+      closedir $DIR;
+   }
+
+   close $INDEX;
+   if ($SHA1) {
+      close $SHA1;
+      if (open my $LATEST, '>', 'data/game/latest.txt') {
+         print $LATEST $date, "\n";
+         close $LATEST;
+      }
+   }
+   elsif (equals_latest($date)) {
+      print "none\n";
+      unlink $index;
+      rmdir  "data/game/$date";
+      return 0;
+   }
+   return 1;
+}
+
+sub equals_latest {
+   my ($date) = @_;
+   open my $F, '<', 'data/game/latest.txt' or return;
+   my $latest = <$F>;
+   close $F;
+   return unless defined $latest;
+   chomp($latest);
+
+   open $F, '<', "data/game/$date/!index.txt" or return;
+   my @curr = sort <$F>;
+   close $F;
+
+   open $F, '<', "data/game/$latest/!index.txt" or return;
+   my @latest = sort <$F>;
+   close $F;
+
+   return unless @curr == @latest;
+   foreach my $i (0 .. $#curr) {
+      return unless $curr[$i] eq $latest[$i];
+   }
+   return 1;
+}
+
+sub copy_json {
+   my ($src, $dest) = @_;
+   open my $IN, '<:encoding(utf8)', $src or return;
+   open my $OUT, '>:encoding(utf8)', $dest or return;
+   my $json = JSON::XS->new();
+   $json->pretty();
+   $json->canonical();
+   my $ret;
+   eval {
+      local $/ = undef;
+      my $data = $json->decode(<$IN>);
+      print $OUT $json->encode($data);
+      $ret = 1;
+   };
+   warn $@ if $@;
+   close $IN;
+   close $OUT;
+   return $ret;
 }
 
 sub get {
