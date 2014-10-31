@@ -9,12 +9,6 @@ sub write {
    write_economy();
    write_land();
    write_encounters();
-   write_json('Boosts', 'RewardMultiplierOffers.json');
-   write_json('Exclude', 'ExcludeTags.json');
-   write_json('Status Effects',
-      'StatusEffectFamiliesConfig.json', 'StatusEffectsConfig.json');
-   write_json('Manifest', 'z2manifest.json', 'onDemandOtaManifest.json',
-      'onDemandOtaFilenamesByTag.json', 'onDemandOtaTagsByFilename.json');
 }
 
 sub write_hints {
@@ -76,18 +70,6 @@ sub write_encounters {
    open my $F, '>', $file or die "Can't write $file: $!\n";
    foreach my $enc (BN::Encounter->all()) {
       print $F $enc->tag(), "\n", dump($enc), "\n\n";
-   }
-   close $F;
-   BN::Out->checksum($file);
-}
-
-sub write_json {
-   my ($out, @in) = @_;
-   my $file = BN::Out->filename('info', $out);
-   open my $F, '>', $file or die "Can't write $file: $!\n";
-   foreach my $in (@in) {
-      my $json = BN::File->json($in);
-      print $F dump($json), "\n";
    }
    close $F;
    BN::Out->checksum($file);
