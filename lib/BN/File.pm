@@ -79,16 +79,16 @@ sub update {
    close $INDEX;
    if ($SHA1) {
       close $SHA1;
-      if (open my $LATEST, '>', 'data/game/latest.txt') {
-         print $LATEST $date, "\n";
-         close $LATEST;
-      }
    }
    elsif (equals_latest($date)) {
       print "none\n";
       unlink $index;
       rmdir  "data/game/$date";
       return 0;
+   }
+   if (open my $LATEST, '>', 'data/game/latest.txt') {
+      print $LATEST $date, "\n";
+      close $LATEST;
    }
    return 1;
 }
@@ -106,7 +106,11 @@ sub equals_latest {
    close $F;
 
    open $F, '<', "data/game/$latest/!index.txt" or return;
-   my @latest = sort <$F>;
+   my @latest = <$F>;
+   for (@latest) {
+      $_ = "$latest/$_" unless m{/};
+   }
+   @latest = sort @latest;
    close $F;
 
    return unless @curr == @latest;
