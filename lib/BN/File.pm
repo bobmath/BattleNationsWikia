@@ -3,7 +3,6 @@ use strict;
 use warnings;
 use Digest::SHA1 ();
 use File::Copy qw( copy );
-use File::Glob qw( bsd_glob GLOB_NOCASE );
 use File::HomeDir ();
 use JSON::XS qw( decode_json );
 use POSIX qw( strftime );
@@ -177,12 +176,6 @@ sub scrub {
    elsif ($ref eq 'JSON::PP::Boolean' || $ref eq 'JSON::XS::Boolean') {
       $_[0] = ${$_[0]};
    }
-}
-
-sub glob {
-   my ($class, $pat) = @_;
-   return (bsd_glob("$new_dir/$pat", GLOB_NOCASE),
-           bsd_glob("$app_dir/$pat", GLOB_NOCASE));
 }
 
 1 # end BN::File
