@@ -1,18 +1,20 @@
 package BN::File;
 use strict;
 use warnings;
+use DBI;
 use Digest::SHA1 ();
 use File::Copy qw( copy );
 use File::HomeDir ();
 use JSON::XS qw( decode_json );
 use POSIX qw( strftime );
 
-my ($app_dir, $new_dir);
+my ($app_dir, $new_dir, $promo_dir);
 if ($^O eq 'darwin') {
    $app_dir = '/Applications/BattleNations.app/Contents/Resources/bundle';
-   $new_dir = File::HomeDir->my_home()
-      . '/Library/Containers/com.z2live.battlenations-mac'
-      . '/Data/Library/Caches/jujulib/remoteData';
+   my $cache_dir = File::HomeDir->my_home()
+      . '/Library/Containers/com.z2live.battlenations-mac/Data/Library/Caches';
+   $new_dir = $cache_dir . '/jujulib/remoteData';
+   $promo_dir = $cache_dir . '/com.z2live.battlenations-mac';
 }
 elsif ($^O =~ /^MSWin/) {
    my $steam_dir = 'Steam/SteamApps/common/BattleNations/assets';
@@ -23,6 +25,33 @@ elsif ($^O =~ /^MSWin/) {
 }
 else {
    die "Don't know OS $^O";
+}
+
+sub promos {
+   my ($class) = @_;
+   my $dbh = DBI->connect("dbi:SQLite:dbname=$promo_dir/Cache.db",
+      "", "") or die;
+   mkdir 'data';
+   mkdir 'data/game';
+   mkdir 'data/game/promos';
+   my $cache = $dbh->selectall_arrayref(q[
+      select request_key, receiver_data
+      from cfurl_cache_receiver_data
+      inner join cfurl_cache_response
+      on cfurl_cache_receiver_data.entry_id = cfurl_cache_response.entry_id
+      where isDataOnFS == 1
+   ]) or die;
+   open my $LOG, '>>', 'data/game/promos/!index.txt';
+   foreach my $entry (sort { $a->[0] cmp $b->[0] } @$cache) {
+      (my $file = $entry->[0]) =~ s{^.*/}{} or next;
+      my $path = "data/game/promos/$file";
+      next if -e $path;
+      print $file, "\n";
+      print $LOG $entry->[0], "\n";
+      copy "$promo_dir/fsCachedData/$entry->[1]", $path or die;
+   }
+   close $LOG;
+   $dbh->disconnect();
 }
 
 sub update {
