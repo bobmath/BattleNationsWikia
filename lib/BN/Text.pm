@@ -20,9 +20,4 @@ sub get {
    return $text->{lc($key)};
 }
 
-sub get_all {
-   load_text() unless $text;
-   return $text;
-}
-
 1 # end BN::Text
