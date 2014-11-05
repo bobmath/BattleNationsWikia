@@ -60,10 +60,12 @@ sub icon {
 
 sub compare {
    my ($class, $file) = @_;
-   open my $OLD, '<', "$file.old" or return;
    open my $NEW, '<', $file or return;
-   my $equal = equal_files($OLD, $NEW);
-   close $OLD;
+   my $equal;
+   if (open my $OLD, '<', "$file.old") {
+      $equal = equal_files($OLD, $NEW);
+      close $OLD;
+   }
    close $NEW;
    if ($equal) {
       unlink "$file.old";

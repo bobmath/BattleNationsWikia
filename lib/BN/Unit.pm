@@ -195,6 +195,7 @@ my %wiki_page = (
    boss_goliath_tank_main_mis       => 'Goliath Tank (Main) (Mission)',
    boss_goliath_tank_rightside      => 'Multi-Launch Rocket System (Right)',
    boss_goliath_tank_rightside_mis  => 'Multi-Launch Rocket System (Right) (Mission)',
+   def_sandbag                      => 'Sandbags (enemy)',
    fr_guy_chainsaw_ignorable        => 'Frontier Lumberjack (ignorable)',
    fr_guy_dynamite_ignorable        => 'Frontier Engineer (ignorable)',
    fr_guy_hunter_ignorable          => 'Frontier Hunter (ignorable)',
