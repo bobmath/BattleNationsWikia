@@ -61,14 +61,15 @@ sub compare {
    my ($class, $file) = @_;
    open my $OLD, '<', "$file.old" or return;
    open my $NEW, '<', $file or return;
-   if (equal_files($OLD, $NEW)) {
+   my $equal = equal_files($OLD, $NEW);
+   close $OLD;
+   close $NEW;
+   if ($equal) {
       unlink "$file.old";
    }
    else {
       print $file, "\n";
    }
-   close $OLD;
-   close $NEW;
 }
 
 sub equal_files {
