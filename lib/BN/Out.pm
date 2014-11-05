@@ -12,6 +12,7 @@ use BN::Out::Transformations;
 use BN::Out::Units;
 
 sub write {
+   print "Writing wikitext\n";
    BN::Out::BossStrikes->write();
    BN::Out::Buildings->write();
    BN::Out::Guilds->write();
@@ -76,7 +77,7 @@ sub equal_files {
    my ($F, $G) = @_;
    while (defined(my $line1 = <$F>)) {
       my $line2 = <$G>;
-      return unless defined($line2) && $line1 eq $line2;;
+      return unless defined($line2) && $line1 eq $line2;
       return 1 if $line1 eq "__DUMP__\n";
    }
    my $line2 = <$G>;
