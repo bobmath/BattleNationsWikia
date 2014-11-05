@@ -22,7 +22,7 @@ sub write {
       show_weights($F, $strike);
       print $F dump($strike), "\n";
       close $F;
-      BN::Out->checksum($file);
+      BN::Out->compare($file);
    }
 }
 

@@ -83,7 +83,7 @@ sub write {
    print $F "|}\n";
 
    close $F;
-   BN::Out->checksum($file);
+   BN::Out->compare($file);
 }
 
 sub show_unit {

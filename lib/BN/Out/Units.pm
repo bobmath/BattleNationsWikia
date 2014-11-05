@@ -14,7 +14,6 @@ sub write {
       my $dir = $unit->building() || $unit->from_missions()
          || $unit->boss_strike() ? 'units' : 'locked';
       my $file = BN::Out->filename($dir, $unit->wiki_page());
-      print $file, "\n";
       open my $F, '>', $file or die "Can't write $file: $!";;
 
       unit_profile($F, $unit);
@@ -23,7 +22,7 @@ sub write {
       unit_cost($F, $unit);
       print $F "__DUMP__\n", dump($unit), "\n";
       close $F;
-      BN::Out->checksum($file);
+      BN::Out->compare($file);
    }
 
    foreach my $name (sort keys %enemies) {
@@ -31,7 +30,6 @@ sub write {
       @$units = sort {($a->level()||0) <=> ($b->level()||0)} @$units or next;
       my $dir = $units->[0]->side() eq 'Hostile' ? 'enemies' : 'other';
       my $file = BN::Out->filename($dir, $name);
-      print $file, "\n";
       open my $F, '>', $file or die "Can't write $file: $!";
       print $F $name, "\n";
 
@@ -42,7 +40,7 @@ sub write {
 
       print $F "\n", dump($units), "\n";
       close $F;
-      BN::Out->checksum($file);
+      BN::Out->compare($file);
    }
 }
 

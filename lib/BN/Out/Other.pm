@@ -27,7 +27,7 @@ sub write_land {
 
    print $F "|}\n";
    close $F;
-   BN::Out->checksum($file);
+   BN::Out->compare($file);
 }
 
 1 # end BN::Out::Other

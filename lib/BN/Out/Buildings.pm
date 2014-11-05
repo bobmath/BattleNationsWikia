@@ -9,7 +9,6 @@ sub write {
    foreach my $build (BN::Building->all()) {
       my $dir = $build->build_menu() ? 'buildings' : 'other';
       my $file = BN::Out->filename($dir, $build->name());
-      print $file, "\n";
       open my $F, '>', $file or die "Can't write $file: $!";;
 
       building_summary($F, $build);
@@ -21,7 +20,7 @@ sub write {
 
       print $F "\n", dump($build), "\n";
       close $F;
-      BN::Out->checksum($file);
+      BN::Out->compare($file);
    }
 }
 

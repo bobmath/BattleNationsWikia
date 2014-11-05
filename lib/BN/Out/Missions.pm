@@ -15,7 +15,7 @@ my ($curr_lo, $curr_hi);
 sub level_pages {
    $curr_hi = 0;
    my $max = BN::Level->max();
-   my $F;
+   my ($file, $F);
    foreach my $mis (
       sort { $a->level() <=> $b->level() || $a->name() cmp $b->name() }
       grep { $_->level() } BN::Mission->all())
@@ -26,13 +26,16 @@ sub level_pages {
          if ($curr_hi > $max && $curr_lo <= $max) {
             $curr_hi = $max;
          }
-         my $file = BN::Out->filename('missions',
+         close $F if $F;
+         BN::Out->compare($file) if $file;
+         $file = BN::Out->filename('missions',
             "Level $curr_lo-$curr_hi missions");
          open $F, '>:utf8', $file or die "Can't write $file: $!";
       }
       show_mission($F, $mis);
    }
    close $F if $F;
+   BN::Out->compare($file) if $file;
 }
 
 sub index_page {
@@ -75,16 +78,16 @@ sub index_page {
    }
 
    close $F;
+   BN::Out->compare($file);
 }
 
 sub mission_pages {
    foreach my $mis (BN::Mission->all()) {
       my $file = BN::Out->filename('missions', $mis->level(), $mis->name());
-      print $file, "\n";
       open my $F, '>:utf8', $file or die "Can't write $file: $!";;
       print $F dump($mis), "\n";
       close $F;
-      BN::Out->checksum($file);
+      BN::Out->compare($file);
    }
 }
 

@@ -68,7 +68,7 @@ sub write {
       "| {{Population|$prev_pop}}\n| $prev_land\n|}\n\n";
 
    close $F;
-   BN::Out->checksum($file);
+   BN::Out->compare($file);
 }
 
 1 # end BN::Out::Levels

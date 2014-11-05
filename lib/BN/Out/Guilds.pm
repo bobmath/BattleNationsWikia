@@ -28,7 +28,7 @@ sub write {
 
    print $F dump($guilds);
    close $F;
-   BN::Out->checksum($file);
+   BN::Out->compare($file);
 }
 
 1 # end BN::Out::Guilds
