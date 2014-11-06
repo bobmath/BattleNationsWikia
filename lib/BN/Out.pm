@@ -45,7 +45,10 @@ sub filename {
    open $LIST, '>', 'data/list.txt' unless $LIST;
    print $LIST $file, "\n";
    my $old = $file . '.old';
-   rename $file, $old unless -f $old;
+   if (!-f $old) {
+      my $OLD;
+      rename $file, $old or open $OLD, '>', $old and close $OLD;
+   }
    return $file;
 }
 
