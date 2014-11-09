@@ -5,6 +5,7 @@ use Data::Dump qw( dump );
 
 sub write {
    write_land();
+   write_text();
 }
 
 sub write_land {
@@ -26,6 +27,14 @@ sub write_land {
    }
 
    print $F "|}\n";
+   close $F;
+   BN::Out->compare($file);
+}
+
+sub write_text {
+   my $file = BN::Out->filename('info', 'Text');
+   open my $F, '>', $file or die "Can't write $file: $!\n";
+   print $F dump(BN::Text::get_all()), "\n";
    close $F;
    BN::Out->compare($file);
 }
