@@ -300,10 +300,13 @@ my %ignore_types;
 $ignore_types{$_} = 1 foreach qw(
    Airc
    Ani
+   Crossover
+   Crossover2
    FlyingCritter
    Hospital
    Inf
    MissileStrike
+   SRB
    Sol
    VRB
    Veh
@@ -357,6 +360,7 @@ BN->list_accessor(weapons => sub {
 
 my %immune = (
    Acid        => '{{Acid}} Acid',
+   Breach      => '{{Breach}} Breach',
    Cold        => '{{ColdEnvironment}} Cold Environment',
    Fire        => '{{FireDOT}} Fire',
    Flammable   => '{{Flammable}} Flammable',
