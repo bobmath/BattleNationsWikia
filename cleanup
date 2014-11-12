@@ -1,0 +1,27 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use File::Find qw( find );
+
+my %files;
+$files{'data/list.txt'} = 1;
+open my $F, '<', 'data/list.txt' or die "Can't read listfile\n";
+while (<$F>) {
+   chomp;
+   $files{$_} = 1;
+   s/\xe9/e\xcc\x81/g and $files{$_} = 1; # stupid unicode kludge
+}
+close $F;
+
+find(\&found, 'data');
+sub found {
+   if (!-f $_) {
+      $File::Find::prune = 1 if $File::Find::name eq 'data/game';
+      return;
+   }
+   if (!$files{$File::Find::name}) {
+      print $File::Find::name, "\n";
+      unlink $_;
+   }
+}
+
