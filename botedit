@@ -6,77 +6,89 @@ use MW::UserAgent;
 my $ua = MW::UserAgent->new('http://battlenations.wikia.com/api.php');
 $ua->login();
 
-my $summary = 'Defense';
+my $summary = 'Unit limit';
 
-foreach my $file (glob 'edit/*') {
-   open my $F, '<', $file or die;
-   my $name = <$F>;
-   die unless defined($name);
-   chomp($name);
-   my $text = do { local $/ = undef; <$F> };
-   close $F;
-   $text =~ s/\n__DUMP__\n.*//s;
+die "usage: $0 files\n" unless @ARGV;
+
+foreach my $file (@ARGV) {
+   my $oldfile = $file;
+   $file =~ s/\.old$//i or $oldfile .= '.old';
+
+   my ($text, $name) = read_dump_file($file);
+   my ($oldtext) = read_dump_file($oldfile);
+   write_file('temp.old', $oldtext);
+   write_file('temp', $text);
+   system 'diff -u temp.old temp > temp.diff';
 
    print "\n>>> $name <<<\n";
-
    sleep 1;
    my $info = $ua->get_info($name, 'text', 'edit') or die;
    die unless $info->{_text};
    die unless $info->{edittoken};
 
-#   my @file_parts = split /^(=+.*?=+)$/m, $text;
-#   my @wiki_parts = split /^(=+.*?=+)$/m, $info->{_text};
-#
-#   my ($file_pos) =
-#      grep { $file_parts[$_] =~ /^=+\s*Statistics/ } 0 .. $#file_parts or next;
-#   my ($wiki_pos) =
-#      grep { $wiki_parts[$_] =~ /^=+\s*Statistics/ } 0 .. $#wiki_parts or next;
-#
-#   $wiki_parts[$wiki_pos+1] = $file_parts[$file_pos+1];
-#   my $new_text = join('', @wiki_parts);
+   write_file('temp.old', $info->{_text});
+   write_file('temp', $info->{_text});
+   system 'patch -p0 -N -l < temp.diff';
 
-   my $new_text = $info->{_text};
-   my ($profile) = $text =~ /^\| image\s*=[^\n]*(.*?^}})/ms or die;
-   $new_text =~ s/^(\| image\s*=[^\n]*).*?^}}/$1$profile/ms or die;
-
-   if (minspace($new_text) eq minspace($info->{_text})) {
-      unlink $file;
+   my $newtext = read_file('temp');
+   if (minspace($newtext) eq minspace($info->{_text})) {
+      unlink $oldfile;
       next;
    }
 
-   open my $G, '>:utf8', 'temp' or die;
-   print $G $info->{_text} or die;
-   close $G or die;
-   open $G, '>:utf8', 'temp2' or die;
-   print $G $new_text or die;
-   close $G or die;
-
    my $line;
    while (1) {
-      system "diff -bu temp temp2";
+      system 'diff -bu temp.old temp';
       print "ok? ";
       $line = <STDIN>;
       last unless $line && $line =~ /e/i;
-      system "vi temp2";
-      open $G, '<:utf8', 'temp2' or die;
-      $new_text = do { local $/ = undef; <$G> };
-      close $G;
+      system 'vi temp';
+      $newtext = read_file('temp');
    }
    last unless defined $line;
    if ($line =~ /y/i) {
-      $ua->edit($name, $new_text, $summary, $info->{edittoken}, 'nocreate');
-      unlink $file;
+      $ua->edit($name, $newtext, $summary, $info->{edittoken}, 'nocreate');
+      unlink $oldfile;
       print "Edited\n";
    }
-   unlink $file if $line =~ /n/i;
+   unlink $oldfile if $line =~ /n/i;
    last if $line =~ /q/i;
 }
 
-unlink 'temp', 'temp2';
+unlink 'temp', 'temp.old', 'temp.diff', 'temp.orig', 'temp.rej';
 
 sub minspace {
    my ($str) = @_;
    $str =~ s/[ \t]+/ /g;
    return $str;
+}
+
+sub read_dump_file {
+   my ($file) = @_;
+   open my $F, '<:encoding(utf8)', $file or die "Can't read $file: $!\n";
+   my $name = <$F>;
+   die unless defined($name);
+   chomp($name);
+   local $/ = undef;
+   my $text = <$F>;
+   close $F;
+   $text =~ s/\n__DUMP__\n.*//s;
+   return ($text, $name);
+}
+
+sub read_file {
+   my ($file) = @_;
+   open my $F, '<:encoding(utf8)', $file or die "Can't read $file: $!\n";
+   local $/ = undef;
+   my $text = <$F>;
+   close $F;
+   return $text;
+}
+
+sub write_file {
+   my ($file, $text) = @_;
+   open my $F, '>:encoding(utf8)', $file or die "Can't write $file: $!\n";
+   print $F $text or die "print: $!";
+   close $F or die "close: $!";
 }
 
