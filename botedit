@@ -6,7 +6,7 @@ use MW::UserAgent;
 my $ua = MW::UserAgent->new('http://battlenations.wikia.com/api.php');
 $ua->login();
 
-my $summary = 'Unit limit';
+my $summary = 'Update';
 
 die "usage: $0 files\n" unless @ARGV;
 
@@ -14,10 +14,10 @@ foreach my $file (@ARGV) {
    my $oldfile = $file;
    $file =~ s/\.old$//i or $oldfile .= '.old';
 
-   my ($text, $name) = read_dump_file($file);
-   my ($oldtext) = read_dump_file($oldfile);
-   write_file('temp.old', $oldtext);
-   write_file('temp', $text);
+   my ($text, $name) = read_file($file) or next;
+   my ($oldtext) = read_file($oldfile) or next;
+   write_file('temp.old', $summary, "\n", $oldtext);
+   write_file('temp', $summary, "\n", $text);
    system 'diff -u temp.old temp > temp.diff';
 
    print "\n>>> $name <<<\n";
@@ -26,11 +26,12 @@ foreach my $file (@ARGV) {
    die unless $info->{_text};
    die unless $info->{edittoken};
 
-   write_file('temp.old', $info->{_text});
-   write_file('temp', $info->{_text});
+   write_file('temp.old', $summary, "\n", $info->{_text});
+   write_file('temp', $summary, "\n", $info->{_text});
    system 'patch -p0 -N -l < temp.diff';
+   next if unlink 'temp.rej';
 
-   my $newtext = read_file('temp');
+   my ($newtext) = read_file('temp') or die;
    if (minspace($newtext) eq minspace($info->{_text})) {
       unlink $oldfile;
       next;
@@ -39,11 +40,12 @@ foreach my $file (@ARGV) {
    my $line;
    while (1) {
       system 'diff -bu temp.old temp';
+      print "--- $summary\n";
       print "ok? ";
       $line = <STDIN>;
       last unless $line && $line =~ /e/i;
       system 'vi temp';
-      $newtext = read_file('temp');
+      ($newtext, $summary) = read_file('temp') or die;
    }
    last unless defined $line;
    if ($line =~ /y/i) {
@@ -55,7 +57,7 @@ foreach my $file (@ARGV) {
    last if $line =~ /q/i;
 }
 
-unlink 'temp', 'temp.old', 'temp.diff', 'temp.orig', 'temp.rej';
+unlink 'temp', 'temp.old', 'temp.diff', 'temp.orig';
 
 sub minspace {
    my ($str) = @_;
@@ -63,12 +65,12 @@ sub minspace {
    return $str;
 }
 
-sub read_dump_file {
+sub read_file {
    my ($file) = @_;
    open my $F, '<:encoding(utf8)', $file or die "Can't read $file: $!\n";
    my $name = <$F>;
-   die unless defined($name);
-   chomp($name);
+   return unless defined $name;
+   chomp $name;
    local $/ = undef;
    my $text = <$F>;
    close $F;
@@ -76,19 +78,10 @@ sub read_dump_file {
    return ($text, $name);
 }
 
-sub read_file {
-   my ($file) = @_;
-   open my $F, '<:encoding(utf8)', $file or die "Can't read $file: $!\n";
-   local $/ = undef;
-   my $text = <$F>;
-   close $F;
-   return $text;
-}
-
 sub write_file {
-   my ($file, $text) = @_;
+   my ($file, @text) = @_;
    open my $F, '>:encoding(utf8)', $file or die "Can't write $file: $!\n";
-   print $F $text or die "print: $!";
+   print $F @text or die "print: $!";
    close $F or die "close: $!";
 }
 
