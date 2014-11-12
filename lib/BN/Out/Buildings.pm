@@ -18,7 +18,7 @@ sub write {
       quest_goods($F, $build);
       building_levels($F, $build);
 
-      print $F "\n", dump($build), "\n";
+      print $F "\n__DUMP__\n", dump($build), "\n";
       close $F;
       BN::Out->compare($file);
    }

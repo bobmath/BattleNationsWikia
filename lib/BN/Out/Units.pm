@@ -38,7 +38,7 @@ sub write {
       enemy_defense($F, $units);
       enemy_attacks($F, $units, $affil);
 
-      print $F "\n", dump($units), "\n";
+      print $F "\n__DUMP__\n", dump($units), "\n";
       close $F;
       BN::Out->compare($file);
    }
