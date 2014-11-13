@@ -300,7 +300,6 @@ my %ignore_types;
 $ignore_types{$_} = 1 foreach qw(
    Airc
    Ani
-   Crossover
    Crossover2
    FlyingCritter
    Hospital
