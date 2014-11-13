@@ -1,39 +1,68 @@
 use strict;
 use warnings;
 use lib 'lib';
+use Getopt::Std qw( getopts );
 use MW::UserAgent;
+
+my %opts;
+getopts('fs:', \%opts) or die;
+my $FORCE = $opts{f};
+my $summary = $opts{s} || 'Update';
+die "usage: $0 files\n" unless @ARGV;
 
 my $ua = MW::UserAgent->new('http://battlenations.wikia.com/api.php');
 $ua->login();
 
-my $summary = 'Update';
-
-die "usage: $0 files\n" unless @ARGV;
-
 foreach my $file (@ARGV) {
-   my $oldfile = $file;
-   $file =~ s/\.old$//i or $oldfile .= '.old';
+   my $old_file = $file;
+   $file =~ s/\.old$//i or $old_file .= '.old';
 
    my ($text, $name) = read_file($file) or next;
-   my ($oldtext) = read_file($oldfile) or next;
-   write_file('temp.old', $summary, "\n", $oldtext);
-   write_file('temp', $summary, "\n", $text);
-   system 'diff -u temp.old temp > temp.diff';
+   if (!$FORCE) {
+      my ($old_text) = read_file($old_file) or next;
+      write_file('temp.old', $summary, "\n", $old_text);
+      write_file('temp', $summary, "\n", $text);
+      system 'diff -u temp.old temp > temp.diff';
+   }
 
    print "\n>>> $name <<<\n";
    sleep 1;
-   my $info = $ua->get_info($name, 'text', 'edit') or die;
-   die unless $info->{_text};
-   die unless $info->{edittoken};
-
+   my $info = eval { $ua->get_info($name, 'text', 'edit') };
+   warn $@ if $@;
+   next unless $info && $info->{_text} && $info->{edittoken};
    write_file('temp.old', $summary, "\n", $info->{_text});
-   write_file('temp', $summary, "\n", $info->{_text});
-   system 'patch -p0 -N -l < temp.diff';
-   next if unlink 'temp.rej';
 
-   my ($newtext) = read_file('temp') or die;
-   if (minspace($newtext) eq minspace($info->{_text})) {
-      unlink $oldfile;
+   my $new_text;
+   if ($FORCE) {
+      my @wiki_parts = split /^(=+.*?=+)$/m, $info->{_text};
+      my %index;
+      for (my $i = 1; $i < $#wiki_parts; $i += 2) {
+         $index{$wiki_parts[$i]} = $i;
+      }
+
+      my @file_parts = split /^(=+.*?=+)$/m, $text;
+      for (my $i = 1; $i < $#file_parts; $i += 2) {
+         next if $file_parts[$i] =~ /Overview/;
+         if (my $j = $index{$file_parts[$i]}) {
+            $wiki_parts[$j+1] = $file_parts[$i+1];
+         }
+         else {
+            push @wiki_parts, $file_parts[$i], $file_parts[$i+1];
+         }
+      }
+
+      $new_text = join '', @wiki_parts;
+      write_file('temp', $summary, "\n", $new_text);
+   }
+   else {
+      write_file('temp', $summary, "\n", $info->{_text});
+      system 'patch -p0 -N -l < temp.diff';
+      next if unlink 'temp.rej';
+      ($new_text) = read_file('temp') or die;
+   }
+
+   if (minspace($new_text) eq minspace($info->{_text})) {
+      unlink $old_file;
       next;
    }
 
@@ -45,15 +74,15 @@ foreach my $file (@ARGV) {
       $line = <STDIN>;
       last unless $line && $line =~ /e/i;
       system 'vi temp';
-      ($newtext, $summary) = read_file('temp') or die;
+      ($new_text, $summary) = read_file('temp') or die;
    }
    last unless defined $line;
    if ($line =~ /y/i) {
-      $ua->edit($name, $newtext, $summary, $info->{edittoken}, 'nocreate');
-      unlink $oldfile;
+      $ua->edit($name, $new_text, $summary, $info->{edittoken}, 'nocreate');
+      unlink $old_file;
       print "Edited\n";
    }
-   unlink $oldfile if $line =~ /n/i;
+   unlink $old_file if $line =~ /n/i;
    last if $line =~ /q/i;
 }
 
