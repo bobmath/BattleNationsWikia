@@ -123,8 +123,7 @@ BN->accessor(notes => sub {
    return join('<br>', @notes);
 });
 
-BN->multi_accessor('effects', 'dotduration', 'dottype',
-sub {
+BN->multi_accessor('effects', 'dotduration', 'dottype', sub {
    my ($att) = @_;
    my $efflist = $att->{statusEffects} or return;
    my ($effects, $dotduration, $dottype);
@@ -133,30 +132,27 @@ sub {
       my $chance = $efflist->{$tag};
       if (my $eff = BN::StatusEffect->get($tag)) {
          my $fam = $eff->family();
+         my $dur = $eff->duration();
          if ($fam eq 'Fire') {
             $dottype = $eff->diminish() ? 'fire' : 'napalm';
-            $dotduration = $eff->duration();
-            push @effects, "{{FireDOT|chance=$chance|duration=$dotduration}}";
-            next;
+            $fam = 'FireDOT';
          }
-         if ($fam eq 'Poison') {
+         elsif ($fam eq 'Poison') {
             $dottype = 'poison';
-            $dotduration = $eff->duration();
-            push @effects, "{{PoisonDOT|chance=$chance|duration=$dotduration}}";
-            next;
+            $fam = 'PoisonDOT';
          }
-         if ($fam eq 'Frozen') {
-            my $d = $eff->duration();
-            push @effects, "{{Freeze|chance=$chance|duration=$d}}";
-            next;
+         elsif ($fam eq 'Breach') {
+            $dottype = 'breach';
          }
-         if ($fam eq 'Flammable' || $fam eq 'Shatter' || $fam eq 'Stun') {
-            my $d = $eff->duration();
-            push @effects, "{{$fam|chance=$chance|duration=$d}}";
-            next;
+         elsif ($fam eq 'Frozen') {
+            $fam = 'Freeze';
          }
+         $dotduration = $dur if $dottype;
+         push @effects, "{{$fam|chance=$chance|duration=$dur}}";
       }
-      push @effects, "$tag ($chance%)";
+      else {
+         push @effects, "$tag ($chance%)";
+      }
    }
    $effects = join('<br>', @effects) if @effects;
    return ($effects, $dotduration, $dottype);
