@@ -2,14 +2,19 @@ package BN::Encounter;
 use strict;
 use warnings;
 
-my $json_file = 'BattleEncounters.json';
-my $encounters;
+my (%encounters, %tables);
+sub load {
+   return if %encounters;
+   my $land = BN::File->json('BattleEncounters.json');
+   my $sea  = BN::File->json('NavalEncounters.json');
+   %encounters = ( %{$land->{armies}}, %{$sea->{armies}} );
+   %tables = ( %{$land->{tables}}, %{$sea->{tables}} );
+}
 
 sub all {
    my ($class) = @_;
-   $encounters ||= BN::File->json($json_file);
-   return map { $class->get($_) } sort grep { !/^test/ }
-      keys %{$encounters->{armies}};
+   load() unless %encounters;
+   return map { $class->get($_) } sort grep { !/^test/ } keys %encounters;
 }
 
 my %names = (
@@ -19,8 +24,8 @@ my %names = (
 sub get {
    my ($class, $key) = @_;
    return unless $key;
-   $encounters ||= BN::File->json($json_file);
-   my $enc = $encounters->{armies}{$key} or return;
+   load() unless %encounters;
+   my $enc = $encounters{$key} or return;
    if (ref($enc) eq 'HASH') {
       bless $enc, $class;
       $enc->{_tag} = $key;
@@ -72,18 +77,18 @@ sub waves {
    return \@waves;
 }
 
-my %tables;
+my %enc_tables;
 sub tables {
    my ($enc) = @_;
-   if (!%tables) {
-      foreach my $key (sort keys %{$encounters->{tables}}) {
-         my $table = $encounters->{tables}{$key};
+   if (!%enc_tables) {
+      foreach my $key (sort keys %tables) {
+         my $table = $tables{$key};
          foreach my $inf (@{$table->{encounters}}) {
             push @{$tables{$inf->{encounterId}}}, $key;
          }
       }
    }
-   my $tbls = $tables{$enc->tag()} or return;
+   my $tbls = $enc_tables{$enc->tag()} or return;
    return @$tbls;
 }
 
@@ -158,8 +163,7 @@ sub calc_levels {
    my ($class) = @_;
    $_->{_level} = undef foreach $class->all();
 
-   my $tables = $encounters->{tables} or die;
-   foreach my $table (values %$tables) {
+   foreach my $table (values %tables) {
       my $levels = $table->{levels} or next;
       my $min = $levels->{min} or next;
       my $elist = $table->{encounters} or next;
