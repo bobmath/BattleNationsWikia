@@ -51,6 +51,10 @@ foreach my $file (@ARGV) {
          }
       }
 
+      if (my ($profile) = $file_parts[0] =~ /^\| image *=[^\n]*\n(.*?\n}})/ms) {
+         $wiki_parts[0] =~ s/^(\|\s*image\s*=[^\n]*\n).*?\n}}/$1$profile/ms;
+      }
+
       $new_text = join '', @wiki_parts;
       write_file('temp', $summary, "\n", $new_text);
    }
