@@ -30,7 +30,7 @@ foreach my $file (@ARGV) {
    my $info = eval { $ua->get_info($name, 'text', 'edit') };
    warn $@ if $@;
    next unless $info && $info->{_text} && $info->{edittoken};
-   write_file('temp.old', $summary, "\n", $info->{_text});
+   write_file('temp.old', $summary, "\n", $info->{_text}, "\n");
 
    my $new_text;
    if ($FORCE) {
