@@ -631,10 +631,12 @@ sub guess_affil {
    foreach my $unit (@$units) {
       return $unit->{_affiliation} if $unit->{_affiliation};
       my $tag = $unit->tag();
-      return 'fr'     if $tag =~ /fr_/;
+      return 'fr'     if $tag =~ /^fr_/;
       return 'inf'    if $tag =~ /_zombie_/;
       return 'raider' if $tag =~ /_raider/;
+      return 'rb'     if $tag =~ /^rb_/;
       return 'rebel'  if $tag =~ /_rebel/;
+      return 'sn'     if $tag =~ /^ship_/;
       return 'sw'     if $tag =~ /sw_/;
       my $type = $unit->type() // '';
       return 'critter' if $type =~ /Critter|Spiderwasp/;
