@@ -48,7 +48,8 @@ sub read_index {
       my $file = $line =~ s{ => (.*)}{} ? $1 : $line;
       if (lc($file) =~ /$pat/) {
          $found{$file} = "$srcdir/$line";
-         $newest = $srcdir if $srcdir ge $newest || $newest eq $dir;
+         $newest = $srcdir if $srcdir ne $dir
+            && ($srcdir ge $newest || $newest eq $dir);
       }
    }
    close $INDEX;
