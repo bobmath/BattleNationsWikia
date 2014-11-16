@@ -1,0 +1,57 @@
+#!/usr/bin/env perl
+# Find the path to the latest version of a named game file.
+use strict;
+use warnings;
+
+{
+   my $num = 1;
+   my $skip = 0;
+   while (@ARGV) {
+      if    ($ARGV[0] =~ /^\d+$/)  { $num  = 0 + shift @ARGV }
+      elsif ($ARGV[0] =~ /^-\d+$/) { $skip = 0 - shift @ARGV }
+      else { last }
+   }
+   die "usage: $0 [num] [-skip] file...\n" unless @ARGV;
+   my $pat = join '|',
+      map { my $f = lc; $f =~ s/\./\\./g; $f =~ s/\*/.*/g; $f } @ARGV;
+   $pat = qr/^(?:$pat)$/;
+
+   opendir my $GAMEDIR, 'data/game' or die "Can't read game dir: $!\n";
+   my @dirs = reverse sort grep { /^\d\d\d\d-\d\d-\d\d-\d\d-\d\d$/ }
+      readdir $GAMEDIR;
+   closedir $GAMEDIR;
+
+   my @out;
+   while (@dirs && ($num || $skip)) {
+      my ($found, $newest) = read_index(shift(@dirs), $pat);
+      if ($skip) {
+         $skip--;
+      }
+      else {
+         $num--;
+         unshift @out, map { $found->{$_} } sort keys %$found;
+      }
+      shift @dirs while @dirs && $dirs[0] ge $newest;
+   }
+   print "data/game/$_\n" foreach @out;
+}
+
+sub read_index {
+   my ($dir, $pat) = @_;
+   open my $INDEX, '<', "data/game/$dir/!index.txt"
+      or die "Can't read $dir/!index.txt: $!\n";
+   my %found;
+   my $newest = $dir;
+   while (defined(my $line = <$INDEX>)) {
+      chomp $line;
+      my $srcdir = $line =~ s{^(.*?)/}{} ? $1 : $dir;
+      my $file = $line =~ s{ => (.*)}{} ? $1 : $line;
+      if (lc($file) =~ /$pat/) {
+         $found{$file} = "$srcdir/$line";
+         $newest = $srcdir if $srcdir ge $newest || $newest eq $dir;
+      }
+   }
+   close $INDEX;
+   return (\%found, $newest);
+}
+
