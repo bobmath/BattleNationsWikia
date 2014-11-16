@@ -14,7 +14,7 @@ unless ($outfile) {
    $outfile .= '.png';
 }
 
-open my $IN, '<', $file or die;
+open my $IN, '<', $file or die "Can't read $file: $!\n";
 seek $IN, 52, 0;
 
 my $bits = 8;
