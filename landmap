@@ -102,8 +102,15 @@ my $im_hgt = $ymax - $ymin;
 my $surface = Cairo::ImageSurface->create($im_type, $im_wid, $im_hgt);
 my $ctx = Cairo::Context->create($surface);
 
-my $tilesetfile = "../bg/${tileset}_split.png";
-my $tileimg = Cairo::ImageSurface->create_from_png($tilesetfile) or die;
+my ($tileimg, $tilesetfile, $tilestatus);
+foreach my $dir ('../bg/', 'bg/', '') {
+   $tilesetfile = $dir . $tileset . '_split.png';
+   $tileimg = Cairo::ImageSurface->create_from_png($tilesetfile) or die;
+   $tilestatus = $tileimg->status();
+   last if $tilestatus eq 'success';
+}
+die "Error: create_from_png('$tilesetfile'): $tilestatus\n"
+   unless $tilestatus eq 'success';
 
 $i = 0;
 for my $y (0 .. $hgt-1) {
