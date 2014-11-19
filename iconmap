@@ -46,6 +46,7 @@ front["blockhouses_idle"]={x=55,y=142,w=112,f="Blockhouses_idle_front.png"}
 front["boss_goliath_tank_leftside"]={x=77,y=318,w=227,f="Boss_goliath_tank_leftside_front.png"}
 front["boss_goliath_tank_main"]={x=122,y=380,w=378,f="Boss_goliath_tank_main_front.png"}
 front["boss_goliath_tank_rightside"]={x=37,y=266,w=230,f="Boss_goliath_tank_rightside_front.png"}
+front["boss_ship_dreadnought"]={x=107,y=313,w=337,f="Boss_ship_dreadnought_front.png"}
 front["boss_spiderwasp_queen"]={x=134,y=237,w=213,f="Boss_spiderwasp_queen_front.png"}
 front["cannonSchoolBus"]={x=58,y=146,w=124,f="CannonSchoolBus_front.png"}
 front["cannonraider"]={x=54,y=137,w=83,f="Cannonraider_front.png"}
@@ -200,6 +201,7 @@ front["s_trooper_zombie_tank_super"]={x=66,y=133,w=129,f="S_trooper_zombie_tank_
 front["saboteur"]={x=26,y=134,w=56,f="Saboteur_front.png"}
 front["sandwormSm"]={x=56,y=133,w=93,f="SandwormSm_front.png"}
 front["scoutbike_grey"]={x=42,y=109,w=91,f="Scoutbike_grey_front.png"}
+front["ship_submarine"]={x=43,y=108,w=119,f="Ship_submarine_front.png"}
 front["shocktrooper_grey"]={x=40,y=110,w=74,f="Shocktrooper_grey_front.png"}
 front["shotgunner"]={x=24,y=116,w=59,f="Shotgunner_front.png"}
 front["sniper_grey"]={x=37,y=105,w=68,f="Sniper_grey_front.png"}
