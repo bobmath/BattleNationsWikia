@@ -6,7 +6,7 @@ use POSIX qw( ceil );
 
 sub write {
    foreach my $strike (BN::BossStrike->all()) {
-      my $file = BN::Out->filename('strikes', $strike->name());
+      my $file = BN::Out->filename('strikes', $strike->tag());
       open my $F, '>', $file or die "Can't write $file: $!";
 
       if (my $icon = BN::Out->icon($strike->icon(), 'right')) {

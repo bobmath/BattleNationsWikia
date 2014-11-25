@@ -5,10 +5,24 @@ use warnings;
 my (%encounters, %tables);
 sub load {
    return if %encounters;
-   my $land = BN::File->json('BattleEncounters.json');
-   my $sea  = BN::File->json('NavalEncounters.json');
-   %encounters = ( %{$land->{armies}}, %{$sea->{armies}} );
-   %tables = ( %{$land->{tables}}, %{$sea->{tables}} );
+   foreach my $file (qw( BattleEncounters.json NavalEncounters.json
+      BSEncounters.json ))
+   {
+      my $json = eval { BN::File->json($file) };
+      warn $@ if $@;
+      next unless $json;
+      if (my $armies = $json->{armies}) {
+         while (my ($k,$v) = each %$armies) {
+            $encounters{$k} = $v;
+         }
+      }
+      if (my $tables = $json->{tables}) {
+         while (my ($k,$v) = each %$tables) {
+            $tables{$k} = $v;
+         }
+      }
+   }
+   die 'No encounters found' unless %encounters;
 }
 
 sub all {

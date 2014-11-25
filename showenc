@@ -11,8 +11,10 @@ use POSIX qw( ceil floor );
 die "Usage: $0 strike_id | encounter_id\n" unless @ARGV == 1;
 
 my %maps = (
+   'BattleMapBay.png'   => 'bay',
    'BattleMapCave.png'  => 'cave',
    'BattleMapMarin.png' => 'city',
+   'BattleMapOcean.png' => 'ocean',
    'BattleMapSnow.png'  => 'snow',
 );
 
@@ -102,8 +104,8 @@ sub write_strike {
          my $eids = $tiers->{$tnum} or next;
          my $enum;
          foreach my $eid (sort keys %$eids) {
-            show_encounter($F, BN::Encounter->get($eid),
-               'Battle ' . ++$enum, $mult);
+            my $enc = BN::Encounter->get($eid) or die "missing: $eid";
+            show_encounter($F, $enc, 'Battle ' . ++$enum, $mult);
          }
          print $F "[[Category:Boss Strike Battles]]\n";
       }
