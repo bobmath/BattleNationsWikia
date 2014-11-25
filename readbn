@@ -4,8 +4,17 @@ use strict;
 use warnings;
 use lib 'lib';
 use BN::Out;
+use Getopt::Std;
 
-BN::File->promos();
-BN::File->update();
+my %opts;
+getopts('d:', \%opts) or die "Bad options\n";
+
+if ($opts{d}) {
+   BN::File->set_date($opts{d});
+}
+else {
+   BN::File->promos();
+   BN::File->update();
+}
 BN::Out->write();
 

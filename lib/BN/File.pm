@@ -8,7 +8,7 @@ use File::HomeDir ();
 use JSON::XS qw( decode_json );
 use POSIX qw( strftime );
 
-my ($app_dir, $new_dir, $promo_dir);
+my ($app_dir, $new_dir, $promo_dir, %file_index);
 if ($^O eq 'darwin') {
    $app_dir = '/Applications/BattleNations.app/Contents/Resources/bundle';
    my $cache_dir = File::HomeDir->my_home()
@@ -168,8 +168,24 @@ sub copy_json {
    return $ret;
 }
 
+sub set_date {
+   my ($class, $date) = @_;
+   open my $INDEX, '<', "data/game/$date/!index.txt"
+      or die "Can't read game dir $date: $!\n";
+   while (defined(my $line = <$INDEX>)) {
+      chomp $line;
+      my $dir = $line =~ s{^(.*?)/}{} ? $1 : $date;
+      my $file = $line =~ s{ => (.*)}{} ? $1 : $line;
+      $file_index{lc($file)} = "data/game/$dir/$line";
+   }
+   close $INDEX;
+}
+
 sub get {
    my ($class, $file) = @_;
+   if (%file_index) {
+      return $file_index{lc($file)};
+   }
    return "$new_dir/$file" if -f "$new_dir/$file";
    return "$app_dir/$file" if -f "$app_dir/$file";
    return;
@@ -179,15 +195,21 @@ sub read {
    my ($class, $file, $enc) = @_;
    $enc //= '';
    my $F;
-   open $F, "<$enc", "$new_dir/$file"
-   or open $F, "<$enc", "$app_dir/$file"
-   or die "Can't read $file: $!\n";
+   if (%file_index) {
+      my $path = $file_index{lc($file)} or die "No such file: $file\n";
+      open $F, "<$enc", $path or die "Can't read $path: $!\n";
+   }
+   else {
+      open $F, "<$enc", "$new_dir/$file"
+      or open $F, "<$enc", "$app_dir/$file"
+      or die "Can't read $file: $!\n";
+   }
    return $F;
 }
 
 sub json {
    my ($class, $file) = @_;
-   my $F = $class->read($file, ':encoding(utf8)');
+   my $F = $class->read($file, ':raw');
    local $/ = undef;
    my $data = decode_json(<$F>);
    scrub($data);
