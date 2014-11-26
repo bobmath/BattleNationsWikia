@@ -73,7 +73,7 @@ foreach my $file (@ARGV) {
    my $line;
    while (1) {
       system 'diff -bu temp.old temp';
-      print "--- $summary\n";
+      print "--- $name --- $summary\n";
       print "ok? ";
       $line = <STDIN>;
       last unless $line && $line =~ /e/i;
