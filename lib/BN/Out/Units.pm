@@ -126,7 +126,7 @@ sub damage_mods {
 
 sub profile_line {
    my ($F, $tag, $val) = @_;
-   printf $F "| %-22s = %s\n", $tag, $val if defined $val;
+   printf $F "| %-18s = %s\n", $tag, $val if defined $val;
 }
 
 sub unit_weapons {
