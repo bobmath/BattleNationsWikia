@@ -517,8 +517,6 @@ BN->accessor(other_reqs => sub {
    my ($unit) = @_;
    my @reqs;
    my $build = $unit->building() // '';
-   push @reqs, '[[Prestigious Academy]]'
-      if $build eq 'comp_milUnit_prestige';
    if (my $prereqs = $unit->{prereq}) {
       foreach my $key (sort keys %$prereqs) {
          my $prereq = $prereqs->{$key} or next;
