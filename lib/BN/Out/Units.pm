@@ -358,7 +358,7 @@ my %build_map = (
 
 sub unit_cost {
    my ($F, $unit) = @_;
-   my $build = $unit->build_cost();
+   my $build = $unit->building() && $unit->build_cost();
    my $heal = $unit->heal_cost();
    return unless $build || $heal;
    print $F "==Cost==\n";
