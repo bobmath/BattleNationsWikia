@@ -168,7 +168,6 @@ sub get_by_name {
 
 BN->simple_accessor('tag');
 BN->simple_accessor('name');
-BN->simple_accessor('building_level', 'buildingLevel');
 BN->simple_accessor('side', 'side');
 BN->simple_accessor('size', 'size');
 BN->simple_accessor('icon', 'icon');
@@ -408,6 +407,17 @@ sub building {
       }
    }
    return $unit->{_building};
+}
+
+sub building_req {
+   my ($unit) = @_;
+   my $bld_id = $unit->building() or return;
+   my $bld = BN::Building->get($bld_id) or return;
+   my $name = $bld->wikilink();
+   if ($bld->levels() > 1) {
+      $name .= ' level ' . ($unit->{buildingLevel} || 1);
+   }
+   return $name;
 }
 
 sub from_missions {

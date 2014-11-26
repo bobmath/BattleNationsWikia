@@ -44,18 +44,6 @@ sub write {
    }
 }
 
-my %train_map = (
-   comp_milUnit_animalTrainer    => 'animal trainer',
-   comp_milUnit_barracks         => 'barracks',
-   comp_milUnit_bigfootSchool    => 'bigfoot training',
-   comp_milUnit_frontierBarracks => 'frontier recruit',
-   comp_milUnit_laserbarracks    => 'optics facility',
-   comp_milUnit_plasmafactory    => 'plasma factory',
-   comp_milUnit_raiderbarracks   => 'raider training',
-   comp_milUnit_silverWolves     => 'mercenary vault',
-   comp_milUnit_vehiclefactory   => 'vehicle factory',
-);
-
 sub unit_profile {
    my ($F, $unit) = @_;
    my @notes;
@@ -67,10 +55,7 @@ sub unit_profile {
    }
    profile_line($F, 'unit type', $unit->type());
    profile_line($F, 'unit level', $unit->level());
-   if (my $build = $unit->building()) {
-      my $name = $train_map{$build};
-      profile_line($F, "$name level", $unit->building_level() || 1) if $name;
-   }
+   profile_line($F, 'building required', $unit->building_req());
    profile_line($F, 'other requirements', $unit->other_reqs());
    profile_line($F, 'immunities', $unit->immunities());
    profile_line($F, 'blocking', $unit->blocking());
