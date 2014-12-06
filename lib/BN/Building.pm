@@ -424,7 +424,7 @@ sub get_jobs {
    my $jobs = delete($joblist->{jobs}) or return;
    foreach my $id (@$jobs) {
       my $job = BN::Job->get($id) or next;
-      my $field = $job->missions() ? 'z_quest_jobs' : 'z_jobs';
+      my $field = $job->has_mission() ? 'z_quest_jobs' : 'z_jobs';
       push @{$build->{$field}}, $job;
    }
 }

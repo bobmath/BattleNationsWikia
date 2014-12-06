@@ -36,6 +36,19 @@ BN->list_accessor(missions => sub {
    return;
 });
 
+BN->list_accessor(has_mission => sub {
+   my ($job) = @_;
+   my $prereqs = $job->{prereq} or return;
+   foreach my $key (sort keys %$prereqs) {
+      my $prereq = $prereqs->{$key} or next;
+      my $t = $prereq->{_t} or next;
+      next unless $t eq 'ActiveMissionPrereqConfig';
+      next unless $prereq->{missionActive};
+      return 1;
+   }
+   return;
+});
+
 sub buildings {
    my ($job) = @_;
    unless (exists $job->{_buildings}) {
