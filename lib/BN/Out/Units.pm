@@ -354,6 +354,7 @@ sub unit_cost {
       if (my $build = $unit->building()) {
          print_line($F, 'building', $build_map{$build} || $build);
       }
+      print_line($F, 'min', $unit->building_level());
       print_line($F, $_, $build->{$_}) foreach BN->sort_amount(keys %$build);
       print $F "}}\n";
    }

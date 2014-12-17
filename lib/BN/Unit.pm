@@ -176,6 +176,7 @@ BN->simple_accessor('animation', 'frontIdleAnimation');
 BN->simple_accessor('back_animation', 'backIdleAnimation');
 BN->simple_accessor('visibility_prereq', 'visibilityPrereq');
 BN->simple_accessor('preferred_row', 'preferredRow');
+BN->simple_accessor('building_level', 'buildingLevel');
 
 my %shortname = (
 );
