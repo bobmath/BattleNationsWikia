@@ -262,14 +262,23 @@ sub unit_ranks {
 
    my @reqs = map { $_->level_req() } @ranks;
    if (any(@reqs)) {
-      $n = 0;
-      print_line($F, 'levelreq' . ++$n, $_) foreach @reqs;
+      pop @reqs until $reqs[-1];
+      $reqs[0] ||= $unit->level() || 1;
+      $reqs[$_] ||= $reqs[$_-1] foreach 1 .. $#reqs;
+      print_line($F, 'levelreq', join('; ', @reqs));
    }
 
    @reqs = map { $_->prerank_req() } @ranks;
    if (any(@reqs)) {
-      $n = 0;
-      print_line($F, 'prerankreq' . ++$n, $_) foreach @reqs;
+      my $prev = BN::Level->max();
+      pop @reqs until $reqs[-1];
+      for my $i (reverse 1 .. $#reqs) {
+         my $req = $reqs[$i] // $prev;
+         $reqs[$i] = "$req-$prev" if $req < $prev;
+         $prev = $req - 1;
+      }
+      $reqs[0] = ($unit->level() || 1) . '-' . $prev;
+      print_line($F, 'prerankreq', join('; ', @reqs));
    }
 
    print $F "}}\n\n";
