@@ -99,7 +99,7 @@ sub flatten_amount {
       while (my ($k,$v) = each %$src) {
          if (ref $v) {
             if ($k eq 'units') {
-               $flat{$k} = $v;
+               $flat{$k} = $v if %$v;
             }
             else {
                push @src, $v;
