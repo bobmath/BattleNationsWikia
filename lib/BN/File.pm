@@ -1,7 +1,6 @@
 package BN::File;
 use strict;
 use warnings;
-use DBI;
 use Digest::SHA1 ();
 use File::Copy qw( copy );
 use File::HomeDir ();
@@ -29,29 +28,45 @@ else {
 
 sub promos {
    my ($class) = @_;
-   my $dbh = DBI->connect("dbi:SQLite:dbname=$promo_dir/Cache.db",
-      "", "") or die;
-   mkdir 'data';
-   mkdir 'data/game';
-   mkdir 'data/game/promos';
-   my $cache = $dbh->selectall_arrayref(q[
-      select request_key, receiver_data
-      from cfurl_cache_receiver_data
-      inner join cfurl_cache_response
-      on cfurl_cache_receiver_data.entry_id = cfurl_cache_response.entry_id
-      where isDataOnFS == 1
-   ]) or die;
-   open my $LOG, '>>', 'data/game/promos/!index.txt';
-   foreach my $entry (sort { $a->[0] cmp $b->[0] } @$cache) {
-      (my $file = $entry->[0]) =~ s{^.*/}{} or next;
-      my $path = "data/game/promos/$file";
-      next if -e $path;
-      print $file, "\n";
-      print $LOG $entry->[0], "\n";
-      copy "$promo_dir/fsCachedData/$entry->[1]", $path or die;
-   }
-   close $LOG;
-   $dbh->disconnect();
+   eval {
+      require DBI;
+      my $dbh = DBI->connect("dbi:SQLite:dbname=$promo_dir/Cache.db",
+         "", "") or die "Can't read Cache.db";
+      mkdir 'data';
+      mkdir 'data/game';
+      mkdir 'data/game/promos';
+      my $cache = $dbh->selectall_arrayref(q[
+         select request_key, receiver_data
+         from cfurl_cache_receiver_data
+         inner join cfurl_cache_response
+         on cfurl_cache_receiver_data.entry_id = cfurl_cache_response.entry_id
+         where isDataOnFS == 1
+      ]) or die;
+      my $promodir = 'data/game/promos';
+      my $logfile = "$promodir/!index.txt";
+      my %seen;
+      if (open my $LOG, '<', $logfile) {
+         while (<$LOG>) {
+            chomp;
+            $seen{$_}++;
+         }
+         close $LOG;
+      }
+      open my $LOG, '>>', $logfile or die "Can't write $logfile";;
+      foreach my $entry (sort { $a->[0] cmp $b->[0] } @$cache) {
+         my $url = $entry->[0];
+         next if $seen{$url};
+         print $LOG $url, "\n";
+         (my $file = $url) =~ s{^.*/}{} or next;
+         my $path = "$promodir/$file";
+         next if -e $path;
+         print $file, "\n";
+         copy "$promo_dir/fsCachedData/$entry->[1]", $path or die;
+      }
+      close $LOG;
+      $dbh->disconnect();
+   };
+   warn $@ if $@;
 }
 
 sub update {
