@@ -85,13 +85,13 @@ sub _calc_levels {
    } while $changed;
 
    # don't propagate promo levels into non-promo stuff
-   #foreach my $obj (@has_prereqs) {
-   #   next if $obj->is_promo();
-   #   foreach my $group (@{$prereqs{$obj}}) {
-   #      my @new = grep { !$_->is_promo() } @$group;
-   #      $group = \@new if @new;
-   #   }
-   #}
+   foreach my $obj (@has_prereqs) {
+      next if $obj->is_promo();
+      foreach my $group (@{$prereqs{$obj}}) {
+         my @new = grep { !$_->is_promo() } @$group;
+         $group = \@new if @new;
+      }
+   }
 
    # propagate levels
    do {
@@ -119,27 +119,27 @@ sub _calc_levels {
       $full_prereqs{$mis->completion()} = $full_prereqs{$mis} =
          $mis->{zz_full_prereqs} = { $mis->tag() => 1 };
    }
-   #do {
-   #   $changed = 0;
-   #   foreach my $obj (@has_prereqs) {
-   #      my $full = $full_prereqs{$obj} ||= { };
-   #      foreach my $group (@{$prereqs{$obj}}) {
-   #         my @tags;
-   #         foreach my $other (@$group) {
-   #            push @tags, $full_prereqs{$other} ||= { };
-   #         }
-   #         my $first = shift @tags or next;
-   #         TAG: foreach my $tag (sort keys %$first) {
-   #            next if $full->{$tag};
-   #            foreach my $t (@tags) {
-   #               next TAG unless $t->{$tag};
-   #            }
-   #            $full->{$tag} = 1;
-   #            $changed = 1;
-   #         }
-   #      }
-   #   }
-   #} while $changed;
+   do {
+      $changed = 0;
+      foreach my $obj (@has_prereqs) {
+         my $full = $full_prereqs{$obj} ||= { };
+         foreach my $group (@{$prereqs{$obj}}) {
+            my @tags;
+            foreach my $other (@$group) {
+               push @tags, $full_prereqs{$other} ||= { };
+            }
+            my $first = shift @tags or next;
+            TAG: foreach my $tag (sort keys %$first) {
+               next if $full->{$tag};
+               foreach my $t (@tags) {
+                  next TAG unless $t->{$tag};
+               }
+               $full->{$tag} = 1;
+               $changed = 1;
+            }
+         }
+      }
+   } while $changed;
 
    BN::Unit->enemy_levels();
 }
