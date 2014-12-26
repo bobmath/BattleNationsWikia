@@ -5,13 +5,12 @@ use warnings;
 sub write {
    my @unlocked;
    foreach my $unit (BN::Unit->all()) {
-      next unless $unit->building();
-      next if $unit->visibility_prereq();
+      next if !$unit->building() || $unit->is_promo();
       my $level = $unit->level() or next;
       push @{$unlocked[$level]}, $unit->wikilink();
    }
    foreach my $bld (BN::Building->all()) {
-      next unless $bld->build_menu();
+      next if !$bld->build_menu() || $bld->is_promo();
       my $level = $bld->level() || 1;
       push @{$unlocked[$level]}, $bld->wikilink();
    }

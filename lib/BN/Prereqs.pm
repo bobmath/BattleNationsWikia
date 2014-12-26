@@ -2,46 +2,104 @@ package BN::Prereqs;
 use strict;
 use warnings;
 
-sub calc_levels {
-   foreach my $unit (BN::Unit->all()) {
-      if (my $build = $unit->building()) {
-         push @{$unit->{z_prereqs}}, { type=>'BN::Building', ids=>[$build] };
-      }
-      elsif (my @mis = $unit->from_missions()) {
-         push @{$unit->{z_prereqs}}, { type=>'BN::Mission', ids=>\@mis };
-      }
-   }
+my %init_level = (
+   p01_LVLUP_010_UnitPromotion1  => 1,
+);
 
-   my @has_prereqs;
+my %init_promo = (
+   p01_INTRO_040_BuildShelter    => 'old_missions',
+   TF2_HEAVYSCOUT_010_DoStuff    => 'tf2_promo_tag',
+);
+
+sub _calc_levels {
+   # find prereqs
+   my (%prereqs, %marks, @temp_prereqs, @has_prereqs);
    foreach my $class (qw[ BN::Unit BN::Building
       BN::Mission BN::Mission::Completion ])
    {
       foreach my $obj ($class->all()) {
-         $obj->{_level} = undef;
-         add_prereq($obj, $_) foreach $obj->prereqs();
-         push @has_prereqs, $obj if $obj->{z_prereqs};
+         my $id = $obj->{_tag} // '';
+         $obj->{_level} = $init_level{$id};
+         if (my $promo = $init_promo{$id}) {
+            $obj->{_promo} = { $promo => 1 };
+         }
+         else {
+            $obj->{_promo} = undef;
+         }
+         my @prereqs;
+         foreach my $prereq ($obj->prereqs()) {
+            my @pre = _get_prereqs($obj, $prereq) or next;
+            push @prereqs, \@pre;
+         }
+         if (@prereqs) {
+            $prereqs{$obj} = \@prereqs;
+            $marks{$obj} = 1;
+            push @temp_prereqs, $obj;
+         }
       }
    }
 
-   foreach my $unit (BN::Unit->all()) {
-      $unit->{z_prereqs} = []
-         if $unit->side() ne 'Player' && $unit->{z_prereqs};
+   # topological sort (speeds up later calculations)
+   while (@temp_prereqs) {
+      my $obj = pop @temp_prereqs;
+      my $mark = $marks{$obj} or next;
+      if ($mark == 1) {
+         $marks{$obj} = 2;
+         push @temp_prereqs, $obj;
+         foreach my $grp (@{$prereqs{$obj}}) {
+            foreach my $other (@$grp) {
+               push @temp_prereqs, $other if ($marks{$obj} // 0) == 1;
+            }
+         }
+      }
+      elsif ($mark == 2) {
+         $marks{$obj} = 3;
+         push @has_prereqs, $obj;
+      }
    }
+   undef %marks;
 
-   foreach my $id (qw[ p01_LVLUP_010_UnitPromotion1 ]) {
-      my $mis = BN::Mission->get($id) or next;
-      $mis->{_level} = 1;
-   }
-
+   # propagate promo tags
    my $changed;
    do {
       $changed = 0;
       foreach my $obj (@has_prereqs) {
-         foreach my $prereq (@{$obj->{z_prereqs}}) {
+         GROUP: foreach my $group (@{$prereqs{$obj}}) {
+            # tag flows in only if all members of group have it
+            my @tags;
+            foreach my $other (@$group) {
+               my $t = $other->{_promo} or next GROUP;
+               push @tags, $t;
+            }
+            my $first = shift @tags or next;
+            TAG: foreach my $tag (sort keys %$first) {
+               next if $obj->{_promo}{$tag};
+               foreach my $t (@tags) {
+                  next TAG unless $t->{$tag};
+               }
+               $obj->{_promo}{$tag} = 1;
+               $changed = 1;
+            }
+         }
+      }
+   } while $changed;
+
+   # don't propagate promo levels into non-promo stuff
+   #foreach my $obj (@has_prereqs) {
+   #   next if $obj->is_promo();
+   #   foreach my $group (@{$prereqs{$obj}}) {
+   #      my @new = grep { !$_->is_promo() } @$group;
+   #      $group = \@new if @new;
+   #   }
+   #}
+
+   # propagate levels
+   do {
+      $changed = 0;
+      foreach my $obj (@has_prereqs) {
+         foreach my $group (@{$prereqs{$obj}}) {
             my $level = 99;
-            my $type = $prereq->{type};
-            foreach my $id (@{$prereq->{ids}}) {
-               my $other = $type->get($id) or next;
+            foreach my $other (@$group) {
                my $olevel = $other->{_level} // 0;
                $level = $olevel if $olevel < $level;
             }
@@ -55,15 +113,41 @@ sub calc_levels {
       }
    } while $changed;
 
+   # calculate full prereqs
+   my %full_prereqs;
+   foreach my $mis (BN::Mission->all()) {
+      $full_prereqs{$mis->completion()} = $full_prereqs{$mis} =
+         $mis->{zz_full_prereqs} = { $mis->tag() => 1 };
+   }
+   #do {
+   #   $changed = 0;
+   #   foreach my $obj (@has_prereqs) {
+   #      my $full = $full_prereqs{$obj} ||= { };
+   #      foreach my $group (@{$prereqs{$obj}}) {
+   #         my @tags;
+   #         foreach my $other (@$group) {
+   #            push @tags, $full_prereqs{$other} ||= { };
+   #         }
+   #         my $first = shift @tags or next;
+   #         TAG: foreach my $tag (sort keys %$first) {
+   #            next if $full->{$tag};
+   #            foreach my $t (@tags) {
+   #               next TAG unless $t->{$tag};
+   #            }
+   #            $full->{$tag} = 1;
+   #            $changed = 1;
+   #         }
+   #      }
+   #   }
+   #} while $changed;
+
    BN::Unit->enemy_levels();
 }
 
-sub add_prereq {
+sub _get_prereqs {
    my ($obj, $prereq) = @_;
-   return unless $prereq;
-   return if $prereq->{inverse};
+   return if !$prereq || $prereq->{inverse};
    my $t = $prereq->{_t} or return;
-   my ($type, $ids, $id);
    if ($t eq 'LevelPrereqConfig') {
       my $level = $prereq->{level} or return;
       return if $level < 1;
@@ -71,61 +155,64 @@ sub add_prereq {
       $level = $max if $level > $max;
       $obj->{_level} = $level;
    }
+   elsif ($t eq 'ActiveTagPrereqConfig') {
+      my $tags = $prereq->{tags} or return;
+      $obj->{_promo}{$_} = 1 foreach @$tags;
+   }
    elsif ($t eq 'CompleteMissionPrereqConfig') {
-      $type = 'Mission::Completion';
-      $id = $prereq->{missionId};
+      return BN::Mission::Completion->get($prereq->{missionId});
    }
    elsif ($t eq 'CompleteAnyMissionPrereqConfig') {
-      $type = 'Mission::Completion';
-      $ids = remove_old_missions($prereq->{missionIds});
+      my $ids = $prereq->{missionIds} or return;
+      return map { BN::Mission::Completion->get($_) } @$ids;
    }
    elsif ($t eq 'ActiveMissionPrereqConfig') {
-      $type = 'Mission';
-      $ids = remove_old_missions($prereq->{missionIds});
+      my $ids = $prereq->{missionIds} or return;
+      return map { BN::Mission->get($_) } @$ids;
    }
    elsif ($t eq 'CreateStructurePrereqConfig'
-      || $t eq 'CollectStructurePrereqConfig')
-   {
-      $type = 'Building';
-      $id = $prereq->{structureType};
+         || $t eq 'CollectStructurePrereqConfig') {
+      return BN::Building->get($prereq->{structureType});
    }
    elsif ($t eq 'HasCompositionPrereqConfig') {
-      $type = 'Building';
-      $id = $prereq->{compositionName};
+      return BN::Building->get($prereq->{compositionName});
    }
    elsif ($t eq 'HaveAnyOfTheseStructuresPrereqConfig') {
-      $type = 'Building';
-      $ids = $prereq->{buildings};
+      my $ids = $prereq->{buildings} or return;
+      return map { BN::Building->get($_) } @$ids;
    }
    elsif ($t eq 'BuildingLevelPrereqConfig') {
-      $type = 'Building';
-      $ids = $prereq->{compositionIds};
+      my $ids = $prereq->{compositionIds} or return;
+      return map { BN::Building->get($_) } @$ids;
    }
    elsif ($t eq 'HaveOneOfTheseStructuresPrereqConfig') {
-      $type = 'Building';
       my $counts = $prereq->{buildingCounts} or return;
-      $ids = [ sort keys %$counts ];
+      return map { BN::Building->get($_) } sort keys %$counts;
    }
    elsif ($t eq 'CollectProjectPrereqConfig'
-      || $t eq 'StartProjectPrereqConfig')
-   {
-      $type = 'Unit';
-      $id = $prereq->{projectId};
+         || $t eq 'StartProjectPrereqConfig') {
+      return BN::Unit->get($prereq->{projectId});
    }
-   push @{$obj->{z_prereqs}}, { type=>"BN::$type", ids=>[$id] } if $id;
-   push @{$obj->{z_prereqs}}, { type=>"BN::$type", ids=>[@$ids] } if $ids;
+   return;
 }
 
-sub remove_old_missions {
-   my ($ids) = @_;
-   return unless $ids;
-   my @ids;
-   foreach my $id (@$ids) {
-      my $mis = BN::Mission->get($id) or next;
-      push @ids, $id unless $mis->old();
-   }
-   return unless @ids;
-   return \@ids;
+sub level {
+   my ($obj) = @_;
+   _calc_levels() unless exists $obj->{_level};
+   return $obj->{_level};
+}
+
+sub is_promo {
+   my ($obj) = @_;
+   _calc_levels() unless exists $obj->{_promo};
+   return $obj->{_promo} ? 1 : undef;
+}
+
+sub promo_tags {
+   my ($obj) = @_;
+   _calc_levels() unless exists $obj->{_promo};
+   my $promo = $obj->{_promo} or return;
+   return join '+', sort keys %$promo;
 }
 
 1 # end BN::Prereqs

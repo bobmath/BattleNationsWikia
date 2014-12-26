@@ -1,6 +1,7 @@
 package BN::Mission;
 use strict;
 use warnings;
+@BN::Mission::ISA = qw( BN::Prereqs );
 
 my $missions;
 my $json_file = 'Missions.json';
@@ -67,81 +68,16 @@ sub wikilink {
    return $link;
 }
 
-my %old_missions;
-$old_missions{$_} = 1 foreach qw(
-   p01_BK2RR_010_RaidersBattle2
-   p01_BK2RR_020_BuildPillbox
-   p01_BK2RR_030_TrainGrenadier
-   p01_BK2RR_040_ReturnRecoilRidge
-   p01_BK2RR_050_BattleRecoilRidge
-   p01_BK2RR_060_HelpAdventurer
-   p01_BUILD_020_BuildSupplyDepot
-   p01_BUILD_040_CollectSupplyDrops
-   p01_BUILD_050_BuildShelter
-   p01_BUILD_060_RaiderAttack1
-   p01_BUILD_070_BuildBootCamp
-   p01_BUILD_090_BuildShelter
-   p01_BUILD_100_TeachCamera
-   p01_BUILD_110_RaiderEncounters
-   p01_BUILD_130_BuildStoneQuarry
-   p01_BUILD_140_BuildResourceDepot
-   p01_BUILD_150_CollectTaxes
-   p01_BUILD_280_BuildBunker2
-   p01_BUILD_290_BuildBunker2
-   p01_BUILD_510_BuildHospital
-   p01_FARMS_010_BuildFarm1
-   p01_HOSP_010_QueueSomething
-   p01_INTRO_020_OpeningBattle
-   p01_INTRO_040_BuildShelter
-   p01_INTRO_050_PlantArtichoke
-   p01_INTRO_060_CollectCrop
-   p01_INTRO_070_CollectTax
-   p01_NEWINTRO_010_Cinematic
-   p01_NEWINTRO_030_Fight
-   p01_NEWINTRO_040_BuildBarracks
-   p01_NEWINTRO_045_CutBarracksRibbon
-   p01_NEWINTRO_050_TrainTrooper
-   p01_NEWINTRO_055_MissionsAdvice
-   p01_NEWINTRO_060_BuildPillbox
-   p01_NEWINTRO_070_PillboxFight
-   p01_NEWINTRO_080_GantasFight
-   p01_NEWINTRO_120_BuildStoneQuarry
-   p01_NEWINTRO_130_BuildDepot
-   p01_NEWINTRO_140_BuildHospital
-   p01_NEWINTRO_142_StartHospital
-   p01_NEWINTRO_143_StartAdvHospital
-   p01_RTANK_010_RaiderScouts
-   p01_RTANK_060_BuildToolShop
-   p01_RTANK_070_MakeTools
-   p01_UPBLD_010_BuildingUpgradeLvl1
-   p01_UPBLD_010_BuildingUpgradeLvl1_LateGame
-   p01_UPBLD_020_BuildingUpgradeLvl2
-   p01_UPBLD_020_BuildingUpgradeLvl2_LateGame
-   p01_VALENTINE_001_WaitingTag
-   p01_ZOEY1_010_BuildHovel
-);
-
-sub old {
-   my ($mis) = @_;
-   return $old_missions{$mis->{_tag}};
-}
-
-sub level {
-   my ($mis) = @_;
-   return $mis->{_level} if exists $mis->{_level};
-   BN::Prereqs->calc_levels();
-   return $mis->{_level};
-}
-
 sub prereqs {
    my ($mis) = @_;
-   return if $old_missions{$mis->{_tag}};
-   my $rules = $mis->{startRules} or return;
    my @prereqs;
-   foreach my $key (sort keys %$rules) {
-      my $rule = $rules->{$key} or next;
-      my $prereq = $rule->{prereq} or next;
-      push @prereqs, $prereq;
+   foreach my $field (qw( startRules persistenceRules )) {
+      my $rules = $mis->{$field} or next;
+      foreach my $key (sort keys %$rules) {
+         my $rule = $rules->{$key} or next;
+         my $prereq = $rule->{prereq} or next;
+         push @prereqs, $prereq;
+      }
    }
    return @prereqs;
 }
@@ -273,61 +209,15 @@ sub encounters {
 
 sub full_prereqs {
    my ($mis) = @_;
-   _calc_prereqs() unless exists $mis->{zz_full_prereqs};
+   BN::Prereqs::_calc_levels() unless exists $mis->{zz_full_prereqs};
    return $mis->{zz_full_prereqs};
-}
-
-sub _calc_prereqs {
-   my @missions = BN::Mission->all();
-   foreach my $mis (@missions) {
-      $mis->{zz_full_prereqs} = { $mis->{_tag} => 1 };
-   }
-   my $changed = 1;
-   while ($changed) {
-      $changed = 0;
-      foreach my $mis (@missions) {
-         my $full = $mis->{zz_full_prereqs} or die;
-         foreach my $prereq ($mis->prereqs(), $mis->completion()->prereqs()) {
-            next if $prereq->{inverse};
-            my $t = $prereq->{_t} or next;
-            if ($t eq 'CompleteMissionPrereqConfig') {
-               my $m = BN::Mission->get($prereq->{missionId}) or next;
-               foreach my $id (sort keys %{$m->{zz_full_prereqs}}) {
-                  next if $full->{$id};
-                  $full->{$id} = 1;
-                  $changed = 1;
-               }
-            }
-            elsif ($t eq 'CompleteAnyMissionPrereqConfig'
-               || $t eq 'ActiveMissionPrereqConfig')
-            {
-               my $ids = $prereq->{missionIds} or next;
-               my @full;
-               foreach my $id (@$ids) {
-                  next if $old_missions{$id};
-                  my $m = BN::Mission->get($id) or next;
-                  push @full, $m->{zz_full_prereqs};
-               }
-               my $first = shift @full or next;
-               TAG: foreach my $tag (sort keys %$first) {
-                  next if $full->{$tag};
-                  foreach my $tags (@full) {
-                     next TAG unless $tags->{$tag};
-                  }
-                  $full->{$tag} = 1;
-                  $changed = 1;
-               }
-            }
-         }
-      }
-   }
 }
 
 BN->list_accessor(min_prereqs => sub {
    my ($mis) = @_;
    my @prereqs;
 
-   foreach my $prereq ($mis->prereqs(), $mis->completion()->prereqs()) {
+   foreach my $prereq ($mis->prereqs()) {
       my $t = $prereq->{_t} or next;
       next if $prereq->{inverse};
       if ($t eq 'CompleteMissionPrereqConfig') {
@@ -342,7 +232,7 @@ BN->list_accessor(min_prereqs => sub {
       }
    }
 
-   @prereqs = grep { !$old_missions{$_} } @prereqs;
+   #@prereqs = grep { !$old_missions{$_} } @prereqs;
 
    my @filtered;
    FILTER: while (@prereqs) {
@@ -378,6 +268,7 @@ sub completion {
 }
 
 package BN::Mission::Completion;
+@BN::Mission::Completion::ISA = qw( BN::Prereqs );
 
 sub all {
    return map { $_->completion() } BN::Mission->all();
@@ -391,23 +282,16 @@ sub get {
 
 sub new {
    my ($class, $id) = @_;
-   return bless {
-      _parent => $id,
-      z_prereqs => [{ type => 'BN::Mission', ids => [$id] }],
-   }, $class;
-}
-
-sub level {
-   my ($self) = @_;
-   return $self->{_level} if exists $self->{_level};
-   BN::Prereqs->calc_levels();
-   return $self->{_level};
+   return bless { _parent => $id }, $class;
 }
 
 sub prereqs {
    my ($self) = @_;
    my $parent = BN::Mission->get($self->{_parent}) or return;
-   my @prereqs;
+   my @prereqs = ({
+      _t => 'ActiveMissionPrereqConfig',
+      missionIds => [ $self->{_parent} ],
+   });
    foreach my $objective ($parent->objectives()) {
       my $prereq = $objective->{prereq} or next;
       push @prereqs, $prereq;
