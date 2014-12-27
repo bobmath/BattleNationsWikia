@@ -2,7 +2,6 @@ package BN::Unit;
 use strict;
 use warnings;
 use Storable qw( dclone );
-@BN::Unit::ISA = qw( BN::Prereqs );
 
 my $units;
 
@@ -190,6 +189,7 @@ BN->simple_accessor('icon', 'icon');
 BN->simple_accessor('back_icon', 'backIcon');
 BN->simple_accessor('animation', 'frontIdleAnimation');
 BN->simple_accessor('back_animation', 'backIdleAnimation');
+BN->simple_accessor('visibility_prereq', 'visibilityPrereq');
 BN->simple_accessor('preferred_row', 'preferredRow');
 BN->simple_accessor('building_level', 'buildingLevel');
 
@@ -477,30 +477,17 @@ BN->accessor(heal_building => sub {
    return;
 });
 
+sub level {
+   my ($unit) = @_;
+   return $unit->{_level} if exists $unit->{_level};
+   BN::Prereqs->calc_levels();
+   return $unit->{_level};
+}
+
 sub prereqs {
    my ($unit) = @_;
-   return unless $unit->{side} eq 'Player';
-   my @prereqs;
-   foreach my $field (qw( prereq visibilityPrereq )) {
-      my $rules = $unit->{$field} or next;
-      foreach my $key (sort keys %$rules) {
-         my $prereq = $rules->{$key} or next;
-         push @prereqs, $prereq;
-      }
-   }
-   if (my $build = $unit->building()) {
-      push @prereqs, {
-         _t => 'HasCompositionPrereqConfig',
-         compositionName => $build,
-      };
-   }
-   if (my @mis = $unit->from_missions()) {
-      push @prereqs, {
-         _t => 'CompleteAnyMissionPrereqConfig',
-         missionIds => \@mis,
-      };
-   }
-   return @prereqs;
+   my $prereqs = $unit->{prereq} or return;
+   return map { $prereqs->{$_} } sort keys %$prereqs;
 }
 
 BN->accessor(max_armor => sub {
@@ -570,13 +557,22 @@ BN->accessor(other_reqs => sub {
          }
       }
    }
-   push @reqs, 'Promotional' if $unit->is_promo();
+   if (my $prereqs = $unit->{visibilityPrereq}) {
+      foreach my $key (sort keys %$prereqs) {
+         my $prereq = $prereqs->{$key} or next;
+         my $t = $prereq->{_t} or next;
+         if ($t eq 'ActiveTagPrereqConfig') {
+            push @reqs, 'Promotional';
+         }
+      }
+   }
    if (!$build) {
       if (my ($mis_id) = $unit->from_missions()) {
          my $mis = BN::Mission->get($mis_id);
          push @reqs, $mis->wikilink() if $mis;
       }
    }
+   #push @reqs, '[[Infection Test Facility]]' if $unit->{transformationTable};
    push @reqs, 'Boss Strike' if $unit->boss_strike();
    return unless @reqs;
    return join '<br>', sort @reqs;
@@ -641,16 +637,6 @@ sub enemy_levels {
 
    foreach my $unit (BN::Unit->all()) {
       next if $unit->{side} eq 'Player';
-      if (my $prereqs = $unit->{prereq}) {
-         foreach my $key (sort keys %$prereqs) {
-            my $prereq = $prereqs->{$key} or next;
-            next if $prereq->{inverse};
-            my $t = $prereq->{_t} or next;
-            if ($t eq 'LevelPrereqConfig') {
-               $unit->{_level} = $prereq->{level};
-            }
-         }
-      }
       if (my $level = $enemy_level{$unit->{_tag}}) {
          $unit->{_level} = $level;
          next;

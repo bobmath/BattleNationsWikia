@@ -59,7 +59,6 @@ sub list_accessor {
 use BN::File;
 use BN::Text;
 use BN::Level;
-use BN::Prereqs;
 use BN::Unit;
 use BN::Weapon;
 use BN::Attack;
@@ -67,6 +66,7 @@ use BN::Rank;
 use BN::Building;
 use BN::Job;
 use BN::Mission;
+use BN::Prereqs;
 use BN::BossStrike;
 use BN::Tier;
 use BN::Encounter;

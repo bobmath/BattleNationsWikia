@@ -2,7 +2,6 @@ package BN::Building;
 use strict;
 use warnings;
 use POSIX qw( ceil );
-@BN::Building::ISA = qw( BN::Prereqs );
 
 my $buildings;
 my $json_file = 'Compositions.json';
@@ -68,6 +67,13 @@ sub units {
    my $projects = $build->{ProjectList} or return;
    my $jobs = $projects->{jobs} or return;
    return map { BN::Unit->get($_) } @$jobs;
+}
+
+sub level {
+   my ($build) = @_;
+   return $build->{_level} if exists $build->{_level};
+   BN::Prereqs->calc_levels();
+   return $build->{_level};
 }
 
 sub prereqs {
