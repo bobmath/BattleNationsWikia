@@ -10,32 +10,25 @@ sub write {
    mission_pages();
 }
 
-my ($curr_lo, $curr_hi);
+my $curr_page;
 
 sub level_pages {
-   $curr_hi = 0;
-   my $max = BN::Level->max();
-   my ($file, $F);
-   foreach my $mis (
-      sort { $a->level() <=> $b->level() || $a->name() cmp $b->name() }
-      grep { $_->level() } BN::Mission->all())
-   {
-      if ($mis->level() > $curr_hi) {
-         $curr_hi = int(($mis->level() + 4) / 5) * 5;
-         $curr_lo = $curr_hi - 4;
-         if ($curr_hi > $max && $curr_lo <= $max) {
-            $curr_hi = $max;
-         }
-         close $F if $F;
-         BN::Out->compare($file) if $file;
-         $file = BN::Out->filename('missions',
-            "Level $curr_lo-$curr_hi missions");
-         open $F, '>:utf8', $file or die "Can't write $file: $!";
-      }
-      show_mission($F, $mis);
+   my %pages;
+   foreach my $mis (BN::Mission->all()) {
+      $pages{$mis->wikipage()}{$mis->tag()} = $mis;
    }
-   close $F if $F;
-   BN::Out->compare($file) if $file;
+   foreach my $page (sort keys %pages) {
+      $curr_page = $pages{$page} or die;
+      my $file = BN::Out->filename('missions', $page);
+      open my $F, '>:utf8', $file or die "Can't write $file: $!";
+      foreach my $mis (sort { ($a->level()||0) <=> ($b->level()||0)
+         || $a->name() cmp $b->name() } values %$curr_page)
+      {
+         show_mission($F, $mis);
+      }
+      close $F;
+      BN::Out->compare($file);
+   }
 }
 
 sub index_page {
@@ -98,7 +91,9 @@ sub show_mission {
    return if $seen{$mis->tag()}++;
 
    my @prereqs = $mis->min_prereqs();
-   show_mission($F, BN::Mission->get($_)) foreach @prereqs;
+   foreach my $id (@prereqs) {
+      show_mission($F, BN::Mission->get($id)) if $curr_page->{$id};
+   }
 
    print $F "===", $mis->name(), "===\n",
       "{{MissionInfo\n";
@@ -188,9 +183,8 @@ sub show_mission {
 sub get_single {
    my @list;
    foreach my $id (@_) {
-      my $mis = BN::Mission->get($id) or next;
-      my $lev = $mis->level() or next;
-      push @list, $mis if $lev >= $curr_lo && $lev <= $curr_hi;
+      next unless $curr_page->{$id};
+      push @list, BN::Mission->get($id);
    }
    return unless @list == 1;
    return $list[0];
@@ -240,8 +234,7 @@ sub mission_links {
       || $a->name() cmp $b->name() } @mis;
    my @out;
    foreach my $mis (@mis) {
-      my $lev = $mis->level() || 0;
-      if ($lev >= $curr_lo && $lev <= $curr_hi) {
+      if ($curr_page->{$mis->tag()}) {
          my $name = $mis->name();
          push @out, "[[#$name|$name]]";
       }

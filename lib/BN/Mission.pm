@@ -47,21 +47,30 @@ BN->simple_accessor('name');
 BN->simple_accessor('tag');
 BN->simple_accessor('hidden', 'hideIcon');
 
-sub wikilink {
-   my ($mis, $text) = @_;
-   my $page;
+my %promo_wikipage = (
+   promo_xmas2014 => 'Twelve Days of Christmas',
+);
+
+sub wikipage {
+   my ($mis) = @_;
+   if (my $tag = $mis->promo_tag()) {
+      my $page = $promo_wikipage{$tag};
+      return $page if $page;
+   }
    if (my $level = $mis->level()) {
       my $lo = int(($level - 1) / 5) * 5 + 1;
       my $hi = $lo + 4;
       my $max = BN::Level->max();
       $hi = $max if $hi > $max && $lo < $max;
-      $page = "Level $lo-$hi missions";
+      return "Level $lo-$hi missions";
    }
-   else {
-      $page = 'Missions';
-   }
+   return 'Missions';
+}
+
+sub wikilink {
+   my ($mis, $text) = @_;
    $text //= $mis->{_name};
-   my $link = "[[$page#$mis->{_name}";
+   my $link = '[[' . $mis->wikipage() . '#' . $mis->{_name};
    $link .= '|' . $text if length($text);
    $link .= ']]';
    return $link;
@@ -310,7 +319,7 @@ sub _calc_promo {
    while ($changed) {
       $changed = 0;
       foreach my $mis (@missions) {
-         foreach my $prereq ($mis->prereqs()) {
+         PREREQ: foreach my $prereq ($mis->prereqs()) {
             next if $prereq->{inverse};
             my $t = $prereq->{_t} or next;
             if ($t eq 'CompleteMissionPrereqConfig') {
@@ -319,6 +328,24 @@ sub _calc_promo {
                foreach my $k (sort keys %$p) {
                   next if $mis->{_promo}{$k};
                   $mis->{_promo}{$k} = 1;
+                  $changed = 1;
+               }
+            }
+            elsif ($t eq 'CompleteAnyMissionPrereqConfig') {
+               my $ids = $prereq->{missionIds} or next;
+               my @promos;
+               foreach my $id (@$ids) {
+                  my $m = BN::Mission->get($id) or next;
+                  my $promo = $m->{_promo} or next PREREQ;
+                  push @promos, $promo;
+               }
+               my $first = shift @promos or next;
+               TAG: foreach my $tag (sort keys %$first) {
+                  next if $mis->{_promo}{$tag};
+                  foreach my $tags (@promos) {
+                     next TAG unless $tags->{$tag};
+                  }
+                  $mis->{_promo}{$tag} = 1;
                   $changed = 1;
                }
             }
