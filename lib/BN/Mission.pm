@@ -136,12 +136,14 @@ sub level {
 sub prereqs {
    my ($mis) = @_;
    return if $old_missions{$mis->{_tag}};
-   my $rules = $mis->{startRules} or return;
    my @prereqs;
-   foreach my $key (sort keys %$rules) {
-      my $rule = $rules->{$key} or next;
-      my $prereq = $rule->{prereq} or next;
-      push @prereqs, $prereq;
+   foreach my $field (qw( startRules persistenceRules )) {
+      my $rules = $mis->{$field} or next;
+      foreach my $key (sort keys %$rules) {
+         my $rule = $rules->{$key} or next;
+         my $prereq = $rule->{prereq} or next;
+         push @prereqs, $prereq;
+      }
    }
    return @prereqs;
 }
@@ -269,6 +271,60 @@ BN->list_accessor(encounter_ids => sub {
 sub encounters {
    my ($mis) = @_;
    return map { BN::Encounter->get($_) } $mis->encounter_ids();
+}
+
+sub is_promo {
+   my ($mis) = @_;
+   _calc_promo() unless exists $mis->{_promo};
+   return $mis->{_promo} ? 1 : '';
+}
+
+sub promo_tag {
+   my ($mis) = @_;
+   _calc_promo() unless exists $mis->{_promo};
+   my $p = $mis->{_promo} or return;
+   return join '+', sort keys %$p;
+}
+
+my %initial_promos = (
+   p01_BUILD_100_TeachCamera  => 'old_tutorial',
+);
+
+sub _calc_promo {
+   my @missions = BN::Mission->all();
+   foreach my $mis (@missions) {
+      $mis->{_promo} = undef;
+      if (my $tag = $initial_promos{$mis->{_tag}}) {
+         $mis->{_promo}{$tag} = 1;
+      }
+      foreach my $prereq ($mis->prereqs()) {
+         next if $prereq->{inverse};
+         my $t = $prereq->{_t} or next;
+         if ($t eq 'ActiveTagPrereqConfig') {
+            my $tags = $prereq->{tags} or next;
+            $mis->{_promo}{$_} = 1 foreach @$tags;
+         }
+      }
+   }
+   my $changed = 1;
+   while ($changed) {
+      $changed = 0;
+      foreach my $mis (@missions) {
+         foreach my $prereq ($mis->prereqs()) {
+            next if $prereq->{inverse};
+            my $t = $prereq->{_t} or next;
+            if ($t eq 'CompleteMissionPrereqConfig') {
+               my $m = BN::Mission->get($prereq->{missionId});
+               my $p = $m->{_promo} or next;
+               foreach my $k (sort keys %$p) {
+                  next if $mis->{_promo}{$k};
+                  $mis->{_promo}{$k} = 1;
+                  $changed = 1;
+               }
+            }
+         }
+      }
+   }
 }
 
 sub full_prereqs {

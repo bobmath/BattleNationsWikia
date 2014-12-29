@@ -41,7 +41,7 @@ sub level_pages {
 sub index_page {
    my %index;
    foreach my $mis (BN::Mission->all()) {
-      next if $mis->hidden() || $mis->{persistenceRules};
+      next if $mis->hidden() || $mis->is_promo();
       my $level = $mis->level() or next;
       my $name = lc($mis->name());
       $name =~ s/^an?\s+|^the\s+//;
