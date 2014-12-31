@@ -77,11 +77,13 @@ sub add_prereq {
    }
    elsif ($t eq 'CompleteAnyMissionPrereqConfig') {
       $type = 'Mission::Completion';
-      $ids = remove_old_missions($prereq->{missionIds});
+      $ids = $prereq->{missionIds};
+      $ids = remove_old_missions($ids) unless $obj->{_promo};
    }
    elsif ($t eq 'ActiveMissionPrereqConfig') {
       $type = 'Mission';
-      $ids = remove_old_missions($prereq->{missionIds});
+      $ids = $prereq->{missionIds};
+      $ids = remove_old_missions($ids) unless $obj->{_promo};
    }
    elsif ($t eq 'CreateStructurePrereqConfig'
       || $t eq 'CollectStructurePrereqConfig')
@@ -122,7 +124,7 @@ sub remove_old_missions {
    my @ids;
    foreach my $id (@$ids) {
       my $mis = BN::Mission->get($id) or next;
-      push @ids, $id unless $mis->old();
+      push @ids, $id unless $mis->is_promo();
    }
    return unless @ids;
    return \@ids;

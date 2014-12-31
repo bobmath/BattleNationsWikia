@@ -53,7 +53,8 @@ sub building_summary {
    }
    foreach my $id ($build->mission_reqs()) {
       my $mis = BN::Mission->get($id) or next;
-      push @unlock, $mis->wikilink() unless $mis->old();
+      my $tag = $mis->promo_tag() // '';
+      push @unlock, $mis->wikilink() unless $tag =~ /old_tutorial/;
    }
    push @unlock, 'Unique' if $build->unique();
    print_line($F, 'unlocked', join(', ', @unlock)) if @unlock;

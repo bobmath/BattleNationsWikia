@@ -77,63 +77,6 @@ sub wikilink {
    return $link;
 }
 
-my %old_missions;
-$old_missions{$_} = 1 foreach qw(
-   p01_BK2RR_010_RaidersBattle2
-   p01_BK2RR_020_BuildPillbox
-   p01_BK2RR_030_TrainGrenadier
-   p01_BK2RR_040_ReturnRecoilRidge
-   p01_BK2RR_050_BattleRecoilRidge
-   p01_BK2RR_060_HelpAdventurer
-   p01_BUILD_020_BuildSupplyDepot
-   p01_BUILD_040_CollectSupplyDrops
-   p01_BUILD_050_BuildShelter
-   p01_BUILD_060_RaiderAttack1
-   p01_BUILD_070_BuildBootCamp
-   p01_BUILD_090_BuildShelter
-   p01_BUILD_100_TeachCamera
-   p01_BUILD_110_RaiderEncounters
-   p01_BUILD_130_BuildStoneQuarry
-   p01_BUILD_140_BuildResourceDepot
-   p01_BUILD_150_CollectTaxes
-   p01_BUILD_280_BuildBunker2
-   p01_BUILD_290_BuildBunker2
-   p01_BUILD_510_BuildHospital
-   p01_FARMS_010_BuildFarm1
-   p01_HOSP_010_QueueSomething
-   p01_INTRO_020_OpeningBattle
-   p01_INTRO_040_BuildShelter
-   p01_INTRO_050_PlantArtichoke
-   p01_INTRO_060_CollectCrop
-   p01_INTRO_070_CollectTax
-   p01_NEWINTRO_010_Cinematic
-   p01_NEWINTRO_030_Fight
-   p01_NEWINTRO_040_BuildBarracks
-   p01_NEWINTRO_045_CutBarracksRibbon
-   p01_NEWINTRO_050_TrainTrooper
-   p01_NEWINTRO_055_MissionsAdvice
-   p01_NEWINTRO_060_BuildPillbox
-   p01_NEWINTRO_070_PillboxFight
-   p01_NEWINTRO_080_GantasFight
-   p01_NEWINTRO_120_BuildStoneQuarry
-   p01_NEWINTRO_130_BuildDepot
-   p01_NEWINTRO_140_BuildHospital
-   p01_RTANK_010_RaiderScouts
-   p01_RTANK_060_BuildToolShop
-   p01_RTANK_070_MakeTools
-   p01_UPBLD_010_BuildingUpgradeLvl1
-   p01_UPBLD_010_BuildingUpgradeLvl1_LateGame
-   p01_UPBLD_020_BuildingUpgradeLvl2
-   p01_UPBLD_020_BuildingUpgradeLvl2_LateGame
-   p01_VALENTINE_001_WaitingTag
-   p01_ZOEY1_010_BuildHovel
-);
-
-sub old {
-   my ($mis) = @_;
-   return $old_missions{$mis->{_tag}};
-}
-
 sub level {
    my ($mis) = @_;
    return $mis->{_level} if exists $mis->{_level};

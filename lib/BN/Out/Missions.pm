@@ -22,7 +22,8 @@ sub level_pages {
       my $file = BN::Out->filename('missions', $page);
       open my $F, '>:utf8', $file or die "Can't write $file: $!";
       foreach my $mis (sort { ($a->level()||0) <=> ($b->level()||0)
-         || $a->name() cmp $b->name() } values %$curr_page)
+         || $a->name() cmp $b->name() || $a->tag() cmp $b->tag() }
+         values %$curr_page)
       {
          show_mission($F, $mis);
       }
