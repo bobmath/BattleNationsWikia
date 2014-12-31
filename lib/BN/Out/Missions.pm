@@ -88,12 +88,13 @@ sub mission_pages {
 my %seen;
 sub show_mission {
    my ($F, $mis) = @_;
-   return unless $mis;
    return if $seen{$mis->tag()}++;
 
    my @prereqs = $mis->min_prereqs();
    foreach my $id (@prereqs) {
-      show_mission($F, BN::Mission->get($id)) if $curr_page->{$id};
+      my $m = $curr_page->{$id} or next;
+      next unless ($m->level()//0) == ($mis->level()//0);
+      show_mission($F, $m);
    }
 
    print $F "===", $mis->name(), "===\n",
@@ -176,19 +177,20 @@ sub show_mission {
    print $F "|}\n" unless $first;
    print $F "\n";
 
-   if (my $follow = get_single(@followups)) {
-      show_mission($F, $follow) if get_single($follow->min_prereqs());
+   my $follow;
+   FOLLOW: foreach my $id (@followups) {
+      my $m = $curr_page->{$id} or next;
+      next unless ($m->level()//0) == ($mis->level()//0);
+      for my $pid ($m->min_prereqs()) {
+         next FOLLOW unless $pid eq $mis->tag();
+      }
+      if ($follow) {
+         $follow = undef;
+         last;
+      }
+      $follow = $m;
    }
-}
-
-sub get_single {
-   my @list;
-   foreach my $id (@_) {
-      next unless $curr_page->{$id};
-      push @list, BN::Mission->get($id);
-   }
-   return unless @list == 1;
-   return $list[0];
+   show_mission($F, $follow) if $follow;
 }
 
 sub show_script {
