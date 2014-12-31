@@ -223,15 +223,17 @@ sub encounters {
    return map { BN::Encounter->get($_) } $mis->encounter_ids();
 }
 
+my $ran_promo;
+
 sub is_promo {
    my ($mis) = @_;
-   _calc_promo() unless exists $mis->{_promo};
+   _calc_promo() unless $ran_promo;
    return $mis->{_promo} ? 1 : '';
 }
 
 sub promo_tag {
    my ($mis) = @_;
-   _calc_promo() unless exists $mis->{_promo};
+   _calc_promo() unless $ran_promo;
    my $p = $mis->{_promo} or return;
    return join '+', sort keys %$p;
 }
@@ -254,9 +256,9 @@ my %initial_promos = (
 );
 
 sub _calc_promo {
+   $ran_promo = 1;
    my @missions = BN::Mission->all();
    foreach my $mis (@missions) {
-      $mis->{_promo} = undef;
       if (my $tag = $initial_promos{$mis->{_tag}}) {
          $mis->{_promo}{$tag} = 1;
       }
