@@ -398,8 +398,8 @@ sub _calc_prereqs {
                my $ids = $prereq->{missionIds} or next;
                my @full;
                foreach my $id (@$ids) {
-                  next if $old_missions{$id};
                   my $m = BN::Mission->get($id) or next;
+                  next if $m->is_promo() && !$mis->is_promo();
                   push @full, $m->{zz_full_prereqs};
                }
                my $first = shift @full or next;
@@ -436,7 +436,10 @@ BN->list_accessor(min_prereqs => sub {
       }
    }
 
-   @prereqs = grep { !$old_missions{$_} } @prereqs;
+   if (!$mis->is_promo()) {
+      @prereqs = map { $_->tag() } grep { !$_->is_promo() }
+         map { BN::Mission->get($_) } @prereqs;
+   }
 
    my @filtered;
    FILTER: while (@prereqs) {
@@ -459,6 +462,7 @@ sub followups {
       foreach my $m (BN::Mission->all()) {
          foreach my $id ($m->min_prereqs()) {
             my $p = BN::Mission->get($id) or next;
+            next if !$p->is_promo() && $m->is_promo();
             push @{$p->{z_followups}}, $m->tag();
          }
       }
