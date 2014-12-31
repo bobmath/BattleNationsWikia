@@ -48,14 +48,15 @@ BN->simple_accessor('tag');
 BN->simple_accessor('hidden', 'hideIcon');
 
 my %promo_wikipage = (
+   old_tutorial   => 'Old Tutorial',
    promo_xmas2014 => 'Twelve Days of Christmas',
+   tf2_promo_tag  => 'Team Fortress 2 missions',
 );
 
 sub wikipage {
    my ($mis) = @_;
    if (my $tag = $mis->promo_tag()) {
-      my $page = $promo_wikipage{$tag};
-      return $page if $page;
+      return $promo_wikipage{$tag} || 'Other Promos';
    }
    if (my $level = $mis->level()) {
       my $lo = int(($level - 1) / 5) * 5 + 1;
@@ -117,8 +118,6 @@ $old_missions{$_} = 1 foreach qw(
    p01_NEWINTRO_120_BuildStoneQuarry
    p01_NEWINTRO_130_BuildDepot
    p01_NEWINTRO_140_BuildHospital
-   p01_NEWINTRO_142_StartHospital
-   p01_NEWINTRO_143_StartAdvHospital
    p01_RTANK_010_RaiderScouts
    p01_RTANK_060_BuildToolShop
    p01_RTANK_070_MakeTools
@@ -144,7 +143,6 @@ sub level {
 
 sub prereqs {
    my ($mis) = @_;
-   return if $old_missions{$mis->{_tag}};
    my @prereqs;
    foreach my $field (qw( startRules persistenceRules )) {
       my $rules = $mis->{$field} or next;
@@ -296,7 +294,20 @@ sub promo_tag {
 }
 
 my %initial_promos = (
-   p01_BUILD_100_TeachCamera  => 'old_tutorial',
+   TF2_HEAVYSCOUT_010_DoStuff          => 'tf2_promo_tag',
+   p01_BK2RR_060_HelpAdventurer        => 'old_tutorial',
+   p01_BUILD_040_CollectSupplyDrops    => 'old_tutorial',
+   p01_BUILD_100_TeachCamera           => 'old_tutorial',
+   p01_BUILD_280_BuildBunker2          => 'old_tutorial',
+   p01_BUILD_510_BuildHospital         => 'old_tutorial',
+   p01_HOSP_010_QueueSomething         => 'old_tutorial',
+   p01_INTRO_020_OpeningBattle         => 'old_tutorial',
+   p01_INTRO_040_BuildShelter          => 'old_tutorial',
+   p01_NEWINTRO_120_BuildStoneQuarry   => 'old_tutorial',
+   p01_NEWINTRO_140_BuildHospital      => 'old_tutorial',
+   p01_RTANK_010_RaiderScouts          => 'old_tutorial',
+   p01_RTANK_060_BuildToolShop         => 'old_tutorial',
+   p01_ZOEY1_010_BuildHovel            => 'old_tutorial',
 );
 
 sub _calc_promo {

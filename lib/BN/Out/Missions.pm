@@ -76,7 +76,7 @@ sub index_page {
 
 sub mission_pages {
    foreach my $mis (BN::Mission->all()) {
-      my $file = BN::Out->filename('missions', $mis->level(), $mis->name());
+      my $file = BN::Out->filename('missions', 'all', $mis->tag());
       open my $F, '>:utf8', $file or die "Can't write $file: $!";;
       print $F dump($mis), "\n";
       close $F;
