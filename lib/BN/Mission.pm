@@ -287,7 +287,9 @@ sub _calc_promo {
                   $changed = 1;
                }
             }
-            elsif ($t eq 'CompleteAnyMissionPrereqConfig') {
+            elsif ($t eq 'CompleteAnyMissionPrereqConfig'
+               || $t eq 'ActiveMissionPrereqConfig')
+            {
                my $ids = $prereq->{missionIds} or next;
                my @promos;
                foreach my $id (@$ids) {
