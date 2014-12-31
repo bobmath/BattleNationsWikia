@@ -38,14 +38,14 @@ sub calc_levels {
       $changed = 0;
       foreach my $obj (@has_prereqs) {
          foreach my $prereq (@{$obj->{z_prereqs}}) {
-            my $level = 99;
+            my $level = 999;
             my $type = $prereq->{type};
             foreach my $id (@{$prereq->{ids}}) {
                my $other = $type->get($id) or next;
                my $olevel = $other->{_level} // 0;
                $level = $olevel if $olevel < $level;
             }
-            if ($level < 99 && $level > 0 &&
+            if ($level < 999 && $level > 0 &&
                (!defined($obj->{_level}) || $level > $obj->{_level}))
             {
                $obj->{_level} = $level;
@@ -66,10 +66,7 @@ sub add_prereq {
    my ($type, $ids, $id);
    if ($t eq 'LevelPrereqConfig') {
       my $level = $prereq->{level} or return;
-      return if $level < 1;
-      my $max = BN::Level->max() + 10;
-      $level = $max if $level > $max;
-      $obj->{_level} = $level;
+      $obj->{_level} = $level if $level >= 1;
    }
    elsif ($t eq 'CompleteMissionPrereqConfig') {
       $type = 'Mission::Completion';
