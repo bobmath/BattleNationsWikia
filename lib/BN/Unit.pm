@@ -641,7 +641,7 @@ sub enemy_levels {
          $unit->{_level} = $level;
          next;
       }
-      $unit->{_level} = $1 if $unit->{_tag} =~ /_(\d+)$/;
+      $unit->{_level} = $1 if $unit->{_tag} =~ /_(\d+)(?:\(.*\))?$/;
       if (!$unit->{_level} || $unit->{_level} <= 1) {
          $unit->{_level} = $levels{$unit->{_tag}};
       }
