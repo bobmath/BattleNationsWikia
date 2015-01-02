@@ -2,6 +2,7 @@ package BN::Unit;
 use strict;
 use warnings;
 use Storable qw( dclone );
+@BN::Unit::ISA = qw( BN::Prereqs );
 
 my $units;
 
@@ -189,7 +190,6 @@ BN->simple_accessor('icon', 'icon');
 BN->simple_accessor('back_icon', 'backIcon');
 BN->simple_accessor('animation', 'frontIdleAnimation');
 BN->simple_accessor('back_animation', 'backIdleAnimation');
-BN->simple_accessor('visibility_prereq', 'visibilityPrereq');
 BN->simple_accessor('preferred_row', 'preferredRow');
 BN->simple_accessor('building_level', 'buildingLevel');
 
@@ -477,17 +477,14 @@ BN->accessor(heal_building => sub {
    return;
 });
 
-sub level {
-   my ($unit) = @_;
-   return $unit->{_level} if exists $unit->{_level};
-   BN::Prereqs->calc_levels();
-   return $unit->{_level};
-}
-
 sub prereqs {
    my ($unit) = @_;
-   my $prereqs = $unit->{prereq} or return;
-   return map { $prereqs->{$_} } sort keys %$prereqs;
+   my @prereqs;
+   foreach my $field (qw( prereq visibilityPrereq)) {
+      my $prereqs = $unit->{$field} or next;
+      push @prereqs, map { $prereqs->{$_} } sort keys %$prereqs;
+   }
+   return @prereqs;
 }
 
 BN->accessor(max_armor => sub {

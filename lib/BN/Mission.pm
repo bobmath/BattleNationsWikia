@@ -1,6 +1,7 @@
 package BN::Mission;
 use strict;
 use warnings;
+@BN::Mission::ISA = qw( BN::Prereqs );
 
 my $missions;
 my $json_file = 'Missions.json';
@@ -75,13 +76,6 @@ sub wikilink {
    $link .= '|' . $text if length($text);
    $link .= ']]';
    return $link;
-}
-
-sub level {
-   my ($mis) = @_;
-   return $mis->{_level} if exists $mis->{_level};
-   BN::Prereqs->calc_levels();
-   return $mis->{_level};
 }
 
 sub prereqs {
@@ -223,95 +217,6 @@ sub encounters {
    return map { BN::Encounter->get($_) } $mis->encounter_ids();
 }
 
-my $ran_promo;
-
-sub is_promo {
-   my ($mis) = @_;
-   _calc_promo() unless $ran_promo;
-   return $mis->{_promo} ? 1 : '';
-}
-
-sub promo_tag {
-   my ($mis) = @_;
-   _calc_promo() unless $ran_promo;
-   my $p = $mis->{_promo} or return;
-   return join '+', sort keys %$p;
-}
-
-my %initial_promos = (
-   TF2_HEAVYSCOUT_010_DoStuff          => 'tf2_promo_tag',
-   p01_BK2RR_060_HelpAdventurer        => 'old_tutorial',
-   p01_BUILD_040_CollectSupplyDrops    => 'old_tutorial',
-   p01_BUILD_100_TeachCamera           => 'old_tutorial',
-   p01_BUILD_280_BuildBunker2          => 'old_tutorial',
-   p01_BUILD_510_BuildHospital         => 'old_tutorial',
-   p01_HOSP_010_QueueSomething         => 'old_tutorial',
-   p01_INTRO_020_OpeningBattle         => 'old_tutorial',
-   p01_INTRO_040_BuildShelter          => 'old_tutorial',
-   p01_NEWINTRO_120_BuildStoneQuarry   => 'old_tutorial',
-   p01_NEWINTRO_140_BuildHospital      => 'old_tutorial',
-   p01_RTANK_010_RaiderScouts          => 'old_tutorial',
-   p01_RTANK_060_BuildToolShop         => 'old_tutorial',
-   p01_ZOEY1_010_BuildHovel            => 'old_tutorial',
-);
-
-sub _calc_promo {
-   $ran_promo = 1;
-   my @missions = BN::Mission->all();
-   foreach my $mis (@missions) {
-      if (my $tag = $initial_promos{$mis->{_tag}}) {
-         $mis->{_promo}{$tag} = 1;
-      }
-      foreach my $prereq ($mis->prereqs()) {
-         next if $prereq->{inverse};
-         my $t = $prereq->{_t} or next;
-         if ($t eq 'ActiveTagPrereqConfig') {
-            my $tags = $prereq->{tags} or next;
-            $mis->{_promo}{$_} = 1 foreach @$tags;
-         }
-      }
-   }
-   my $changed = 1;
-   while ($changed) {
-      $changed = 0;
-      foreach my $mis (@missions) {
-         PREREQ: foreach my $prereq ($mis->prereqs()) {
-            next if $prereq->{inverse};
-            my $t = $prereq->{_t} or next;
-            if ($t eq 'CompleteMissionPrereqConfig') {
-               my $m = BN::Mission->get($prereq->{missionId});
-               my $p = $m->{_promo} or next;
-               foreach my $k (sort keys %$p) {
-                  next if $mis->{_promo}{$k};
-                  $mis->{_promo}{$k} = 1;
-                  $changed = 1;
-               }
-            }
-            elsif ($t eq 'CompleteAnyMissionPrereqConfig'
-               || $t eq 'ActiveMissionPrereqConfig')
-            {
-               my $ids = $prereq->{missionIds} or next;
-               my @promos;
-               foreach my $id (@$ids) {
-                  my $m = BN::Mission->get($id) or next;
-                  my $promo = $m->{_promo} or next PREREQ;
-                  push @promos, $promo;
-               }
-               my $first = shift @promos or next;
-               TAG: foreach my $tag (sort keys %$first) {
-                  next if $mis->{_promo}{$tag};
-                  foreach my $tags (@promos) {
-                     next TAG unless $tags->{$tag};
-                  }
-                  $mis->{_promo}{$tag} = 1;
-                  $changed = 1;
-               }
-            }
-         }
-      }
-   }
-}
-
 sub full_prereqs {
    my ($mis) = @_;
    _calc_prereqs() unless exists $mis->{zz_full_prereqs};
@@ -423,6 +328,7 @@ sub completion {
 }
 
 package BN::Mission::Completion;
+@BN::Mission::Completion::ISA = qw( BN::Prereqs );
 
 sub all {
    return map { $_->completion() } BN::Mission->all();
@@ -442,11 +348,9 @@ sub new {
    }, $class;
 }
 
-sub level {
+sub tag {
    my ($self) = @_;
-   return $self->{_level} if exists $self->{_level};
-   BN::Prereqs->calc_levels();
-   return $self->{_level};
+   return $self->{_parent} . '(end)';
 }
 
 sub prereqs {
