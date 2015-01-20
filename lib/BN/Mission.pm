@@ -49,9 +49,17 @@ BN->simple_accessor('tag');
 BN->simple_accessor('hidden', 'hideIcon');
 
 my %promo_wikipage = (
-   old_tutorial   => 'Old Tutorial',
-   promo_xmas2014 => 'Twelve Days of Christmas',
-   tf2_promo_tag  => 'Team Fortress 2 missions',
+   old_tutorial                     => 'Old Tutorial',
+   promo_invasion_raiders           => 'Invasions',
+   promo_invasion_raiders_2         => 'Invasions',
+   promo_invasion_raiders_3         => 'Invasions',
+   promo_invasion_raiders_animals   => 'Invasions',
+   promo_invasion_rebel             => 'Invasions',
+   promo_invasion_silverwolf        => 'Invasions',
+   promo_invasion_silverwolf_rebels => 'Invasions',
+   promo_invasion_zombie14          => 'Invasions',
+   promo_xmas2014                   => 'Twelve Days of Christmas',
+   tf2_promo_tag                    => 'Team Fortress 2 missions',
 );
 
 sub wikipage {
