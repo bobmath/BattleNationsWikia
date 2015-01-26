@@ -49,7 +49,14 @@ BN->simple_accessor('tag');
 BN->simple_accessor('hidden', 'hideIcon');
 
 my %promo_wikipage = (
+   charity_xmas                     => 'Annual Jubilee Charity Drive',
+   mis_bigfoot_shaman               => 'Bigfoot Shaman',
    old_tutorial                     => 'Old Tutorial',
+   promo_arborday_mis               => 'Behemoth Tree',
+   promo_async_ltm                  => 'Victory at the Arena',
+   promo_clover_mis                 => 'Hall of Remembrance',
+   promo_fireworks_mis              => 'Fireworks Stand',
+   promo_ice_mis                    => 'Ice Factory',
    promo_invasion_raiders           => 'Invasions',
    promo_invasion_raiders_2         => 'Invasions',
    promo_invasion_raiders_3         => 'Invasions',
@@ -58,8 +65,15 @@ my %promo_wikipage = (
    promo_invasion_silverwolf        => 'Invasions',
    promo_invasion_silverwolf_rebels => 'Invasions',
    promo_invasion_zombie14          => 'Invasions',
+   promo_invasion_zombies_month     => 'Infected 2014',
+   promo_login_dayfive              => '3 Year Anniversary',
+   promo_login_dayfour              => '3 Year Anniversary',
+   promo_login_dayone               => '3 Year Anniversary',
+   promo_login_daythree             => '3 Year Anniversary',
+   promo_login_daytwo               => '3 Year Anniversary',
    promo_xmas2014                   => 'Twelve Days of Christmas',
    tf2_promo_tag                    => 'Team Fortress 2 missions',
+   promo_laser_machingun_mis        => 'M2014 Laser Gunner',
 );
 
 sub wikipage {
