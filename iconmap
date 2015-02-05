@@ -269,6 +269,7 @@ front["veh_tank_heavier"]={x=97,y=137,w=193,f="Veh_tank_heavier_front.png"}
 front["veh_tank_laser"]={x=82,y=153,w=164,f="Veh_tank_laser_front.png"}
 front["veh_tank_mega"]={x=101,y=151,w=197,f="Veh_tank_mega_front.png"}
 front["veh_tank_mega_rebel"]={x=101,y=151,w=197,f="Veh_tank_mega_rebel_front.png"}
+front["veh_tank_snowplow"]={x=84,y=167,w=191,f="Veh_tank_snowplow_front.png"}
 front["veh_tank_tesla"]={x=66,y=137,w=125,f="Veh_tank_tesla_front.png"}
 front["veh_trebuchet"]={x=79,y=190,w=155,f="Veh_trebuchet_front.png"}
 front["wheeledTank"]={x=59,y=114,w=122,f="WheeledTank_front.png"}
