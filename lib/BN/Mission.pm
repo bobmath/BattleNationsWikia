@@ -66,14 +66,15 @@ my %promo_wikipage = (
    promo_invasion_silverwolf_rebels => 'Invasions',
    promo_invasion_zombie14          => 'Invasions',
    promo_invasion_zombies_month     => 'Infected 2014',
+   promo_laser_machingun_mis        => 'M2014 Laser Gunner',
    promo_login_dayfive              => '3 Year Anniversary',
    promo_login_dayfour              => '3 Year Anniversary',
    promo_login_dayone               => '3 Year Anniversary',
    promo_login_daythree             => '3 Year Anniversary',
    promo_login_daytwo               => '3 Year Anniversary',
+   promo_vday2015                   => "Valentine's 2015",
    promo_xmas2014                   => 'Twelve Days of Christmas',
    tf2_promo_tag                    => 'Team Fortress 2 missions',
-   promo_laser_machingun_mis        => 'M2014 Laser Gunner',
 );
 
 sub wikipage {
