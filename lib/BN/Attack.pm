@@ -131,24 +131,19 @@ BN->multi_accessor('effects', 'dotduration', 'dottype', sub {
    foreach my $tag (sort keys %$efflist) {
       my $chance = $efflist->{$tag};
       if (my $eff = BN::StatusEffect->get($tag)) {
-         my $fam = $eff->family();
+         my $icon = $eff->icon();
          my $dur = $eff->duration();
-         if ($fam eq 'Fire') {
+         if ($icon eq 'FireDOT') {
             $dottype = $eff->diminish() ? 'fire' : 'napalm';
-            $fam = 'FireDOT';
          }
-         elsif ($fam eq 'Poison') {
+         elsif ($icon eq 'PoisonDOT') {
             $dottype = 'poison';
-            $fam = 'PoisonDOT';
          }
-         elsif ($fam eq 'Breach') {
+         elsif ($icon eq 'Breach') {
             $dottype = 'breach';
          }
-         elsif ($fam eq 'Frozen') {
-            $fam = 'Freeze';
-         }
          $dotduration = $dur if $dottype;
-         push @effects, "{{$fam|chance=$chance|duration=$dur}}";
+         push @effects, "{{$icon|chance=$chance|duration=$dur}}";
       }
       else {
          push @effects, "$tag ($chance%)";

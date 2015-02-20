@@ -20,12 +20,20 @@ BN->simple_accessor('diminish', 'dot_Diminishing');
 BN->simple_accessor('duration', 'duration');
 
 my %effect_icons = (
-   Cold     => 'ColdEnvironment',
-   Fire     => 'FireDOT',
-   Firemod  => 'Firemod',
-   Plague   => 'Plague',
-   Poison   => 'PoisonDOT',
+   Cold        => 'ColdEnvironment',
+   Fire        => 'FireDOT',
+   Firemod     => 'Firemod',
+   Flammable   => 'ExplosiveAmp',
+   Frozen      => 'Freeze',
+   Plague      => 'Plague',
+   Poison      => 'PoisonDOT',
 );
+
+sub icon {
+   my ($eff) = @_;
+   my $fam = $eff->{family};
+   return $effect_icons{$fam} || $fam;
+}
 
 sub effect {
    my ($eff) = @_;
