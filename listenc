@@ -1,0 +1,114 @@
+use strict;
+use warnings;
+use lib 'lib';
+use BN::File;
+
+my %icon_map = (
+   'Raptor_avatar_icon.png' => 'LandEncounter_raptor.png',
+);
+
+my $encounters = BN::File->json('BattleEncounters.json');
+show_tables($encounters);
+$encounters = BN::File->json('NavalEncounters.json');
+show_tables($encounters);
+
+sub load_json {
+   my ($file) = @_;
+   open my $F, '<', $file or die "Can't read $file: $!\n";
+   local $/ = undef;
+   return decode_json(<$F>);
+}
+
+sub show_tables {
+   my ($encounters) = @_;
+   my $armies = $encounters->{armies} or die;
+   my $tables = $encounters->{tables} or die;
+   my %zones;
+   foreach my $tname (sort keys %$tables) {
+      my $table = $tables->{$tname} or die;
+      next unless $table->{levels};
+      my $mission = mission_prereq($table->{prereqs}) or next;
+      if (my $zone = $table->{worldMapId} || $table->{npcId}) {
+         push @{$zones{$zone}{$mission}}, $tname;
+      }
+      elsif (my $zones = $table->{npcIds}) {
+         push @{$zones{$_}{$mission}}, $tname foreach @$zones;
+      }
+      else {
+         push @{$zones{Outpost}{$mission}}, $tname;
+      }
+   }
+
+   foreach my $zname (sort keys %zones) {
+      my $missions = $zones{$zname} or die;
+      foreach my $mis (sort keys %$missions) {
+         my $mtables = $missions->{$mis} or die;
+         print "\n$zname : $mis\n";
+         foreach my $tname (@$mtables) {
+            my $table = $tables->{$tname} or die;
+            my $levs = $table->{levels} or die;
+            my $spawn = $table->{spawnIntervalMinutes} or die;
+            my $icons = table_icon($table, $armies) || '???';
+            printf "%-29s %-7s %-11s %-3s %s\n", $tname,
+               "$levs->{min}-$levs->{max}",
+               "$spawn->{min}-$spawn->{max}",
+               $table->{maxEncounters} || 0, $icons;
+         }
+      }
+   }
+}
+
+sub table_icon {
+   my ($table, $armies) = @_;
+   my $encounters = $table->{encounters} or return;
+   my %icons;
+   my $total;
+   foreach my $encref (@$encounters) {
+      my $id = $encref->{encounterId} or next;
+      my $army = $armies->{$id} or next;
+      my $icon = $army->{icon} or next;
+      $icon =~ s{^bundle://}{};
+      $icon =~ s{\@2x}{};
+      $icon = ucfirst($icon);
+      $icon = $icon_map{$icon} || $icon;
+      my $pct = $encref->{spawnPercent} or next;
+      $icons{$icon} += $pct;
+      $total += $pct;
+   }
+   return unless $total;
+   my @keys = sort keys %icons;
+   return $keys[0] if @keys == 1;
+   return join(', ', map {
+      sprintf '%s %.0f%%', $_, $icons{$_} * 100 / $total;
+   } @keys);
+}
+
+sub table_loc {
+   my ($table) = @_;
+   return $table->{worldMapId} if $table->{worldMapId};
+   return $table->{npcId} if $table->{npcId};
+   my $npcs = $table->{npcIds} or return 'Outpost';
+   return join(',', sort @$npcs);
+}
+
+sub mission_prereq {
+   my ($prereqs) = @_;
+   if ($prereqs) {
+      my @ids;
+      foreach my $key (sort keys %$prereqs) {
+         my $prereq = $prereqs->{$key} or die;
+         my $t = $prereq->{_t};
+         if ($t eq 'CompleteMissionPrereqConfig') {
+            my $id = $prereq->{missionId} || '???';
+            $id = '!' . $id if $prereq->{inverse};
+            push @ids, $id;
+         }
+         else {
+            return;
+         }
+      }
+      return join(',', sort @ids) if @ids;
+   }
+   return 'none';
+}
+
