@@ -223,7 +223,7 @@ sub unit_ranks {
    print $F "==Statistics==\n{{UnitRanksBox\n";
    print_ranks($F, 'sp', undef, map { BN->commify($_->sp()) } @ranks1);
    short_ranks($F, 'hp', map { $_->hp() } @ranks);
-   short_ranks($F, 'armor', map { $_->armor() } @ranks);
+   short_ranks($F, 'armor', map { $_->armor() } @ranks) if $unit->max_armor();
    short_ranks($F, 'bravery', map { $_->bravery() } @ranks);
    short_ranks($F, 'defense', map { $_->defense() } @ranks);
    short_ranks($F, 'dodge', map { $_->dodge() } @ranks);
@@ -325,7 +325,6 @@ sub print_ranks {
 
 sub short_ranks {
    my ($F, $tag, @vals) = @_;
-   return unless any(@vals);
    $_ ||= 0 foreach @vals;
    print_line($F, $tag, join('; ', @vals));
 }
