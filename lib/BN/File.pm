@@ -7,7 +7,7 @@ use File::HomeDir ();
 use JSON::XS qw( decode_json );
 use POSIX qw( strftime );
 
-my ($app_dir, $new_dir, $promo_dir, %file_index);
+my ($extra_dir, $app_dir, $new_dir, $promo_dir, %file_index);
 if ($^O eq 'darwin') {
    $app_dir = '/Applications/BattleNations.app/Contents/Resources/bundle';
    my $cache_dir = File::HomeDir->my_home()
@@ -196,11 +196,17 @@ sub set_date {
    close $INDEX;
 }
 
+sub extra_dir {
+   my ($class, $dir) = @_;
+   $extra_dir = $dir;
+}
+
 sub get {
    my ($class, $file) = @_;
    if (%file_index) {
       return $file_index{lc($file)};
    }
+   return "$extra_dir/$file" if $extra_dir && -f "$extra_dir/$file";
    return "$new_dir/$file" if -f "$new_dir/$file";
    return "$app_dir/$file" if -f "$app_dir/$file";
    return;
@@ -215,7 +221,8 @@ sub read {
       open $F, "<$enc", $path or die "Can't read $path: $!\n";
    }
    else {
-      open $F, "<$enc", "$new_dir/$file"
+      $extra_dir and open $F, "<$enc", "$extra_dir/$file"
+      or open $F, "<$enc", "$new_dir/$file"
       or open $F, "<$enc", "$app_dir/$file"
       or die "Can't read $file: $!\n";
    }

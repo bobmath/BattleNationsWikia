@@ -7,10 +7,13 @@ use BN::Out;
 use Getopt::Std;
 
 my %opts;
-getopts('d:', \%opts) or die "Bad options\n";
+getopts('d:D:', \%opts) or die "Bad options\n";
 
 if ($opts{d}) {
    BN::File->set_date($opts{d});
+}
+elsif ($opts{D}) {
+   BN::File->extra_dir($opts{D});
 }
 else {
    BN::File->promos();
