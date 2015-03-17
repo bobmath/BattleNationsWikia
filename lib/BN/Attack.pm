@@ -83,14 +83,17 @@ BN->accessor(lof => sub {
    my ($att) = @_;
    my $lof = $att->{lineOfFire};
    $lof = $lof{$lof} if defined $lof;
+   my @mods;
    if (my $dir = $att->{attackDirection}) {
-      $lof .= ' (Back)' if $dir eq 'back';
+      push @mods, 'Back' if $dir eq 'back';
    }
    if (my $target = $att->{targetArea}) {
       if (my $type = $target->{type}) {
-         $lof .= ' (Fixed)' if $type eq 'Weapon';
+         push @mods, 'Fixed' if $type eq 'Weapon';
       }
+      push @mods, 'Random' if $target->{random};
    }
+   $lof .= ' (' . join(', ', @mods) . ')' if @mods;
    return $lof;
 });
 
