@@ -50,6 +50,8 @@ sub unit_profile {
    print $F $unit->wiki_page(), "\n";
    print $F "{{UnitProfile\n";
    profile_line($F, 'image', BN::Out->icon($unit->icon()));
+   profile_line($F, 'name', $unit->name())
+      unless $unit->name() eq $unit->wiki_page();
    if (my $short = $unit->shortname()) {
       profile_line($F, 'shortname', $short) unless $short eq $unit->name();
    }
