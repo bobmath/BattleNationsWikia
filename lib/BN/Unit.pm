@@ -164,6 +164,7 @@ sub get {
       bless $unit, $class;
       $unit->{_tag} = $key;
       my $name = $name{$key} || BN::Text->get($unit->{name}) || $key;
+      $name =~ s/\s+$//;
       if ($name =~ /^Specimen/) {
          $name =~ s/Speciment/Specimen/;
          $name =~ s/'/"/g;
