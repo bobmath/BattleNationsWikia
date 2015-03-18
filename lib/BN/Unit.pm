@@ -620,6 +620,11 @@ my %enemy_level = (
    s_ninja_npc                      => 64,
    s_raider_sniper_tutorial         => 3,
    s_sandworm_elder                 => 27,
+   ship_battleship_elite            => 30,
+   ship_battleship_super_elite      => 30,
+   ship_destroyer_elite             => 30,
+   ship_gunboat_elite               => 30,
+   ship_submarine_elite             => 30,
    veh_raider_mammoth_armored       => 25,
 );
 
