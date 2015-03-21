@@ -21,6 +21,7 @@ sub level_pages {
       $curr_page = $pages{$page} or die;
       my $file = BN::Out->filename('missions', $page);
       open my $F, '>:utf8', $file or die "Can't write $file: $!";
+      print $F $page, "\n";
       foreach my $mis (sort { ($a->level()||0) <=> ($b->level()||0)
          || $a->name() cmp $b->name() || $a->tag() cmp $b->tag() }
          values %$curr_page)
@@ -47,6 +48,7 @@ sub index_page {
 
    my $file = BN::Out->filename('missions', 'Mission_index');
    open my $F, '>:utf8', $file or die "Can't write $file: $!";
+   print $F "Mission index\n";
 
    foreach my $key (sort keys %index) {
       my $sec = $index{$key} or next;
