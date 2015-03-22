@@ -186,7 +186,7 @@ sub commify {
 }
 
 sub format_time {
-   my ($class, $time) = @_;
+   my ($class, $time, $lim) = @_;
    return undef unless $time;
    my @fmt;
    if (my $sec = $time % 60) { unshift @fmt, $sec . 's' }
@@ -196,6 +196,7 @@ sub format_time {
    if (my $hr = $time % 24) { unshift @fmt, $hr . 'h' }
    $time = int($time/24);
    unshift @fmt, $time . 'd' if $time;
+   splice @fmt, $lim if $lim;
    return join ' ', @fmt;
 }
 

@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use lib 'lib';
-use BN::File;
+use BN;
 
 my %icon_map = (
    'Raptor_avatar_icon.png' => 'LandEncounter_raptor.png',
@@ -47,12 +47,16 @@ sub show_tables {
          foreach my $tname (@$mtables) {
             my $table = $tables->{$tname} or die;
             my $levs = $table->{levels} or die;
+            my $lev_min = $levs->{min} || 0;
+            my $lev_max = $levs->{max} || 0;
             my $spawn = $table->{spawnIntervalMinutes} or die;
+            my $time_min = BN->format_time($spawn->{min} * 60, 1);
+            my $time_max = BN->format_time($spawn->{max} * 60, 1);
             my $icons = table_icon($table, $armies) || '???';
-            printf "%-29s %-7s %-11s %-3s %s\n", $tname,
-               "$levs->{min}-$levs->{max}",
-               "$spawn->{min}-$spawn->{max}",
-               $table->{maxEncounters} || 0, $icons;
+            my $count = $table->{maxEncounters};
+            print "|-\n", #  "<!-- $tname -->\n";
+               "| $lev_min - $lev_max || $time_min - $time_max || $count\n",
+               "| $icons\n";
          }
       }
    }
@@ -71,6 +75,7 @@ sub table_icon {
       $icon =~ s{\@2x}{};
       $icon = ucfirst($icon);
       $icon = $icon_map{$icon} || $icon;
+      $icon = "[[File:$icon|20px]]";
       my $pct = $encref->{spawnPercent} or next;
       $icons{$icon} += $pct;
       $total += $pct;
