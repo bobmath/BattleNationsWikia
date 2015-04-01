@@ -82,7 +82,14 @@ foreach my $file (@ARGV) {
    }
    last unless defined $line;
    if ($line =~ /y/i) {
-      $ua->edit($name, $new_text, $summary, $info->{edittoken}, 'nocreate');
+      while (1) {
+         eval { $ua->edit($name, $new_text, $summary, $info->{edittoken},
+            'nocreate') };
+         last unless $@;
+         warn $@;
+         warn "Retrying\n";
+         sleep 10;
+      }
       unlink $old_file;
       print "Edited\n";
    }
