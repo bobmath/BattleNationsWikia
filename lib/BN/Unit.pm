@@ -479,6 +479,7 @@ BN->accessor(heal_building => sub {
    foreach my $tag (@$tags) {
       if    ($tag eq 'Hospital') { return 'hospital' }
       elsif ($tag eq 'VRB')      { return 'vehicle' }
+      elsif ($tag eq 'SRB')      { return 'ship' }
    }
    return;
 });

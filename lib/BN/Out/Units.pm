@@ -343,6 +343,7 @@ my %build_map = (
    comp_milUnit_barracks         => 'barracks',
    comp_milUnit_bigfootSchool    => 'bigfoot',
    comp_milUnit_drydock          => 'dry dock',
+   comp_milUnit_fishhatchery     => 'fish',
    comp_milUnit_frontierBarracks => 'frontier',
    comp_milUnit_laserbarracks    => 'optics facility',
    comp_milUnit_plasmafactory    => 'plasma',
