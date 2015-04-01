@@ -86,6 +86,7 @@ foreach my $file (@ARGV) {
       unlink $old_file;
       print "Edited\n";
    }
+   redo if $line =~ /r/i;
    unlink $old_file if $line =~ /n/i;
    last if $line =~ /q/i;
 }
