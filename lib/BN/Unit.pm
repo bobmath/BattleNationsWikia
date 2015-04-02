@@ -74,6 +74,10 @@ my @clone_ids = qw(
    ship_raft_trooper_45
    ship_raft_trooper_55
    ship_raft_trooper_65
+   ship_tactical_sub_35
+   ship_tactical_sub_45
+   ship_tactical_sub_55
+   ship_tactical_sub_65
    veh_anti_aircraft_gun_premium
    veh_anti_aircraft_gun_regular
    veh_artillery
