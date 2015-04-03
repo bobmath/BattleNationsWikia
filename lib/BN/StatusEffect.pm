@@ -10,6 +10,7 @@ sub get {
    $effects ||= BN::File->json('StatusEffectsConfig.json');
    my $eff = $effects->{$tag} or return;
    if (ref($eff) eq 'HASH') {
+      $eff->{_tag} = $tag;
       bless $eff, $class;
    }
    return $eff;
@@ -20,19 +21,22 @@ BN->simple_accessor('diminish', 'dot_Diminishing');
 BN->simple_accessor('duration', 'duration');
 
 my %effect_icons = (
-   Cold        => 'ColdEnvironment',
-   Fire        => 'FireDOT',
-   Firemod     => 'Firemod',
-   Flammable   => 'ExplosiveAmp',
-   Frozen      => 'Freeze',
-   Plague      => 'Plague',
-   Poison      => 'PoisonDOT',
+   Cold              => 'ColdEnvironment',
+   Fire              => 'FireDOT',
+   Firemod           => 'Firemod',
+   Flammable         => 'ExplosiveAmp',
+   Frozen            => 'Freeze',
+   Plague            => 'Plague',
+   Poison            => 'PoisonDOT',
+   shell_explosive   => 'Shell|type=Explosive',
+   shell_piercing    => 'Shell|type=Piercing',
+   shell_unstable    => 'Shell|type=Unstable',
 );
 
 sub icon {
    my ($eff) = @_;
    my $fam = $eff->{family};
-   return $effect_icons{$fam} || $fam;
+   return $effect_icons{$eff->{_tag}} || $effect_icons{$fam} || $fam;
 }
 
 sub effect {

@@ -392,6 +392,7 @@ my %immune = (
    Plague      => '{{Plague}} Plague',
    Poison      => '{{PoisonDOT}} Poison',
    Shatter     => '{{Shatter}} Shatter',
+   Shell       => '{{Shell}} Shell',
    Stun        => '{{Stun}} Stun',
 );
 
