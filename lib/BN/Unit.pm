@@ -137,6 +137,17 @@ my %name = (
 );
 
 my %side = (
+   def_blockhouse             => 'Building',
+   def_cannontower            => 'Building',
+   def_chem_sprinkler         => 'Building',
+   def_flameturret            => 'Building',
+   def_fortress_armored       => 'Building',
+   def_guardtower             => 'Building',
+   def_missile_defense        => 'Building',
+   def_pillbox                => 'Building',
+   def_pillbox_armored        => 'Building',
+   def_saw_trap               => 'Building',
+   def_tesla_coil             => 'Building',
    mis_s_bigfoot_shaman       => 'Mission',
    mis_s_scientist_20         => 'Mission',
    mis_s_scientist_40         => 'Mission',
