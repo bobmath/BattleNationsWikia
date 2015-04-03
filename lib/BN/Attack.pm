@@ -145,6 +145,9 @@ BN->multi_accessor('effects', 'dotduration', 'dottype', sub {
          elsif ($icon eq 'Breach') {
             $dottype = 'breach';
          }
+         elsif ($icon =~ /\|type=(\w+)/) {
+            $dottype = lc $1;
+         }
          $dotduration = $dur if $dottype;
          push @effects, "{{$icon|chance=$chance|duration=$dur}}";
       }
