@@ -59,25 +59,6 @@ my @clone_ids = qw(
    s_trooper_specialAgent
    s_trooper_veteran
    s_veh_portableWall
-   ship_minelayer_25
-   ship_minelayer_35
-   ship_minelayer_45
-   ship_minelayer_55
-   ship_minelayer_65
-   ship_mini_sub_25
-   ship_mini_sub_35
-   ship_mini_sub_45
-   ship_mini_sub_55
-   ship_mini_sub_65
-   ship_raft_trooper_25
-   ship_raft_trooper_35
-   ship_raft_trooper_45
-   ship_raft_trooper_55
-   ship_raft_trooper_65
-   ship_tactical_sub_35
-   ship_tactical_sub_45
-   ship_tactical_sub_55
-   ship_tactical_sub_65
    veh_anti_aircraft_gun_premium
    veh_anti_aircraft_gun_regular
    veh_artillery
@@ -155,6 +136,60 @@ my %name = (
    's_dragoon(hostile)'             => 'Rebel Dragoon',
 );
 
+my %side = (
+   mis_s_bigfoot_shaman       => 'Mission',
+   mis_s_scientist_20         => 'Mission',
+   mis_s_scientist_40         => 'Mission',
+   mis_s_scientist_50         => 'Mission',
+   mis_veh_monster_20         => 'Mission',
+   mis_veh_monster_40         => 'Mission',
+   mis_veh_monster_60         => 'Mission',
+   s_laser_machingun_mission  => 'Mission',
+   s_sandworm_emperor_45      => 'Unreleased',
+   s_zombie_hunter2_mis       => 'Mission',
+   ship_minelayer_25          => 'Hostile',
+   ship_minelayer_35          => 'Hostile',
+   ship_minelayer_45          => 'Hostile',
+   ship_minelayer_55          => 'Hostile',
+   ship_minelayer_65          => 'Hostile',
+   ship_mini_sub_25           => 'Hostile',
+   ship_mini_sub_35           => 'Hostile',
+   ship_mini_sub_45           => 'Hostile',
+   ship_mini_sub_55           => 'Hostile',
+   ship_mini_sub_65           => 'Hostile',
+   ship_raft_trooper_25       => 'Hostile',
+   ship_raft_trooper_35       => 'Hostile',
+   ship_raft_trooper_45       => 'Hostile',
+   ship_raft_trooper_55       => 'Hostile',
+   ship_raft_trooper_65       => 'Hostile',
+   ship_tactical_sub_35       => 'Hostile',
+   ship_tactical_sub_45       => 'Hostile',
+   ship_tactical_sub_55       => 'Hostile',
+   ship_tactical_sub_65       => 'Hostile',
+   tf2_hero_demoman_25        => 'Mission',
+   tf2_hero_demoman_35        => 'Mission',
+   tf2_hero_demoman_45        => 'Mission',
+   tf2_hero_demoman_55        => 'Mission',
+   tf2_hero_heavy_20          => 'Mission',
+   tf2_hero_heavy_30          => 'Mission',
+   tf2_hero_heavy_40          => 'Mission',
+   tf2_hero_heavy_50          => 'Mission',
+   tf2_hero_heavy_60          => 'Mission',
+   tf2_hero_scout_ignore      => 'Mission',
+   tf2_hero_soldier_25        => 'Mission',
+   tf2_hero_soldier_35        => 'Mission',
+   tf2_hero_soldier_45        => 'Mission',
+   tf2_hero_soldier_55        => 'Mission',
+   veh_armored_suv_20         => 'Mission',
+   veh_armored_suv_40         => 'Mission',
+   veh_armored_suv_60         => 'Mission',
+   veh_artillery_mech_mis     => 'Mission',
+   veh_flametank_heavy        => 'Unreleased',
+   veh_sw_catapult_15         => 'Mission',
+   veh_sw_catapult_30         => 'Mission',
+   veh_sw_catapult_45         => 'Mission',
+);
+
 sub get {
    my ($class, $key, $hostile) = @_;
    return unless $key;
@@ -174,6 +209,9 @@ sub get {
          $name =~ s/'/"/g;
       }
       $unit->{_name} = $name;
+      if (my $side = $side{$key}) {
+         $unit->{side} = $side;
+      }
    }
    return $unit;
 }

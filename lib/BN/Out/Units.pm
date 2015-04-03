@@ -11,9 +11,7 @@ sub write {
          push @{$enemies{$name}}, $unit;
          next;
       }
-      my $dir = $unit->building() || $unit->from_missions()
-         || $unit->boss_strike() ? 'units' : 'locked';
-      my $file = BN::Out->filename($dir, $unit->wiki_page());
+      my $file = BN::Out->filename('units', $unit->wiki_page());
       open my $F, '>', $file or die "Can't write $file: $!";;
 
       unit_profile($F, $unit);
