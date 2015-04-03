@@ -630,7 +630,11 @@ BN->accessor(other_reqs => sub {
          push @reqs, $mis->wikilink() if $mis;
       }
    }
-   #push @reqs, '[[Infection Test Facility]]' if $unit->{transformationTable};
+   if (my $tags = $unit->{tags}) {
+      foreach my $tag (@$tags) {
+         push @reqs, '[[Infection Test Facility]]' if $tag eq 'Inf';
+      }
+   }
    push @reqs, 'Boss Strike' if $unit->boss_strike();
    return unless @reqs;
    return join '<br>', sort @reqs;
