@@ -437,6 +437,7 @@ my %immune = (
    Cold        => '{{ColdEnvironment}} Cold Environment',
    Fire        => '{{FireDOT}} Fire',
    Flammable   => '{{ExplosiveAmp}} Explosive',
+   Freeze      => 'xxx', # incorrectly coded in game files
    Frozen      => '{{Freeze}} Freeze',
    Plague      => '{{Plague}} Plague',
    Poison      => '{{PoisonDOT}} Poison',
@@ -448,8 +449,14 @@ my %immune = (
 BN->accessor(immunities => sub {
    my ($unit) = @_;
    my $immune = $unit->{statusEffectImmunities} or return;
-   my @immune = map { $immune{$_} || $_ } sort @$immune or return;
-   return join('<br>', @immune);
+   my @immune;
+   foreach my $imm (@$immune) {
+      my $icon = $immune{$imm} || $imm;
+      next if $icon eq 'xxx';
+      (my $sort = $icon) =~ s/^.*\}\s*//;
+      push @immune, [ $sort, $icon ];
+   }
+   return join('<br>', map { $_->[1] } sort { $a->[0] cmp $b->[0] } @immune);
 });
 
 BN->list_accessor(ranks => sub {
