@@ -108,6 +108,10 @@ sub mission_prereq {
             $id = '!' . $id if $prereq->{inverse};
             push @ids, $id;
          }
+         elsif ($t eq 'ActiveMissionPrereqConfig') {
+            my $ids = $prereq->{missionIds} || ['???'];
+            push @ids, map { "=$_" } @$ids;
+         }
          else {
             return;
          }
