@@ -51,8 +51,13 @@ foreach my $file (@ARGV) {
          }
       }
 
-      if (my ($profile) = $file_parts[0] =~ /^\| image *=[^\n]*\n(.*?\n}})/ms) {
-         $wiki_parts[0] =~ s/^(\|\s*image\s*=[^\n]*\n).*?\n}}/$1$profile/ms;
+      if (my ($profile) = $file_parts[0] =~ /^(\{\{Unit.*?\n}})/ms) {
+         if (my ($image) = $wiki_parts[0] =~
+            /^\{\{Unit.*?\|\s*image\s*=\s*([^\n]*)/ms)
+         {
+            $profile =~ s/(\|\s*image\s*=\s*)[^\n]*/$1$image/;
+         }
+         $wiki_parts[0] =~ s/^\{\{Unit.*?\n}}/$profile/ms;
       }
 
       $new_text = join '', @wiki_parts;
