@@ -62,8 +62,10 @@ sub unit_profile {
    unit_defense($F, $unit, \@notes);
    profile_line($F, 'limit', $unit->deploy_limit());
    if (my $spawn = $unit->spawned_unit()) {
-      my $name = $spawn->name();
-      profile_line($F, 'spawn', "[[$name (spawn)|$name]]");
+      my $s_icon = BN::Out->icon($spawn->icon('30px')) || '';
+      my $s_name = $spawn->name();
+      my $s_short = $spawn->shortname();
+      profile_line($F, 'spawn', "$s_icon [[$s_name (spawn)|$s_short]]");
    }
    profile_line($F, 'notes', join('<br>', @notes)) if @notes;
    profile_line($F, 'game file name', $unit->tag());
