@@ -35,6 +35,7 @@ front["air_sw_plane"]={x=83,y=155,w=184,f="Air_sw_plane_front.png"}
 front["air_sw_whirlybird"]={x=65,y=219,w=153,f="Air_sw_whirlybird_front.png"}
 front["air_warthog"]={x=66,y=147,w=133,f="Air_warthog_front.png"}
 front["air_ww2_fighter"]={x=67,y=149,w=138,f="Air_ww2_fighter_front.png"}
+front["armoredFortress"]={x=76,y=170,w=149,f="ArmoredFortress_front.png"}
 front["armoredMammoth"]={x=100,y=200,w=197,f="ArmoredMammoth_front.png"}
 front["armoredPillbox"]={x=49,y=110,w=99,f="ArmoredPillbox.png"}
 front["arsonist"]={x=42,y=148,w=80,f="Arsonist_front.png"}
@@ -145,6 +146,7 @@ front["s_mammoth_small"]={x=38,y=98,w=74,f="S_mammoth_small_front.png"}
 front["s_matriarchBoar"]={x=74,y=131,w=134,f="S_matriarchBoar_front.png"}
 front["s_midrange_agent"]={x=38,y=145,w=71,f="S_midrange_agent_front.png"}
 front["s_mortar_turtleShell"]={x=67,y=153,w=134,f="S_mortar_turtleShell_front.png"}
+front["s_portableWall"]={x=76,y=104,w=111,f="S_portableWall_front.png"}
 front["s_raider_bombadier_55"]={x=51,y=138,w=83,f="S_raider_bombadier_55_front.png"}
 front["s_raider_boomboom_55"]={x=42,y=125,w=81,f="S_raider_boomboom_55_front.png"}
 front["s_raider_brawler_55"]={x=46,y=141,w=96,f="S_raider_brawler_55_front.png"}
@@ -180,6 +182,7 @@ front["s_trooper_cryo"]={x=40,y=137,w=75,f="S_trooper_cryo_front.png"}
 front["s_trooper_dragoon_heavy"]={x=90,y=135,w=148,f="S_trooper_dragoon_heavy_front.png"}
 front["s_trooper_fire_ice"]={x=82,y=129,w=120,f="S_trooper_fire_ice_front.png"}
 front["s_trooper_jetpack"]={x=44,y=159,w=88,f="S_trooper_jetpack_front.png"}
+front["s_trooper_plasma"]={x=55,y=128,w=91,f="S_trooper_plasma_front.png"}
 front["s_trooper_railgun"]={x=93,y=122,w=136,f="S_trooper_railgun_front.png"}
 front["s_trooper_saboteur_heavy"]={x=61,y=130,w=96,f="S_trooper_saboteur_heavy_front.png"}
 front["s_trooper_specialAgent"]={x=41,y=154,w=74,f="S_trooper_specialAgent_front.png"}
@@ -251,11 +254,15 @@ front["veh_anti_aircraft_gun_regular"]={x=56,y=141,w=122,f="Veh_anti_aircraft_gu
 front["veh_anti_armor"]={x=88,y=142,w=175,f="Veh_anti_armor_front.png"}
 front["veh_artillery_napalm"]={x=91,y=152,w=181,f="Veh_artillery_napalm_front.png"}
 front["veh_boomBus"]={x=70,y=158,w=160,f="Veh_boomBus_front.png"}
+front["veh_cannon_plasma"]={x=93,y=160,w=161,f="Veh_cannon_plasma_front.png"}
 front["veh_elemental_rover"]={x=90,y=130,w=182,f="Veh_elemental_rover_front.png"}
+front["veh_hoverbike"]={x=57,y=145,w=134,f="Veh_hoverbike_front.png"}
+front["veh_hovertank"]={x=90,y=162,w=176,f="Veh_hovertank_front.png"}
 front["veh_ign_turret_flame"]={x=57,y=140,w=107,f="Veh_ign_turret_flame_front.png"}
 front["veh_ign_turret_laser"]={x=66,y=150,w=119,f="Veh_ign_turret_laser_front.png"}
 front["veh_ign_turret_mgun"]={x=92,y=148,w=136,f="Veh_ign_turret_mgun_front.png"}
 front["veh_motorcycle_advanced"]={x=54,y=157,w=128,f="Veh_motorcycle_advanced_front.png"}
+front["veh_plasma_turret"]={x=72,y=156,w=139,f="Veh_plasma_turret_front.png"}
 front["veh_raider_mammoth_armored_55"]={x=100,y=200,w=196,f="Veh_raider_mammoth_armored_55_front.png"}
 front["veh_raider_mammoth_rockets_55"]={x=90,y=195,w=176,f="Veh_raider_mammoth_rockets_55_front.png"}
 front["veh_raider_rocketMammoth"]={x=89,y=195,w=175,f="Veh_raider_rocketMammoth_front.png"}
@@ -269,6 +276,7 @@ front["veh_tank_heavier"]={x=97,y=137,w=193,f="Veh_tank_heavier_front.png"}
 front["veh_tank_laser"]={x=82,y=153,w=164,f="Veh_tank_laser_front.png"}
 front["veh_tank_mega"]={x=101,y=151,w=197,f="Veh_tank_mega_front.png"}
 front["veh_tank_mega_rebel"]={x=101,y=151,w=197,f="Veh_tank_mega_rebel_front.png"}
+front["veh_tank_plasma"]={x=106,y=147,w=201,f="Veh_tank_plasma_front.png"}
 front["veh_tank_snowplow"]={x=84,y=167,w=191,f="Veh_tank_snowplow_front.png"}
 front["veh_tank_tesla"]={x=66,y=137,w=125,f="Veh_tank_tesla_front.png"}
 front["veh_trebuchet"]={x=79,y=190,w=155,f="Veh_trebuchet_front.png"}

@@ -28,6 +28,7 @@ my %effect_icons = (
    Frozen            => 'Freeze',
    Plague            => 'Plague',
    Poison            => 'PoisonDOT',
+   Quake             => 'Quake',
    shell_explosive   => 'Shell|type=Explosive',
    shell_piercing    => 'Shell|type=Piercing',
    shell_unstable    => 'Shell|type=Unstable',

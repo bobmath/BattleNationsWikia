@@ -84,13 +84,12 @@ sub write_strike {
                $hinum = $nextnum;
                shift @tiers;
             }
+            if ($tnum == $hinum) { $level_tiers{$levels}{$tnum} = $eids }
+            else { $level_tiers{$levels}{"$tnum-$hinum"} = $eids }
          }
          else {
-            $tnum = 1;
-            $hinum = 10;
+            $level_tiers{$levels}{0} = $eids;
          }
-         if ($tnum == $hinum) { $level_tiers{$levels}{$tnum} = $eids }
-         else { $level_tiers{$levels}{"$tnum-$hinum"} = $eids }
       }
    }
 
@@ -98,7 +97,9 @@ sub write_strike {
       my $tiers = $level_tiers{$levels} or next;
       my $mult = $multipliers{$levels};
       foreach my $tnum (sort keys %$tiers) {
-         my $file = "Level_${levels}_tier_${tnum}_battles";
+         my $file = "Level_$levels";
+         $file .= "_tier_$tnum" if $tnum;
+         $file .= '_battles';
          print "$file\n";
          open my $F, '>', $file or die "Can't write $file: $!";
          my $eids = $tiers->{$tnum} or next;
@@ -113,11 +114,16 @@ sub write_strike {
 
    foreach my $levels (sort keys %level_tiers) {
       my $tiers = $level_tiers{$levels} or next;
-      my @links;
-      foreach my $tnum (sort keys %$tiers) {
-         push @links, "[[/Level $levels tier $tnum battles|tier $tnum]]";
+      if (keys(%$tiers) == 1) {
+         print "*[[/Level $levels battles|Level $levels]]\n";
       }
-      print "*Level $levels ", join(', ', @links), "\n";
+      else {
+         my @links;
+         foreach my $tnum (sort keys %$tiers) {
+            push @links, "[[/Level $levels tier $tnum battles|tier $tnum]]";
+         }
+         print "*Level $levels ", join(', ', @links), "\n";
+      }
    }
 }
 
