@@ -749,4 +749,9 @@ BN->accessor(deploy_limit => sub {
    return $limit;
 });
 
+sub spawned_unit {
+   my ($unit) = @_;
+   return BN::Unit->get($unit->{deathSpawnedUnit});
+}
+
 1 # end BN::Unit

@@ -60,10 +60,11 @@ sub unit_profile {
    profile_line($F, 'immunities', $unit->immunities());
    profile_line($F, 'blocking', $unit->blocking());
    unit_defense($F, $unit, \@notes);
-   if (my $limit = $unit->deploy_limit()) {
-      push @notes, "Deployment limit: $limit";
+   profile_line($F, 'limit', $unit->deploy_limit());
+   if (my $spawn = $unit->spawned_unit()) {
+      my $name = $spawn->name();
+      profile_line($F, 'spawn', "[[$name (spawn)|$name]]");
    }
-
    profile_line($F, 'notes', join('<br>', @notes)) if @notes;
    profile_line($F, 'game file name', $unit->tag());
    print $F "}}\n";
