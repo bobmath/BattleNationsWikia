@@ -113,11 +113,6 @@ BN->accessor(wiki_page => sub {
    my ($unit) = @_;
    my $name = $unit->{_name};
    return $name unless ($unit->{side}||'') eq 'Hostile';
-   if ($name =~ /^Specimen [a-z]\d+ ['"](.+)['"]$/) {
-      $name = $1;
-      $name =~ s/^(?:Proto-|Advanced|Archetype)\s*//;
-      return $name . ' (enemy)';
-   }
    unless (%unit_names) {
       foreach my $u (BN::Unit->all()) {
          my $side = $u->{side} or next;
