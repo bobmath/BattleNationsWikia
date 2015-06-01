@@ -1,4 +1,11 @@
 *air_attack_helicopter(hostile) level=10
+*air_s_trooper_zombie name=Specimen f01 "Proto-Hunter"
+*air_s_trooper_zombie_20 name=Specimen f01 "Proto-Hunter"
+*air_s_trooper_zombie_40 name=Specimen f03 "Advanced Hunter"
+*air_s_trooper_zombie_55 name=Specimen f04 "Archetype Hunter"
+*air_s_trooper_zombie_b name=Specimen f02 "Hunter"
+*air_s_trooper_zombie_c name=Specimen f03 "Advanced Hunter"
+*air_s_trooper_zombie_d name=Specimen f04 "Archetype Hunter"
 *air_spiderwasp_striker level=45
 *air_spiderwasp_striker(spawn) [[Spiderwasp Drone (spawn)]] side=Spawn level=66
 *boss_goliath_tank_leftside [[Multi-Launch Rocket System (Left)]]
@@ -71,8 +78,15 @@
 *mis_veh_monster_20 side=Mission
 *mis_veh_monster_40 side=Mission
 *mis_veh_monster_60 side=Mission
-*raptor_zombie_enemy_20 [[Shredder (unused)]]
-*raptor_zombie_enemy_40 [[Shredder (unused)]]
+*raptor_zombie name=Specimen g01 "Proto-Shredder"
+*raptor_zombie_20 name=Specimen g02 "Shredder"
+*raptor_zombie_40 name=Specimen g03 "Advanced Shredder"
+*raptor_zombie_55 name=Specimen g04 "Archetype Shredder"
+*raptor_zombie_b name=Specimen g02 "Shredder"
+*raptor_zombie_c name=Specimen g03 "Advanced Shredder"
+*raptor_zombie_d name=Specimen g04 "Archetype Shredder"
+*raptor_zombie_enemy_20 [[Shredder (unused)]] name=Specimen g02 "Shredder"
+*raptor_zombie_enemy_40 [[Shredder (unused)]] name=Specimen g03 "Advanced Shredder"
 *rb_ship_jetski level=25
 *rb_ship_speedboat level=25
 *rb_ship_tugboat level=25
@@ -81,6 +95,12 @@
 *s_bazooka(hostile)
 *s_bigfoot_adult level=26
 *s_bigfoot_child level=26
+*s_bigfoot_zombie_player name=Specimen i01 "Mauler"
+*s_bigfoot_zombie_super_25 name=Specimen i02 "Apex Mauler"
+*s_bigfoot_zombie_super_35 name=Specimen i02 "Apex Mauler"
+*s_bigfoot_zombie_super_45 name=Specimen i02 "Apex Mauler"
+*s_bigfoot_zombie_super_55 name=Specimen i02 "Apex Mauler"
+*s_bigfoot_zombie_super_player name=Specimen i02 "Apex Mauler"
 *s_boar level=4
 *s_boar_militia [[Wild Boar (militia)]]
 *s_boar_tough level=10
@@ -175,6 +195,34 @@
 *s_trooper_spawn [[Trooper (spawn)]] level=5
 *s_trooper_specialAgent(hostile)
 *s_trooper_veteran(hostile)
+*s_trooper_zombie_ninja_super name=Specimen d05 "Apex Stalker"
+*s_trooper_zombie_ninja_super_10 name=Specimen d05 "Apex Stalker"
+*s_trooper_zombie_ninja_super_20 name=Specimen d05 "Apex Stalker"
+*s_trooper_zombie_ninja_super_30 name=Specimen d05 "Apex Stalker"
+*s_trooper_zombie_ninja_super_40 name=Specimen d05 "Apex Stalker"
+*s_trooper_zombie_ninja_super_50 name=Specimen d05 "Apex Stalker"
+*s_trooper_zombie_ninja_super_60 name=Specimen d05 "Apex Stalker"
+*s_trooper_zombie_spider name=Specimen h01 "Proto-Crawler"
+*s_trooper_zombie_spider_b name=Specimen h02 "Crawler"
+*s_trooper_zombie_spider_c name=Specimen h03 "Advanced Crawler"
+*s_trooper_zombie_spider_d name=Specimen h04 "Archetype Crawler"
+*s_trooper_zombie_spider_enemy_20 name=Specimen h01 "Proto-Crawler"
+*s_trooper_zombie_spider_enemy_40 name=Specimen h03 "Advanced Crawler"
+*s_trooper_zombie_spider_enemy_55 name=Specimen h04 "Archetype Crawler"
+*s_trooper_zombie_spitter_super name=Specimen a05 "Apex Bullfrog"
+*s_trooper_zombie_spitter_super_10 name=Specimen a05 "Apex Bullfrog"
+*s_trooper_zombie_spitter_super_20 name=Specimen a05 "Apex Bullfrog"
+*s_trooper_zombie_spitter_super_30 name=Specimen a05 "Apex Bullfrog"
+*s_trooper_zombie_spitter_super_40 name=Specimen a05 "Apex Bullfrog"
+*s_trooper_zombie_spitter_super_50 name=Specimen a05 "Apex Bullfrog"
+*s_trooper_zombie_spitter_super_60 name=Specimen a05 "Apex Bullfrog"
+*s_trooper_zombie_tank_super name=Specimen e03 "Apex Colossus"
+*s_trooper_zombie_tank_super_10 name=Specimen e03 "Apex Colossus"
+*s_trooper_zombie_tank_super_20 name=Specimen e03 "Apex Colossus"
+*s_trooper_zombie_tank_super_30 name=Specimen e03 "Apex Colossus"
+*s_trooper_zombie_tank_super_40 name=Specimen e03 "Apex Colossus"
+*s_trooper_zombie_tank_super_50 name=Specimen e03 "Apex Colossus"
+*s_trooper_zombie_tank_super_60 name=Specimen e03 "Apex Colossus"
 *s_veh_portableWall(hostile)
 *s_zombie_hunter2_mis side=Mission
 *sea_grouper level=25

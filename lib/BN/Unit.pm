@@ -76,15 +76,8 @@ sub get {
    if (ref($unit) eq 'HASH') {
       bless $unit, $class;
       $unit->{_tag} = $key;
-      unless ($unit->{_name}) {
-         my $name = BN::Text->get($unit->{name}) || $key;
-         $name =~ s/\s+$//;
-         if ($name =~ /^Specimen/) {
-            $name =~ s/Speciment/Specimen/;
-            $name =~ s/'/"/g;
-         }
-         $unit->{_name} = $name;
-      }
+      $unit->{_name} ||= BN::Text->get($unit->{name}) || $key;
+      $unit->{_name} =~ s/\s+$//;
    }
    return $unit;
 }
