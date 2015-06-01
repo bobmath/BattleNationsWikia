@@ -22,6 +22,11 @@
 *def_missile_defense side=Building
 *def_pillbox side=Building
 *def_pillbox_armored side=Building
+*def_raider_barricade level=29
+*def_raider_barricade_weak level=15
+*def_raider_bombard [[Bombard]] level=29
+*def_raider_watchtower level=15
+*def_raider_watchtower_hard level=30
 *def_sandbag [[Sandbags (enemy)]]
 *def_saw_trap side=Building
 *def_tesla_coil side=Building
@@ -55,6 +60,8 @@
 *hero_raider_warlord level=30
 *hero_raider_warlord_ignorable [[Warlord Gantas (ignorable)]]
 *hero_raider_warlord_passive [[Warlord Gantas (passive)]]
+*hero_spiderwasp_queen level=56
+*hero_spiderwasp_queen_mission level=68
 *hero_spiderwasp_queen_super level=70
 *i17_veh_tank_railgun(hostile)
 *mis_s_bigfoot_shaman side=Mission
@@ -74,6 +81,7 @@
 *s_bazooka(hostile)
 *s_bigfoot_adult level=26
 *s_bigfoot_child level=26
+*s_boar level=4
 *s_boar_militia [[Wild Boar (militia)]]
 *s_boar_tough level=10
 *s_boar_weak level=4
@@ -104,11 +112,13 @@
 *s_mgshield(hostile)
 *s_midrange_agent(hostile)
 *s_minigunner(hostile)
+*s_missileStrike_enemy level=59
 *s_mortar(hostile)
 *s_mortar_turtleShell(hostile)
 *s_ninja(hostile)
 *s_ninja_npc level=64
 *s_officer(hostile)
+*s_raider level=1
 *s_raider_bombadier level=16
 *s_raider_boomboom level=2
 *s_raider_brawler level=5
@@ -120,6 +130,7 @@
 *s_raider_infantry level=3
 *s_raider_mortar level=3
 *s_raider_sniper_tutorial level=3
+*s_raidercannon level=1
 *s_ranger(hostile)
 *s_raptor level=5
 *s_raptor_no_dodge level=3
@@ -248,6 +259,7 @@
 *veh_mgtank(hostile)
 *veh_mlrs(hostile)
 *veh_mlrs_heavy(hostile)
+*veh_raider_mammoth level=4
 *veh_raider_mammoth_armored level=25
 *veh_raider_mammoth_armored_low level=15
 *veh_recon_heavy(hostile)

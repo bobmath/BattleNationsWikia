@@ -487,7 +487,6 @@ sub enemy_levels {
             if !exists($levels{$id}) || $levels{$id} > $level;
       }
    }
-
    foreach my $unit (BN::Unit->all()) {
       next if $unit->{side} eq 'Player';
       if (my $level = $unit->{_enemy_level}) {
@@ -496,7 +495,8 @@ sub enemy_levels {
       }
       $unit->{_level} = $1 if $unit->{_tag} =~ /_(\d+)(?:\(.*\))?$/;
       if (!$unit->{_level} || $unit->{_level} <= 1) {
-         $unit->{_level} = $levels{$unit->{_tag}};
+         $unit->{_level} = $levels{$unit->{_tag}}
+            and $unit->{_guessed_level} = 1;
       }
    }
 }
