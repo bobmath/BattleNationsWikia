@@ -39,11 +39,18 @@
 *def_saw_trap side=Building
 *def_tesla_coil side=Building
 *fr_civilian_unarmed_female [[Civilian Female]] level=59
+*fr_guy_chainsaw [[Frontier Lumberjack (civilian)]]
 *fr_guy_chainsaw_ignorable [[Frontier Lumberjack (ignorable)]]
+*fr_guy_dynamite [[Frontier Engineer (civilian)]]
 *fr_guy_dynamite_ignorable [[Frontier Engineer (ignorable)]]
+*fr_guy_hunter [[Frontier Hunter (civilian)]]
 *fr_guy_hunter_ignorable [[Frontier Hunter (ignorable)]]
+*fr_guy_pyro [[Frontier Pyro (civilian)]]
 *fr_guy_pyro_ignorable [[Frontier Pyro (ignorable)]]
+*fr_guy_shotgun [[Frontier Minuteman (civilian)]]
 *fr_guy_shotgun_ignorable [[Frontier Minuteman (ignorable)]]
+*fr_veh_pickup_catapult [[Frontier Chucker (civilian)]]
+*fr_veh_tractor [[Frontier Tractor (civilian)]]
 *hero_ancient_robot_30 [[Ancient Construct (Boss Strike)]]
 *hero_ancient_robot_45 [[Ancient Construct (Boss Strike)]]
 *hero_ancient_robot_60 [[Ancient Construct (Boss Strike)]]

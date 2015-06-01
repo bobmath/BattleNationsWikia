@@ -125,9 +125,7 @@ BN->accessor(wiki_page => sub {
          $unit_names{$u->name()} |= 2 if $side eq 'Hostile';
       }
    }
-   if ($unit_names{$name} == 3) {
-      $name .= ($name =~ /^Frontier /) ? ' (civilian)' : ' (enemy)';
-   }
+   $name .= ' (enemy)' if $unit_names{$name} == 3;
    return $name;
 });
 
