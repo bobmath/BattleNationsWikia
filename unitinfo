@@ -8,18 +8,19 @@
 *air_s_trooper_zombie_d name=Specimen f04 "Archetype Hunter"
 *air_spiderwasp_striker level=45
 *air_spiderwasp_striker(spawn) [[Spiderwasp Drone (spawn)]] side=Spawn level=66
-*boss_goliath_tank_leftside [[Multi-Launch Rocket System (Left)]]
-*boss_goliath_tank_leftside_mis [[Multi-Launch Rocket System (Left) (Mission)]]
-*boss_goliath_tank_main [[Goliath Tank (Main)]]
-*boss_goliath_tank_main_mis [[Goliath Tank (Main) (Mission)]]
-*boss_goliath_tank_rightside [[Multi-Launch Rocket System (Right)]]
-*boss_goliath_tank_rightside_mis [[Multi-Launch Rocket System (Right) (Mission)]]
-*boss_ship_dreadnaught [[Dreadnought (Mission)]] level=25
-*boss_ship_dreadnaught_35 [[Dreadnought (Mission)]]
-*boss_ship_dreadnaught_45 [[Dreadnought (Mission)]]
-*boss_ship_dreadnaught_55 [[Dreadnought (Mission)]]
-*boss_ship_dreadnaught_65 [[Dreadnought (Mission)]]
-*boss_ship_dreadnaught_strong level=40
+*boss_goliath_tank_leftside [[Multi-Launch Rocket System (Left)]] affil=rebel
+*boss_goliath_tank_leftside_mis [[Multi-Launch Rocket System (Left) (Mission)]] affil=rebel
+*boss_goliath_tank_main [[Goliath Tank (Main)]] affil=rebel
+*boss_goliath_tank_main_mis [[Goliath Tank (Main) (Mission)]] affil=rebel
+*boss_goliath_tank_rightside [[Multi-Launch Rocket System (Right)]] affil=rebel
+*boss_goliath_tank_rightside_mis [[Multi-Launch Rocket System (Right) (Mission)]] affil=rebel
+*boss_ship_dreadnaught [[Dreadnought (Mission)]] level=25 affil=sn
+*boss_ship_dreadnaught_35 [[Dreadnought (Mission)]] affil=sn
+*boss_ship_dreadnaught_45 [[Dreadnought (Mission)]] affil=sn
+*boss_ship_dreadnaught_55 [[Dreadnought (Mission)]] affil=sn
+*boss_ship_dreadnaught_65 [[Dreadnought (Mission)]] affil=sn
+*boss_ship_dreadnaught_strong level=40 affil=sn
+*boss_ship_dreadnaught_strong_60 affil=sn
 *def_blockhouse side=Building
 *def_cannontower side=Building
 *def_chem_sprinkler side=Building

@@ -7,6 +7,7 @@ use Storable qw( dclone );
 my $units;
 
 my %load_map = (
+   affil       => '_affiliation',
    level       => '_enemy_level',
    name        => '_name',
    shortname   => '_shortname',
