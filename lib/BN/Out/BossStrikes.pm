@@ -6,8 +6,11 @@ use POSIX qw( ceil );
 
 sub write {
    foreach my $strike (BN::BossStrike->all()) {
-      my $file = BN::Out->filename('strikes', $strike->tag());
+      my $title = $strike->name();
+      $title = "Boss Strike $1: $title" if $strike->tag() =~ /^boss(\d+)/;
+      my $file = BN::Out->filename('strikes', $title);
       open my $F, '>', $file or die "Can't write $file: $!";
+      print $F $title, "\n";
 
       if (my $icon = BN::Out->icon($strike->icon(), 'right')) {
          print $F $icon, "\n";
