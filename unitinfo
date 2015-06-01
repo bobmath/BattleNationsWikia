@@ -48,6 +48,7 @@
 *hero_ancient_robot_45 [[Ancient Construct (Boss Strike)]]
 *hero_ancient_robot_60 [[Ancient Construct (Boss Strike)]]
 *hero_cast_cassidy_unlimited_ammo level=56
+*hero_cast_i17_malfunctioning_laser level=42
 *hero_cast_morgan level=15
 *hero_cast_morgan_buff [[Lt. Morgan (buffed)]]
 *hero_cast_morgan_duels [[Lt. Morgan (duels)]]
@@ -62,6 +63,8 @@
 *hero_cast_ramsey_buff [[Ramsey]]
 *hero_cast_ramsey_hostage [[Ramsey (hostage)]]
 *hero_cast_ramsey_rage_buff level=30
+*hero_cast_sw_bronson level=46
+*hero_malfunctioning_robot level=67
 *hero_raider_crazyblades_ignorable [[Crazy Blades (ignorable)]]
 *hero_raider_sarin_ignorable [[Sarin (ignorable)]]
 *hero_raider_tronk_14_ignorable [[Tronk (ignorable)]]
