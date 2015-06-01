@@ -1,13 +1,13 @@
-*air_attack_helicopter(hostile) _level=10
-*air_spiderwasp_striker _level=45
-*air_spiderwasp_striker(spawn) [[Spiderwasp Drone (spawn)]] side=Spawn
+*air_attack_helicopter(hostile) level=10
+*air_spiderwasp_striker level=45
+*air_spiderwasp_striker(spawn) [[Spiderwasp Drone (spawn)]] side=Spawn level=66
 *boss_goliath_tank_leftside [[Multi-Launch Rocket System (Left)]]
 *boss_goliath_tank_leftside_mis [[Multi-Launch Rocket System (Left) (Mission)]]
 *boss_goliath_tank_main [[Goliath Tank (Main)]]
 *boss_goliath_tank_main_mis [[Goliath Tank (Main) (Mission)]]
 *boss_goliath_tank_rightside [[Multi-Launch Rocket System (Right)]]
 *boss_goliath_tank_rightside_mis [[Multi-Launch Rocket System (Right) (Mission)]]
-*boss_ship_dreadnaught [[Dreadnought (Mission)]] _level=25
+*boss_ship_dreadnaught [[Dreadnought (Mission)]] level=25
 *boss_ship_dreadnaught_35 [[Dreadnought (Mission)]]
 *boss_ship_dreadnaught_45 [[Dreadnought (Mission)]]
 *boss_ship_dreadnaught_55 [[Dreadnought (Mission)]]
@@ -32,8 +32,8 @@
 *hero_ancient_robot_30 [[Ancient Construct (Boss Strike)]]
 *hero_ancient_robot_45 [[Ancient Construct (Boss Strike)]]
 *hero_ancient_robot_60 [[Ancient Construct (Boss Strike)]]
-*hero_cast_cassidy_unlimited_ammo _level=56
-*hero_cast_morgan _level=15
+*hero_cast_cassidy_unlimited_ammo level=56
+*hero_cast_morgan level=15
 *hero_cast_morgan_buff [[Lt. Morgan (buffed)]]
 *hero_cast_morgan_duels [[Lt. Morgan (duels)]]
 *hero_cast_perkins_duels [[Perkins (duels)]]
@@ -46,15 +46,15 @@
 *hero_cast_ramsey_50 [[Ramsey]]
 *hero_cast_ramsey_buff [[Ramsey]]
 *hero_cast_ramsey_hostage [[Ramsey (hostage)]]
-*hero_cast_ramsey_rage_buff _level=30
+*hero_cast_ramsey_rage_buff level=30
 *hero_raider_crazyblades_ignorable [[Crazy Blades (ignorable)]]
 *hero_raider_sarin_ignorable [[Sarin (ignorable)]]
 *hero_raider_tronk_14_ignorable [[Tronk (ignorable)]]
-*hero_raider_warlord _level=30
+*hero_raider_warlord level=30
 *hero_raider_warlord_ignorable [[Warlord Gantas (ignorable)]]
 *hero_raider_warlord_passive [[Warlord Gantas (passive)]]
-*hero_spiderwasp_queen_super _level=70
-*i17_veh_tank_railgun(hostile) _level=60
+*hero_spiderwasp_queen_super level=70
+*i17_veh_tank_railgun(hostile) level=60
 *mis_s_bigfoot_shaman side=Mission
 *mis_s_scientist_20 side=Mission
 *mis_s_scientist_40 side=Mission
@@ -64,20 +64,20 @@
 *mis_veh_monster_60 side=Mission
 *raptor_zombie_enemy_20 [[Shredder (unused)]]
 *raptor_zombie_enemy_40 [[Shredder (unused)]]
-*s_arctic_trooper(hostile) _level=55
-*s_arctic_trooper_rebel _level=65
-*s_arsonist(hostile) _level=5
-*s_bazooka(hostile) _level=25
+*s_arctic_trooper(hostile) level=55
+*s_arctic_trooper_rebel level=65
+*s_arsonist(hostile) level=5
+*s_bazooka(hostile) level=25
 *s_boar_militia [[Wild Boar (militia)]]
-*s_bounty_hunter(hostile) name=Rebel Peacemonger _level=45
-*s_chem_trooper(hostile) _level=40
-*s_chem_trooper_rebel _level=55
-*s_commando(hostile) _level=30
+*s_bounty_hunter(hostile) name=Rebel Peacemonger level=45
+*s_chem_trooper(hostile) level=40
+*s_chem_trooper_rebel level=55
+*s_commando(hostile) level=30
 *s_commando_ignore [[Commando (ignorable)]]
-*s_commando_rebel _level=55
-*s_crowd_control_trooper(hostile) _level=35
-*s_demolition(hostile) _level=35
-*s_dragoon(hostile) name=Rebel Dragoon _level=5
+*s_commando_rebel level=55
+*s_crowd_control_trooper(hostile) level=35
+*s_demolition(hostile) level=35
+*s_dragoon(hostile) name=Rebel Dragoon level=5
 *s_flame(hostile)
 *s_flame_heavy(hostile)
 *s_grenadier(hostile)
@@ -91,24 +91,24 @@
 *s_laser_machingun(hostile)
 *s_laser_machingun_mission side=Mission
 *s_mammoth_tank_spawn [[Mammoth Tank (spawn)]]
-*s_mgshield(hostile)
+*s_mgshield(hostile) level=25
 *s_midrange_agent(hostile)
 *s_minigunner(hostile)
 *s_mortar(hostile)
 *s_mortar_turtleShell(hostile)
 *s_ninja(hostile)
-*s_ninja_npc _level=64
+*s_ninja_npc level=64
 *s_officer(hostile)
-*s_raider_dustwalker [[Dust Walker (enemy)]] _level=10
+*s_raider_dustwalker [[Dust Walker (enemy)]] level=10
 *s_raider_dustwalker_40 [[Dust Walker (enemy)]]
-*s_raider_firebreather [[Firebreather (enemy)]] _level=20
+*s_raider_firebreather [[Firebreather (enemy)]] level=20
 *s_raider_firebreather_40 [[Firebreather (enemy)]]
-*s_raider_sniper_tutorial _level=3
+*s_raider_sniper_tutorial level=3
 *s_ranger(hostile)
 *s_rocket_light(hostile)
 *s_rpg(hostile)
 *s_saboteur(hostile)
-*s_sandworm_elder _level=27
+*s_sandworm_elder level=27
 *s_sandworm_emperor_45 side=Unreleased
 *s_shock(hostile)
 *s_shock_spawn [[Shock Trooper (spawn)]]
@@ -123,7 +123,7 @@
 *s_trooper_cryo(hostile)
 *s_trooper_dragoon_heavy(hostile)
 *s_trooper_fire_ice(hostile)
-*s_trooper_jetpack(hostile) _level=5
+*s_trooper_jetpack(hostile) level=5
 *s_trooper_jetpack_spawn [[Aero Jetpack Trooper (spawn)]] side=Player
 *s_trooper_lightning(hostile)
 *s_trooper_missileStrike(hostile)
@@ -135,10 +135,10 @@
 *s_trooper_veteran(hostile)
 *s_veh_portableWall(hostile)
 *s_zombie_hunter2_mis side=Mission
-*ship_battleship_elite _level=30
-*ship_battleship_super_elite _level=30
-*ship_destroyer_elite _level=30
-*ship_gunboat_elite _level=30
+*ship_battleship_elite level=30
+*ship_battleship_super_elite level=30
+*ship_destroyer_elite level=30
+*ship_gunboat_elite level=30
 *ship_minelayer_25 side=Hostile
 *ship_minelayer_35 side=Hostile
 *ship_minelayer_45 side=Hostile
@@ -154,12 +154,12 @@
 *ship_raft_trooper_45 side=Hostile
 *ship_raft_trooper_55 side=Hostile
 *ship_raft_trooper_65 side=Hostile
-*ship_submarine_elite _level=30
+*ship_submarine_elite level=30
 *ship_tactical_sub_35 side=Hostile
 *ship_tactical_sub_45 side=Hostile
 *ship_tactical_sub_55 side=Hostile
 *ship_tactical_sub_65 side=Hostile
-*sw_veh_artillery [[Silver Wolf Artillery]] _level=35
+*sw_veh_artillery [[Silver Wolf Artillery]] level=35
 *sw_veh_artillery_20 [[Silver Wolf Artillery]]
 *sw_veh_artillery_5 [[Silver Wolf Artillery]]
 *sw_veh_artillery_player [[Wolf Artillery]]
@@ -177,19 +177,19 @@
 *tf2_hero_pyro [[Pyro (Team Fortress 2)]]
 *tf2_hero_scout [[Scout (Team Fortress 2)]]
 *tf2_hero_scout_ignore side=Mission
-*tf2_hero_soldier [[Soldier (Team Fortress 2)]]
+*tf2_hero_soldier [[Soldier (Team Fortress 2)]] level=15
 *tf2_hero_soldier_25 side=Mission
 *tf2_hero_soldier_35 side=Mission
 *tf2_hero_soldier_45 side=Mission
 *tf2_hero_soldier_55 side=Mission
-*veh_anti_aircraft_gun_premium(hostile)
-*veh_anti_aircraft_gun_regular(hostile)
+*veh_anti_aircraft_gun_premium(hostile) level=5
+*veh_anti_aircraft_gun_regular(hostile) level=10
 *veh_armored_suv_20 side=Mission
 *veh_armored_suv_40 side=Mission
 *veh_armored_suv_60 side=Mission
 *veh_artillery(hostile)
 *veh_artillery_heavy(hostile)
-*veh_artillery_light(hostile)
+*veh_artillery_light(hostile) level=10
 *veh_artillery_mech_mis side=Mission
 *veh_artillery_mega(hostile)
 *veh_artillery_napalm(hostile)
@@ -213,15 +213,15 @@
 *veh_mgtank(hostile)
 *veh_mlrs(hostile)
 *veh_mlrs_heavy(hostile)
-*veh_raider_mammoth_armored _level=25
+*veh_raider_mammoth_armored level=25
 *veh_recon_heavy(hostile)
 *veh_recon_light(hostile)
 *veh_rockettruck_light(hostile)
-*veh_sports_bike(hostile)
+*veh_sports_bike(hostile) level=35
 *veh_sw_catapult_15 side=Mission
 *veh_sw_catapult_30 side=Mission
 *veh_sw_catapult_45 side=Mission
-*veh_tank_arctic(hostile)
+*veh_tank_arctic(hostile) level=55
 *veh_tank_arctic_heavy(hostile)
 *veh_tank_basilisk(hostile)
 *veh_tank_chem_heavy(hostile)

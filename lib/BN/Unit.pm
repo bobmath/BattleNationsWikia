@@ -6,6 +6,13 @@ use Storable qw( dclone );
 
 my $units;
 
+my %load_map = (
+   level       => '_enemy_level',
+   name        => '_name',
+   shortname   => '_shortname',
+   side        => 'side',
+);
+
 sub load {
    return if $units;
    $units = BN::File->json('BattleUnits.json');
@@ -43,8 +50,9 @@ sub load {
       while (@parts) {
          my $key = shift(@parts);
          my $val = shift(@parts) // '';
+         $key = $load_map{$key} or next;
          $val =~ s/ $//;
-         $unit->{'_'.$key} = $val;
+         $unit->{$key} = $val;
       }
    }
    close $F;
@@ -76,9 +84,6 @@ sub get {
             $name =~ s/'/"/g;
          }
          $unit->{_name} = $name;
-      }
-      if (my $side = $unit->{_side}) {
-         $unit->{side} = $side;
       }
    }
    return $unit;
@@ -485,7 +490,7 @@ sub enemy_levels {
 
    foreach my $unit (BN::Unit->all()) {
       next if $unit->{side} eq 'Player';
-      if (my $level = $unit->{__level}) {
+      if (my $level = $unit->{_enemy_level}) {
          $unit->{_level} = $level;
          next;
       }
