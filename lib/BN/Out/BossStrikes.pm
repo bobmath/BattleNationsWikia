@@ -133,7 +133,7 @@ sub show_weights {
    my $cols = 5;
    my $step = ceil(@tbl / $cols);
    print $F "==Guild Weights==\n";
-   print $F qq[{| class="wikitable"\n|-\n];
+   print $F qq[{| class="wikitable mw-collapsible mw-collapsed"\n|-\n];
    print $F "! Size !! Bonus !! Total\n" for 1 .. $cols;
    for my $row (0 .. $step-1) {
       my $i = $row;
