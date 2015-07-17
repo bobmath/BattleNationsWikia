@@ -61,12 +61,7 @@ sub unit_profile {
    profile_line($F, 'blocking', $unit->blocking());
    unit_defense($F, $unit, \@notes);
    profile_line($F, 'limit', $unit->deploy_limit());
-   if (my $spawn = $unit->spawned_unit()) {
-      my $s_icon = BN::Out->icon($spawn->icon(), '30px', 'link=') || '';
-      my $s_name = $spawn->name();
-      my $s_short = $spawn->shortname();
-      profile_line($F, 'spawn', "$s_icon [[$s_name (spawn)|$s_short]]");
-   }
+   spawned_unit($F, $unit);
    profile_line($F, 'notes', join('<br>', @notes)) if @notes;
    profile_line($F, 'game file name', $unit->tag());
    print $F "}}\n";
@@ -74,6 +69,15 @@ sub unit_profile {
       print $F "{{IGD|$desc}}\n";
    }
    print $F "==Overview==\n{{Clear}}\n\n";
+}
+
+sub spawned_unit {
+   my ($F, $unit) = @_;
+   my $spawn = $unit->spawned_unit() or return;
+   my $name = BN::Out->icon($spawn->icon(), '30px', 'link=');
+   $name .= ' ' if defined $name;
+   $name .= $spawn->shortlink();
+   profile_line($F, 'spawn', $name);
 }
 
 sub unit_defense {
@@ -463,6 +467,7 @@ sub enemy_profile {
       push @tags, $unit->tag();
    }
 
+   spawned_unit($F, $unit);
    profile_line($F, 'notes', join('<br>', @notes)) if @notes;
    profile_line($F, 'game file name', join(', ', @tags));
    print $F "}}\n";
