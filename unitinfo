@@ -278,6 +278,7 @@
 *ship_tactical_sub_45 side=Hostile
 *ship_tactical_sub_55 side=Hostile
 *ship_tactical_sub_65 side=Hostile
+*sw_guy_uzi_spawn [[Wolf Thug (spawn)]] side=Player
 *sw_veh_artillery [[Silver Wolf Artillery]]
 *sw_veh_artillery_20 [[Silver Wolf Artillery]]
 *sw_veh_artillery_5 [[Silver Wolf Artillery]]
