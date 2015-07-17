@@ -167,8 +167,15 @@ sub format_amount {
    if ($units) {
       my @units;
       while (my ($key, $num) = each %$units) {
-         my $unit = BN::Unit->get($key);
-         my $name = $unit ? $unit->wikilink() : $key;
+         my $name;
+         if (my $unit = BN::Unit->get($key)) {
+            $name = BN::Out->icon($unit->icon(), '30px', 'link=');
+            $name .= ' ' if defined $name;
+            $name .= $unit->wikilink();
+         }
+         else {
+            $name = $key;
+         }
          $name .= " x $num" if $num > 1;
          push @units, $name;
       }
