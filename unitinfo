@@ -145,8 +145,7 @@
 *s_laser_machingun(hostile)
 *s_laser_machingun_mission side=Mission
 *s_mammoth level=5
-*s_mammoth_tank_spawn [[Mammoth Tank (spawn)]]
-*s_mammoth_tank_spawn level=45
+*s_mammoth_tank_spawn [[War Mammoth (spawn)]] level=45
 *s_mammoth_tough level=20
 *s_mammoth_weak level=10
 *s_mgshield(hostile)
