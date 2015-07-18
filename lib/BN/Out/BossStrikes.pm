@@ -63,25 +63,12 @@ sub unit_rewards {
          next if $seen{$id};
          $seen{$id} = 1;
          my $unit = BN::Unit->get($id) or next;
-         push @units, $unit;
+         push @units, BN::Out->icon($unit->icon(), '30px', 'link=' .
+            $unit->wiki_page()) // $unit->shortlink();
       }
    }
    return unless @units;
-   my @text;
-   if (@units > 4) {
-      foreach my $unit (@units) {
-         push @text, BN::Out->icon($unit->icon(), '30px', 'link=' .
-            $unit->wiki_page()) // $unit->shortlink();
-      }
-      return join(' ', @text);
-   }
-   foreach my $unit (@units) {
-      my $text = BN::Out->icon($unit->icon(), '30px', 'link=');
-      $text .= ' ' if defined $text;
-      $text .= $unit->shortlink();
-      push @text, $text;
-   }
-   return join('<br>', @text);
+   return join ' ', @units;
 }
 
 sub status_effects {
