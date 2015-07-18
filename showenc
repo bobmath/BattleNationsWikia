@@ -214,16 +214,16 @@ sub show_encounter {
       print $F "Total: {{BSPoints|$total_uv}}<br>\n";
    }
 
+   if (my $eff = $enc->environment()) {
+      my $text = $eff->effect();
+      print $F "Environmental damage: $text<br>\n" if $text;
+   }
+
    my $num = $enc->{attackerSlots};
    if (my $def = $enc->{attackerDefenseSlots}) {
       $num .= ", $def Defense";
    }
    print $F "Player Units: $num\n";
-
-   if (my $eff = $enc->environment()) {
-      my $text = $eff->effect();
-      print $F "Environmental damage: $text\n" if $text;
-   }
 }
 
 my %icon_tags;
