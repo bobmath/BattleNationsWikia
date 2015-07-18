@@ -178,11 +178,6 @@ sub show_encounter {
 
    print $F "</tabber>\n{{Clear}}\n";
 
-   if (my $eff = $enc->environment()) {
-      my $text = $eff->effect();
-      print $F "Environmental damage: $text\n" if $text;
-   }
-
    my $wnum;
    my $total_uv;
    foreach my $wave (@$waves) {
@@ -224,6 +219,11 @@ sub show_encounter {
       $num .= ", $def Defense";
    }
    print $F "Player Units: $num\n";
+
+   if (my $eff = $enc->environment()) {
+      my $text = $eff->effect();
+      print $F "Environmental damage: $text\n" if $text;
+   }
 }
 
 my %icon_tags;
