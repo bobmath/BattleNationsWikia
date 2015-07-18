@@ -33,6 +33,7 @@ sub show_infobox {
    info_line($F, 'donation', donation_rsrc($strike));
    info_line($F, 'rewards', unit_rewards($strike));
    info_line($F, 'status effects', status_effects($strike));
+   info_line($F, 'game file name', $strike->tag());
    print $F "}}\n";
    print_desc($F, $strike->short_desc());
    print_desc($F, $strike->long_desc());
