@@ -47,6 +47,8 @@ front["blockhouses_idle"]={x=55,y=142,w=112,f="Blockhouses_idle_front.png"}
 front["boss_goliath_tank_leftside"]={x=77,y=318,w=227,f="Boss_goliath_tank_leftside_front.png"}
 front["boss_goliath_tank_main"]={x=122,y=380,w=378,f="Boss_goliath_tank_main_front.png"}
 front["boss_goliath_tank_rightside"]={x=37,y=266,w=230,f="Boss_goliath_tank_rightside_front.png"}
+front["boss_kraken_body"]={x=151,y=161,w=286,f="Boss_kraken_body_Crop.png"}
+front["boss_kraken_arm"]={x=40,y=206,w=102,f="Boss_kraken_arm_front_Crop.png"}
 front["boss_ship_dreadnought"]={x=107,y=313,w=337,f="Boss_ship_dreadnought_front.png"}
 front["boss_spiderwasp_queen"]={x=134,y=237,w=213,f="Boss_spiderwasp_queen_front.png"}
 front["cannonSchoolBus"]={x=58,y=146,w=124,f="CannonSchoolBus_front.png"}
