@@ -12,14 +12,7 @@ sub write {
       open my $F, '>', $file or die "Can't write $file: $!";
       print $F $title, "\n";
 
-      if (my $icon = BN::Out->icon($strike->icon(), 'right')) {
-         print $F $icon, "\n";
-      }
-      print_desc($F, $strike->short_desc());
-      print_desc($F, $strike->long_desc());
-      print_desc($F, $strike->prize_desc());
-      print $F "\n";
-
+      show_infobox($F, $strike);
       show_tiers($F, $strike);
       show_enemies($F, $strike);
       show_weights($F, $strike);
@@ -27,6 +20,98 @@ sub write {
       close $F;
       BN::Out->compare($file);
    }
+}
+
+sub show_infobox {
+   my ($F, $strike) = @_;
+   print $F "{{EventInfoBox\n";
+   info_line($F, 'image', BN::Out->icon($strike->icon(), 'link='));
+   info_line($F, 'name', $strike->name());
+   info_line($F, 'type', '[[Boss Strike]]');
+   info_line($F, 'points', '{{BSPoints}} Boss Strike Points');
+   info_line($F, 'weighting', 'Guild Weighting');
+   info_line($F, 'donation', donation_rsrc($strike));
+   info_line($F, 'rewards', unit_rewards($strike));
+   info_line($F, 'status effects', status_effects($strike));
+   print $F "}}\n";
+   print_desc($F, $strike->short_desc());
+   print_desc($F, $strike->long_desc());
+   print_desc($F, $strike->prize_desc());
+   print $F "\n";
+}
+
+sub donation_rsrc {
+   my ($strike) = @_;
+   my %donation;
+   foreach my $tier ($strike->tiers()) {
+      my $cost = $tier->cost() or next;
+      $donation{$_} = 1 foreach keys %$cost;
+   }
+   return unless keys(%donation) == 1;
+   my ($what) = keys %donation;
+   $what = ucfirst($what);
+   return "{{$what|$what}}";
+}
+
+sub unit_rewards {
+   my ($strike) = @_;
+   my (@units, %seen);
+   foreach my $tier ($strike->tiers()) {
+      my $rewards = $tier->rewards() or next;
+      my $units = $rewards->{units} or next;
+      foreach my $id (sort keys %$units) {
+         next if $seen{$id};
+         $seen{$id} = 1;
+         my $unit = BN::Unit->get($id) or next;
+         push @units, $unit;
+      }
+   }
+   return unless @units;
+   my @text;
+   if (@units > 4) {
+      foreach my $unit (@units) {
+         push @text, BN::Out->icon($unit->icon(), '30px', 'link=' .
+            $unit->wiki_page()) // $unit->shortlink();
+      }
+      return join(' ', @text);
+   }
+   foreach my $unit (@units) {
+      my $text = BN::Out->icon($unit->icon(), '30px', 'link=');
+      $text .= ' ' if defined $text;
+      $text .= $unit->shortlink();
+      push @text, $text;
+   }
+   return join('<br>', @text);
+}
+
+sub status_effects {
+   my ($strike) = @_;
+   my %ids;
+   foreach my $encounter (@{$strike->{globalEventEncounters}}) {
+      my $id = $encounter->{encounterId} or next;
+      $ids{$id} = 1;
+   }
+   foreach my $tier ($strike->tiers()) {
+      foreach my $encounter (@{$tier->{encounters}}) {
+         my $id = $encounter->{encounterId} or next;
+         $ids{$id} = 1;
+      }
+   }
+
+   my %icons;
+   foreach my $id (keys %ids) {
+      my $enc = BN::Encounter->get($id) or next;
+      my $env = $enc->environment() or next;
+      my $icon = $env->icon() or next;
+      $icons{$icon} = 1;
+   }
+   return unless %icons;
+   return join ' ', map { "{{$_}}" } sort keys %icons;
+}
+
+sub info_line {
+   my ($F, $tag, $val) = @_;
+   printf $F "| %-14s = %s\n", $tag, $val if defined $val;
 }
 
 sub print_desc {
