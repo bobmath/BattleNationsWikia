@@ -14,15 +14,15 @@
 *boss_goliath_tank_main_mis [[Goliath Tank (Main) (Mission)]] affil=rebel
 *boss_goliath_tank_rightside [[Multi-Launch Rocket System (Right)]] affil=rebel
 *boss_goliath_tank_rightside_mis [[Multi-Launch Rocket System (Right) (Mission)]] affil=rebel
-*boss_kraken_arm_40 [[Kraken Tentacle (mission)]] level=33
-*boss_kraken_arm_50 [[Kraken Tentacle (mission)]] level=46
-*boss_kraken_arm_60 level=40
-*boss_kraken_arm_60(mission) [[Kraken Tentacle (mission)]] level=61
-*boss_kraken_body_40 [[The Kraken (mission)]] level=33
-*boss_kraken_body_50 [[The Kraken (mission)]] level=46
-*boss_kraken_body_60 level=40
-*boss_kraken_body_60(mission) [[The Kraken (mission)]] level=61
-*boss_kraken_body_strong level=60
+*boss_kraken_arm_40 [[Kraken Tentacle (mission)]] level=33 affil=critter
+*boss_kraken_arm_50 [[Kraken Tentacle (mission)]] level=46 affil=critter
+*boss_kraken_arm_60 level=40 affil=critter
+*boss_kraken_arm_60(mission) [[Kraken Tentacle (mission)]] level=61 affil=critter
+*boss_kraken_body_40 [[The Kraken (mission)]] level=33 affil=critter
+*boss_kraken_body_50 [[The Kraken (mission)]] level=46 affil=critter
+*boss_kraken_body_60 level=40 affil=critter
+*boss_kraken_body_60(mission) [[The Kraken (mission)]] level=61 affil=critter
+*boss_kraken_body_strong level=60 affil=critter
 *boss_ship_dreadnaught [[Dreadnought (Mission)]] level=25 affil=sn
 *boss_ship_dreadnaught_35 [[Dreadnought (Mission)]] affil=sn
 *boss_ship_dreadnaught_45 [[Dreadnought (Mission)]] affil=sn
