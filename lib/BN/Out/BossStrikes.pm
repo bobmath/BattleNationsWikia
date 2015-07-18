@@ -16,7 +16,10 @@ sub write {
       show_tiers($F, $strike);
       show_enemies($F, $strike);
       show_weights($F, $strike);
-      print $F dump($strike), "\n";
+      print $F "{{BossStrikeBox}}\n",
+         "[[Category:Boss Strike]]\n",
+         "[[Category:Events]]\n\n",
+         dump($strike), "\n";
       close $F;
       BN::Out->compare($file);
    }
