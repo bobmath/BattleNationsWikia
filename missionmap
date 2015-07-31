@@ -1,0 +1,90 @@
+use strict;
+use warnings;
+use lib 'lib';
+use BN;
+
+my %hide;
+$hide{$_} = 1 foreach qw(
+);
+
+my (@levels, %same_in, %same_out);
+foreach my $mis (BN::Mission->all()) {
+   next if $mis->hidden() || $hide{$mis->tag()};
+   next if $mis->is_promo();
+   my $level = $mis->level() or next;
+   push @{$levels[$level]}, $mis;
+}
+
+open my $OUT, '>:utf8', 'missionmap.dot';
+print $OUT "digraph mis {\n",
+   "ranksep=0.2\n",
+   "nodesep=0.2\n",
+   "unflatten=true\n",
+   "node [ shape=box width=0.5 height=0.25 fontsize=12 ]\n";
+
+my $lev_edge = '[ weight=0 style=invis ]';
+
+my $prev_lev = 0;
+foreach my $level (1 .. $#levels) {
+   my $missions = $levels[$level] or next;
+   if (my $prev_missions = $levels[$prev_lev]) {
+      foreach my $mis (@$prev_missions) {
+         my $tag = $mis->tag();
+         print $OUT "$tag -> level$level $lev_edge\n"
+            unless $hide{$tag} || $same_out{$tag};
+      }
+   }
+   $prev_lev = $level;
+   print $OUT qq[level$level [ shape=oval fontsize=24 label="Level $level" ]\n];
+   foreach my $mis (@$missions) {
+      filter_prereqs($mis);
+   }
+   foreach my $mis (@$missions) {
+      my $tag = $mis->tag();
+      next if $hide{$tag};
+      my $name = $mis->name();
+      $name =~ s/(["\\])/\\$1/g;
+      print $OUT qq[$tag [ label="$name" ]\n];
+      foreach my $pre (filter_prereqs($mis)) {
+         print $OUT "$pre -> $tag\n";
+      }
+      print $OUT "level$level -> $tag $lev_edge\n" unless $same_in{$tag};
+   }
+}
+
+sub filter_prereqs {
+   my ($mis) = @_;
+   my (%prereqs, %seen);
+   my $tag = $mis->tag();
+   my $level = $mis->level();
+   my $name = $mis->name();
+   $seen{$tag} = 1;
+   my @active = $mis->min_prereqs();
+   while (@active) {
+      my $id = pop @active;
+      next if $seen{$id};
+      $seen{$id} = 1;
+      my $m = BN::Mission->get($id) or next;
+      my $lev = $m->level() or next;
+      if ($hide{$id} || $m->hidden()) {
+         push @active, $m->min_prereqs();
+      }
+      else {
+         $prereqs{$id} = 1;
+         if ($lev == $level) {
+            if ($m->name() eq $name) { $hide{$tag} = 1 }
+            else { $same_in{$tag} = $same_out{$id} = 1 }
+         }
+      }
+   }
+   delete $prereqs{$tag};
+   return sort keys %prereqs;
+}
+
+print $OUT "}\n";
+close $OUT;
+unlink 'missionmap.png';
+print "Plotting...\n";
+system('dot -Tpng -o missionmap.png missionmap.dot') == 0 or die;
+system('open missionmap.png') == 0 or die;
+
