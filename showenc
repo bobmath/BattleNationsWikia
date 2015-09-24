@@ -122,7 +122,7 @@ sub write_strike {
          foreach my $tnum (sort keys %$tiers) {
             push @links, "[[/Level $levels tier $tnum battles|tier $tnum]]";
          }
-         print "*Level $levels ", join(', ', @links), "\n";
+         print "*Level $levels: ", join(', ', @links), "\n";
       }
    }
 }
